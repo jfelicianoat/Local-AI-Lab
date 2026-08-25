@@ -1,0 +1,44 @@
+{
+  "schema_version": "local-ai-lab.broker-requirements.v1",
+  "policy": {
+    "allowed_methods": ["GET"],
+    "allowed_paths": ["/health", "/api/v1/capabilities"],
+    "unknown_fields": "tolerated",
+    "broker_persistence": "never_read",
+    "broker_installation": "never_modified"
+  },
+  "requirement_sets": {
+    "phase0": {
+      "minimum_contract": null,
+      "boolean_capabilities": [],
+      "strategies": []
+    },
+    "retrieval": {
+      "minimum_contract": null,
+      "boolean_capabilities": ["exact_target_model", "derived_data_boundary"],
+      "strategies": ["single"]
+    },
+    "formal_evaluation": {
+      "minimum_contract": "2.9",
+      "boolean_capabilities": [
+        "exact_target_model",
+        "generation_determinism",
+        "exclude_from_model_learning",
+        "invocation_telemetry",
+        "execution_fingerprint"
+      ],
+      "strategies": ["single"]
+    },
+    "agent_experiments": {
+      "minimum_contract": "2.9",
+      "boolean_capabilities": [
+        "exact_target_model",
+        "client_tool_passthrough",
+        "exclude_from_model_learning",
+        "invocation_telemetry",
+        "execution_fingerprint"
+      ],
+      "strategies": ["agent", "mixture_of_agents"]
+    }
+  }
+}

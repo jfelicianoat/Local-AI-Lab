@@ -1,0 +1,872 @@
+{
+  "nodes": [
+    {
+      "id": "local_ai_lab_readme_local_ai_lab",
+      "label": "Local AI Lab",
+      "file_type": "document",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_readme_capability_detector",
+      "label": "Detector de capacidades",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_readme_ai_broker_compatibility",
+      "label": "Compatibilidad de AI Broker",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_readme_read_only_dependency",
+      "label": "AI Broker como dependencia de solo lectura",
+      "file_type": "rationale",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_single_distributed_product",
+      "label": "Un único producto distribuido",
+      "file_type": "rationale",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_nvidia_coordinator",
+      "label": "Coordinator NVIDIA",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_amd_worker",
+      "label": "Worker AMD",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_node_capabilities",
+      "label": "NodeCapabilities",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_capability_based_scheduling",
+      "label": "Scheduling basado en capacidades medidas",
+      "file_type": "rationale",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_knowledge_snapshot",
+      "label": "Knowledge Snapshot",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_remote_vault_rejection",
+      "label": "No montar el vault remoto en AMD",
+      "file_type": "rationale",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_rag_context_transfer",
+      "label": "Transferencia de contexto RAG",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_dataset_package",
+      "label": "Paquete de dataset inmutable",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_authoritative_coordinator_state",
+      "label": "Estado autoritativo del Coordinator",
+      "file_type": "rationale",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_offline_job_durability",
+      "label": "Durabilidad de jobs desconectados",
+      "file_type": "rationale",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_definitive_spec",
+      "label": "Spec definitiva de Local AI Lab",
+      "file_type": "document",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Instrucciones y razones sobre como será el desarrollo de la app.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_strategy_ladder",
+      "label": "Escalera progresiva de estrategias",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Instrucciones y razones sobre como será el desarrollo de la app.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_multisource_research",
+      "label": "Investigación y síntesis multifuente",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Instrucciones y razones sobre como será el desarrollo de la app.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_capability_scheduler",
+      "label": "Scheduler por capacidades",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Instrucciones y razones sobre como será el desarrollo de la app.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_dataset_factory",
+      "label": "Dataset Factory",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Instrucciones y razones sobre como será el desarrollo de la app.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_fine_tuning_gate",
+      "label": "Fine-tuning condicionado por evidencia",
+      "file_type": "rationale",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Instrucciones y razones sobre como será el desarrollo de la app.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_model_drift_evaluation",
+      "label": "Evaluación formal mediante Model Drift",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Instrucciones y razones sobre como será el desarrollo de la app.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_0_report_phase_0_report",
+      "label": "Informe de Fase 0",
+      "file_type": "document",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_0_REPORT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_0_report_node_capability_report",
+      "label": "NodeCapabilityReport",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_0_REPORT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_0_report_evidence_taxonomy",
+      "label": "Taxonomía declared detected tested benchmarked",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_0_REPORT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_0_report_nvidia_evidence",
+      "label": "Evidencia detectada del nodo NVIDIA",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_0_REPORT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_0_report_broker_read_only_negotiation",
+      "label": "Negociación read-only con AI Broker",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_0_REPORT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_0_report_closed_phase_gate",
+      "label": "Puerta de Fase 0 cerrada",
+      "file_type": "rationale",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_0_REPORT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_a_design_phase_a_design",
+      "label": "Diseño de Fase A",
+      "file_type": "document",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_a_design_coordinator_worker_architecture",
+      "label": "Arquitectura Coordinator-Worker",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_a_design_ai_broker_boundary",
+      "label": "Frontera de AI Broker",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_a_design_knowledge_orchestrator_boundary",
+      "label": "Frontera de Knowledge Orchestrator",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_a_design_model_drift_bridge",
+      "label": "Bridge contractual de Model Drift",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_a_design_read_only_vault_snapshots",
+      "label": "Snapshots read-only del vault",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_a_design_strategy_protocol",
+      "label": "Interfaz común Strategy",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_a_design_dual_benchmark",
+      "label": "Benchmark dual real y controlado",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_a_design_local_sqlite_and_cas",
+      "label": "SQLite local y CAS de artefactos",
+      "file_type": "rationale",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_a_design_security_controls",
+      "label": "Controles de seguridad y privacidad",
+      "file_type": "concept",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "local_ai_lab_docs_phase_a_design_evidence_gated_development",
+      "label": "Desarrollo gobernado por puertas de evidencia",
+      "file_type": "rationale",
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "local_ai_lab_readme_local_ai_lab",
+      "target": "local_ai_lab_readme_capability_detector",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_readme_local_ai_lab",
+      "target": "local_ai_lab_readme_ai_broker_compatibility",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_readme_read_only_dependency",
+      "target": "local_ai_lab_readme_ai_broker_compatibility",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_single_distributed_product",
+      "target": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_nvidia_coordinator",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_single_distributed_product",
+      "target": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_amd_worker",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_nvidia_coordinator",
+      "target": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_amd_worker",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_node_capabilities",
+      "target": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_capability_based_scheduling",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_remote_vault_rejection",
+      "target": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_knowledge_snapshot",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_knowledge_snapshot",
+      "target": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_rag_context_transfer",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_knowledge_snapshot",
+      "target": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_dataset_package",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_authoritative_coordinator_state",
+      "target": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_nvidia_coordinator",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_offline_job_durability",
+      "target": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_amd_worker",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_definitive_spec",
+      "target": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_strategy_ladder",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Instrucciones y razones sobre como será el desarrollo de la app.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_definitive_spec",
+      "target": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_multisource_research",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Instrucciones y razones sobre como será el desarrollo de la app.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_capability_scheduler",
+      "target": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_strategy_ladder",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Instrucciones y razones sobre como será el desarrollo de la app.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_dataset_factory",
+      "target": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_fine_tuning_gate",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Instrucciones y razones sobre como será el desarrollo de la app.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_fine_tuning_gate",
+      "target": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_strategy_ladder",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Instrucciones y razones sobre como será el desarrollo de la app.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_model_drift_evaluation",
+      "target": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_strategy_ladder",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Instrucciones y razones sobre como será el desarrollo de la app.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_0_report_phase_0_report",
+      "target": "local_ai_lab_docs_phase_0_report_node_capability_report",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_0_REPORT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_0_report_node_capability_report",
+      "target": "local_ai_lab_docs_phase_0_report_evidence_taxonomy",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_0_REPORT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_0_report_nvidia_evidence",
+      "target": "local_ai_lab_docs_phase_0_report_node_capability_report",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_0_REPORT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_0_report_broker_read_only_negotiation",
+      "target": "local_ai_lab_readme_ai_broker_compatibility",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_0_REPORT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_0_report_closed_phase_gate",
+      "target": "local_ai_lab_docs_phase_0_report_phase_0_report",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_0_REPORT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_a_design_phase_a_design",
+      "target": "local_ai_lab_docs_phase_a_design_coordinator_worker_architecture",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_a_design_phase_a_design",
+      "target": "local_ai_lab_docs_phase_a_design_ai_broker_boundary",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_a_design_phase_a_design",
+      "target": "local_ai_lab_docs_phase_a_design_knowledge_orchestrator_boundary",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_a_design_phase_a_design",
+      "target": "local_ai_lab_docs_phase_a_design_model_drift_bridge",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_a_design_coordinator_worker_architecture",
+      "target": "local_ai_lab_docs_phase_a_design_read_only_vault_snapshots",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_a_design_strategy_protocol",
+      "target": "local_ai_lab_docs_phase_a_design_dual_benchmark",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_a_design_model_drift_bridge",
+      "target": "local_ai_lab_docs_phase_a_design_dual_benchmark",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_a_design_local_sqlite_and_cas",
+      "target": "local_ai_lab_docs_phase_a_design_coordinator_worker_architecture",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_a_design_security_controls",
+      "target": "local_ai_lab_docs_phase_a_design_coordinator_worker_architecture",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_a_design_evidence_gated_development",
+      "target": "local_ai_lab_docs_phase_a_design_phase_a_design",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_capability_based_scheduling",
+      "target": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_capability_scheduler",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_knowledge_snapshot",
+      "target": "local_ai_lab_docs_phase_a_design_read_only_vault_snapshots",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_single_distributed_product",
+      "target": "local_ai_lab_docs_phase_a_design_coordinator_worker_architecture",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_0_report_node_capability_report",
+      "target": "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_node_capabilities",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_0_REPORT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_model_drift_evaluation",
+      "target": "local_ai_lab_docs_phase_a_design_model_drift_bridge",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Instrucciones y razones sobre como será el desarrollo de la app.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "local_ai_lab_docs_phase_0_report_closed_phase_gate",
+      "target": "local_ai_lab_docs_phase_a_design_evidence_gated_development",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_0_REPORT.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "distributed_local_ai_lab_topology",
+      "label": "Topología distribuida de Local AI Lab",
+      "nodes": [
+        "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_nvidia_coordinator",
+        "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_amd_worker",
+        "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_node_capabilities",
+        "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_authoritative_coordinator_state"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md"
+    },
+    {
+      "id": "reproducible_private_knowledge_flow",
+      "label": "Flujo reproducible de conocimiento privado",
+      "nodes": [
+        "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_knowledge_snapshot",
+        "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_rag_context_transfer",
+        "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_dataset_package",
+        "local_ai_lab_docs_phase_a_design_read_only_vault_snapshots"
+      ],
+      "relation": "participate_in",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Explicacion interaccion apps Local AI Lab.md"
+    },
+    {
+      "id": "evidence_driven_strategy_selection",
+      "label": "Selección de estrategias basada en evidencia",
+      "nodes": [
+        "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_strategy_ladder",
+        "local_ai_lab_docs_phase_a_design_strategy_protocol",
+        "local_ai_lab_docs_phase_a_design_dual_benchmark",
+        "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_model_drift_evaluation",
+        "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_fine_tuning_gate"
+      ],
+      "relation": "participate_in",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\PHASE_A_DESIGN.md"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

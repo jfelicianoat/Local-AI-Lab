@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local-ai-lab.invalid/contracts/overview.v1.schema.json",
+  "title": "Desktop overview v1",
+  "type": "object",
+  "required": ["schema_version", "observed_at", "phase", "gate_status", "nodes", "job_counts", "evidence", "external_dependencies"],
+  "properties": {
+    "schema_version": { "const": "local-ai-lab.overview.v1" },
+    "observed_at": { "type": "string", "format": "date-time" },
+    "phase": { "type": "string" },
+    "gate_status": { "type": "string" },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["node_id", "hostname", "status", "last_heartbeat_at", "capabilities_observed"],
+        "properties": {
+          "node_id": { "type": "string" },
+          "hostname": { "type": "string" },
+          "status": { "type": "string" },
+          "last_heartbeat_at": { "type": "string", "format": "date-time" },
+          "capabilities_observed": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "job_counts": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+    "evidence": { "type": "array", "items": { "$ref": "phase-evidence.v1.schema.json" } },
+    "external_dependencies": {
+      "type": "object",
+      "required": ["ai_broker", "vault", "model_drift"],
+      "properties": {
+        "ai_broker": { "type": "string" },
+        "vault": { "type": "string" },
+        "model_drift": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

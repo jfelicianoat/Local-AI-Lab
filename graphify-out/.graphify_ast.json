@@ -1,0 +1,3552 @@
+{
+  "nodes": [
+    {
+      "id": "pkg_local_ai_lab",
+      "label": "local-ai-lab",
+      "file_type": "code",
+      "type": "package",
+      "ecosystem": "python",
+      "source_file": "pyproject.toml",
+      "source_location": "L1",
+      "version": "0.0.1",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_run_phase0_probe",
+      "label": "run_phase0_probe.ps1",
+      "file_type": "code",
+      "source_file": "scripts/run_phase0_probe.ps1",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_init",
+      "label": "__init__.py",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/__init__.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_init",
+      "label": "__init__.py",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/__init__.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_init_rationale_1",
+      "label": "Read-only AI Broker contract negotiation.",
+      "file_type": "rationale",
+      "source_file": "src/local_ai_lab/broker/__init__.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility",
+      "label": "compatibility.py",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_brokerrequirement",
+      "label": "BrokerRequirement",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L21",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_readonlyresponse",
+      "label": "ReadOnlyResponse",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L63",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_readonlytransport",
+      "label": "ReadOnlyTransport",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L68",
+      "_origin": "ast"
+    },
+    {
+      "id": "protocol",
+      "label": "Protocol",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_readonlytransport_get",
+      "label": ".get()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L69",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_urllibreadonlytransport",
+      "label": "UrllibReadOnlyTransport",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L74",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_urllibreadonlytransport_get",
+      "label": ".get()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L77",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_brokercheckerror",
+      "label": "BrokerCheckError",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L89",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport",
+      "label": "BrokerCompatibilityReport",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L97",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_payload",
+      "label": ".payload()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L117",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_seal",
+      "label": ".seal()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L123",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_to_json",
+      "label": ".to_json()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L132",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker",
+      "label": "BrokerCompatibilityChecker",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L138",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_init",
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L139",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_check",
+      "label": ".check()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L142",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_read_json",
+      "label": "._read_json()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L187",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_evaluate_capabilities",
+      "label": "._evaluate_capabilities()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L234",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_finalize",
+      "label": "._finalize()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L269",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_normalize_broker_endpoint",
+      "label": "normalize_broker_endpoint()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L299",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_contract_at_least",
+      "label": "contract_at_least()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L313",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_rationale_75",
+      "label": "Transport whose public interface cannot express a mutating HTTP method.",
+      "file_type": "rationale",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L75",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_init",
+      "label": "__init__.py",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/__init__.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_init_rationale_1",
+      "label": "Capability evidence and non-destructive node probes.",
+      "file_type": "rationale",
+      "source_file": "src/local_ai_lab/capabilities/__init__.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_model",
+      "label": "model.py",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_model_capabilityfact",
+      "label": "CapabilityFact",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L14",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_model_probeobservation",
+      "label": "ProbeObservation",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L25",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "label": "NodeCapabilityReport",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L33",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_model_nodecapabilityreport_payload",
+      "label": ".payload()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L44",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_model_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_model_nodecapabilityreport_seal",
+      "label": ".seal()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L50",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_model_nodecapabilityreport_to_json",
+      "label": ".to_json()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L59",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_model_utc_now",
+      "label": "utc_now()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L65",
+      "_origin": "ast"
+    },
+    {
+      "id": "datetime",
+      "label": "datetime",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_model_isoformat_utc",
+      "label": "isoformat_utc()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L69",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_model_verify_serialized_report",
+      "label": "verify_serialized_report()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L73",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_model_rationale_74",
+      "label": "Verify a report without trusting or executing any field from it.",
+      "file_type": "rationale",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L74",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe",
+      "label": "probe.py",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_commandresult",
+      "label": "CommandResult",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L28",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_commandnotallowederror",
+      "label": "CommandNotAllowedError",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L34",
+      "_origin": "ast"
+    },
+    {
+      "id": "valueerror",
+      "label": "ValueError",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_readonlycommandrunner",
+      "label": "ReadOnlyCommandRunner",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L38",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_readonlycommandrunner_call",
+      "label": ".__call__()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L45",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_readonlycommandrunner_decode_output",
+      "label": "._decode_output()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L80",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_memorystatusex",
+      "label": "_MemoryStatusEx",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L92",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "label": "NodeProbe",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L106",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_nodeprobe_init",
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L121",
+      "_origin": "ast"
+    },
+    {
+      "id": "clock",
+      "label": "Clock",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_nodeprobe_collect",
+      "label": ".collect()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L130",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_nodeprobe_fact",
+      "label": "._fact()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L163",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_platform",
+      "label": "._collect_platform()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L185",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_memory",
+      "label": "._collect_memory()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L199",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_disk",
+      "label": "._collect_disk()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L219",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_versions",
+      "label": "._collect_versions()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L230",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_nvidia",
+      "label": "._collect_nvidia()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L242",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_rocm",
+      "label": "._collect_rocm()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L270",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_wsl",
+      "label": "._collect_wsl()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L281",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_rationale_39",
+      "label": "Runs a deliberately small allowlist of inspection-only commands.",
+      "file_type": "rationale",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L39",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_cli",
+      "label": "cli.py",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_cli_build_parser",
+      "label": "build_parser()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "argumentparser",
+      "label": "ArgumentParser",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_local_ai_lab_cli_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L32",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_broker_compatibility",
+      "label": "test_broker_compatibility.py",
+      "file_type": "code",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_broker_compatibility_faketransport",
+      "label": "FakeTransport",
+      "file_type": "code",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L29",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_broker_compatibility_faketransport_init",
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L30",
+      "_origin": "ast"
+    },
+    {
+      "id": "exception",
+      "label": "Exception",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_broker_compatibility_faketransport_get",
+      "label": ".get()",
+      "file_type": "code",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L34",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_broker_compatibility_encoded",
+      "label": "encoded()",
+      "file_type": "code",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L42",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_broker_compatibility_checker_for",
+      "label": "checker_for()",
+      "file_type": "code",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L46",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_broker_compatibility_test_formal_evaluation_is_satisfied_by_29",
+      "label": "test_formal_evaluation_is_satisfied_by_29()",
+      "file_type": "code",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L57",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_broker_compatibility_test_old_contract_and_missing_flags_require_upgrade",
+      "label": "test_old_contract_and_missing_flags_require_upgrade()",
+      "file_type": "code",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L69",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_broker_compatibility_test_additive_unknown_fields_are_tolerated",
+      "label": "test_additive_unknown_fields_are_tolerated()",
+      "file_type": "code",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L81",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_broker_compatibility_test_http_failures_are_classified_without_claiming_upgrade",
+      "label": "test_http_failures_are_classified_without_claiming_upgrade()",
+      "file_type": "code",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L91",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_broker_compatibility_test_invalid_contract_is_unknown_not_incompatible",
+      "label": "test_invalid_contract_is_unknown_not_incompatible()",
+      "file_type": "code",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L107",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_broker_compatibility_test_unsafe_endpoint_is_rejected",
+      "label": "test_unsafe_endpoint_is_rejected()",
+      "file_type": "code",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L126",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_broker_compatibility_test_transport_contract_exposes_get_only_and_token_is_not_reported",
+      "label": "test_transport_contract_exposes_get_only_and_token_is_not_reported()",
+      "file_type": "code",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L131",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_broker_compatibility_test_requirement_artifact_matches_executable_policy",
+      "label": "test_requirement_artifact_matches_executable_policy()",
+      "file_type": "code",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L143",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_capability_probe",
+      "label": "test_capability_probe.py",
+      "file_type": "code",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_capability_probe_fakerunner",
+      "label": "FakeRunner",
+      "file_type": "code",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L21",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_capability_probe_fakerunner_init",
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L22",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_capability_probe_fakerunner_call",
+      "label": ".__call__()",
+      "file_type": "code",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L26",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_capability_probe_runner",
+      "label": "_runner()",
+      "file_type": "code",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L33",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_capability_probe_test_probe_records_detection_without_claiming_workload_tests",
+      "label": "test_probe_records_detection_without_claiming_workload_tests()",
+      "file_type": "code",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L51",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_capability_probe_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_capability_probe_test_failed_wsl_probe_is_an_error_not_a_negative_capability",
+      "label": "test_failed_wsl_probe_is_an_error_not_a_negative_capability()",
+      "file_type": "code",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L62",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_capability_probe_test_report_hash_covers_the_canonical_payload",
+      "label": "test_report_hash_covers_the_canonical_payload()",
+      "file_type": "code",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L71",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_capability_probe_test_report_verification_rejects_tampering",
+      "label": "test_report_verification_rejects_tampering()",
+      "file_type": "code",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L85",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_capability_probe_test_report_verification_rejects_malformed_documents",
+      "label": "test_report_verification_rejects_malformed_documents()",
+      "file_type": "code",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L97",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_capability_probe_test_command_runner_rejects_everything_outside_read_only_allowlist",
+      "label": "test_command_runner_rejects_everything_outside_read_only_allowlist()",
+      "file_type": "code",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L102",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_capability_probe_test_windows_utf16_diagnostics_are_decoded_without_nul_characters",
+      "label": "test_windows_utf16_diagnostics_are_decoded_without_nul_characters()",
+      "file_type": "code",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L112",
+      "_origin": "ast"
+    },
+    {
+      "id": "tests_test_capability_probe_test_probe_command_set_is_read_only",
+      "label": "test_probe_command_set_is_read_only()",
+      "file_type": "code",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L120",
+      "_origin": "ast"
+    }
+  ],
+  "edges": [
+    {
+      "source": "src_local_ai_lab_broker_init",
+      "target": "local_ai_lab_broker_compatibility",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/__init__.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_init_rationale_1",
+      "target": "src_local_ai_lab_broker_init",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/__init__.py",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "hashlib",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "json",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "socket",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "urllib_error",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "urllib_request",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "uuid",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "dataclasses",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "datetime",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "typing",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "urllib_parse",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "src_local_ai_lab_broker_compatibility_brokerrequirement",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "src_local_ai_lab_broker_compatibility_readonlyresponse",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "src_local_ai_lab_broker_compatibility_readonlytransport",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_readonlytransport",
+      "target": "protocol",
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_readonlytransport",
+      "target": "src_local_ai_lab_broker_compatibility_readonlytransport_get",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_readonlytransport_get",
+      "target": "src_local_ai_lab_broker_compatibility_readonlyresponse",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "src_local_ai_lab_broker_compatibility_urllibreadonlytransport",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_urllibreadonlytransport",
+      "target": "src_local_ai_lab_broker_compatibility_urllibreadonlytransport_get",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_urllibreadonlytransport_get",
+      "target": "src_local_ai_lab_broker_compatibility_readonlyresponse",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "src_local_ai_lab_broker_compatibility_brokercheckerror",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_payload",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_payload",
+      "target": "src_local_ai_lab_broker_compatibility_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_seal",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L123",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_to_json",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L132",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L138",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_init",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_init",
+      "target": "src_local_ai_lab_broker_compatibility_readonlytransport",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_check",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L142",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_check",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L142",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_read_json",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_read_json",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_read_json",
+      "target": "src_local_ai_lab_broker_compatibility_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_evaluate_capabilities",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L234",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_evaluate_capabilities",
+      "target": "src_local_ai_lab_broker_compatibility_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L234",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_evaluate_capabilities",
+      "target": "src_local_ai_lab_broker_compatibility_brokerrequirement",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L234",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_evaluate_capabilities",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L234",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_finalize",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L269",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_finalize",
+      "target": "src_local_ai_lab_broker_compatibility_brokerrequirement",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L269",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_finalize",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L269",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "src_local_ai_lab_broker_compatibility_normalize_broker_endpoint",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L299",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility",
+      "target": "src_local_ai_lab_broker_compatibility_contract_at_least",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L313",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_urllibreadonlytransport_get",
+      "target": "src_local_ai_lab_broker_compatibility_readonlyresponse",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_seal",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_payload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_to_json",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_seal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_to_json",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_payload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_init",
+      "target": "src_local_ai_lab_broker_compatibility_urllibreadonlytransport",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L140",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_check",
+      "target": "src_local_ai_lab_broker_compatibility_normalize_broker_endpoint",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_check",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L158",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_check",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_read_json",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L173",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_check",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_evaluate_capabilities",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L181",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_check",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_finalize",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_check",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_seal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L184",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_read_json",
+      "target": "src_local_ai_lab_broker_compatibility_urllibreadonlytransport_get",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L198",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_read_json",
+      "target": "src_local_ai_lab_broker_compatibility_brokercheckerror",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L202",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_evaluate_capabilities",
+      "target": "src_local_ai_lab_broker_compatibility_urllibreadonlytransport_get",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L239",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_evaluate_capabilities",
+      "target": "src_local_ai_lab_broker_compatibility_brokercheckerror",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L243",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_evaluate_capabilities",
+      "target": "src_local_ai_lab_broker_compatibility_contract_at_least",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L263",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_rationale_75",
+      "target": "src_local_ai_lab_broker_compatibility_urllibreadonlytransport",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_init",
+      "target": "local_ai_lab_capabilities_model",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/__init__.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_init",
+      "target": "local_ai_lab_capabilities_probe",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/__init__.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_init_rationale_1",
+      "target": "src_local_ai_lab_capabilities_init",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/__init__.py",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model",
+      "target": "hashlib",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model",
+      "target": "json",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model",
+      "target": "dataclasses",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model",
+      "target": "datetime",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model",
+      "target": "typing",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model",
+      "target": "src_local_ai_lab_capabilities_model_capabilityfact",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model",
+      "target": "src_local_ai_lab_capabilities_model_probeobservation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport_payload",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model_nodecapabilityreport_payload",
+      "target": "src_local_ai_lab_capabilities_model_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport_seal",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport_to_json",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model",
+      "target": "src_local_ai_lab_capabilities_model_utc_now",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model_utc_now",
+      "target": "datetime",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model",
+      "target": "src_local_ai_lab_capabilities_model_isoformat_utc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model_isoformat_utc",
+      "target": "datetime",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model",
+      "target": "src_local_ai_lab_capabilities_model_verify_serialized_report",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model_nodecapabilityreport_seal",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport_payload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model_nodecapabilityreport_to_json",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport_seal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model_nodecapabilityreport_to_json",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport_payload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model_rationale_74",
+      "target": "src_local_ai_lab_capabilities_model_verify_serialized_report",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "csv",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "ctypes",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "os",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "platform",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "shutil",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "socket",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "subprocess",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "uuid",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "collections_abc",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "dataclasses",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "datetime",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "local_ai_lab_capabilities_model",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "src_local_ai_lab_capabilities_probe_commandresult",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "src_local_ai_lab_capabilities_probe_commandnotallowederror",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_commandnotallowederror",
+      "target": "valueerror",
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "src_local_ai_lab_capabilities_probe_readonlycommandrunner",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_readonlycommandrunner",
+      "target": "src_local_ai_lab_capabilities_probe_readonlycommandrunner_call",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_readonlycommandrunner_call",
+      "target": "src_local_ai_lab_capabilities_probe_commandresult",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_readonlycommandrunner",
+      "target": "src_local_ai_lab_capabilities_probe_readonlycommandrunner_decode_output",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "src_local_ai_lab_capabilities_probe_memorystatusex",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_init",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_init",
+      "target": "src_local_ai_lab_capabilities_probe_commandresult",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_init",
+      "target": "clock",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L130",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect",
+      "target": "src_local_ai_lab_capabilities_probe_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L130",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L130",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_fact",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L163",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_fact",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L163",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_platform",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L185",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_platform",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L185",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_memory",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L199",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_memory",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L199",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_disk",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L219",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_disk",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L219",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_disk",
+      "target": "src_local_ai_lab_capabilities_probe_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L219",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_versions",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L230",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_versions",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L230",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_nvidia",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L242",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_nvidia",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L242",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_rocm",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L270",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_rocm",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L270",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_wsl",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L281",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_wsl",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L281",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_readonlycommandrunner_call",
+      "target": "src_local_ai_lab_capabilities_probe_commandnotallowederror",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_readonlycommandrunner_call",
+      "target": "src_local_ai_lab_capabilities_probe_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_readonlycommandrunner_call",
+      "target": "src_local_ai_lab_capabilities_probe_commandresult",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_readonlycommandrunner_call",
+      "target": "src_local_ai_lab_capabilities_probe_readonlycommandrunner_decode_output",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_init",
+      "target": "src_local_ai_lab_capabilities_probe_readonlycommandrunner",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L136",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_platform",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L144",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_memory",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L145",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_disk",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L146",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_versions",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L147",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_nvidia",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_rocm",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L149",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_wsl",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_platform",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_fact",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L196",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_memory",
+      "target": "src_local_ai_lab_capabilities_probe_memorystatusex",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L205",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_memory",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_fact",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L215",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_disk",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_fact",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L225",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_versions",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_fact",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L235",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_nvidia",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_fact",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L261",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_rocm",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_fact",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L273",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_wsl",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe_fact",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L284",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_rationale_39",
+      "target": "src_local_ai_lab_capabilities_probe_readonlycommandrunner",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli",
+      "target": "argparse",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli",
+      "target": "os",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli",
+      "target": "sys",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli",
+      "target": "local_ai_lab_broker_compatibility",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli",
+      "target": "local_ai_lab_capabilities_model",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli",
+      "target": "local_ai_lab_capabilities_probe",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli",
+      "target": "src_local_ai_lab_cli_build_parser",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli_build_parser",
+      "target": "argumentparser",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli",
+      "target": "src_local_ai_lab_cli_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli_build_parser",
+      "target": "argumentparser",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli_main",
+      "target": "src_local_ai_lab_cli_build_parser",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "json",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "pytest",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "local_ai_lab_broker_compatibility",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "tests_test_broker_compatibility_faketransport",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_faketransport",
+      "target": "tests_test_broker_compatibility_faketransport_init",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_faketransport_init",
+      "target": "src_local_ai_lab_broker_compatibility_readonlyresponse",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_faketransport_init",
+      "target": "exception",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_faketransport",
+      "target": "tests_test_broker_compatibility_faketransport_get",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_faketransport_get",
+      "target": "src_local_ai_lab_broker_compatibility_readonlyresponse",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "tests_test_broker_compatibility_encoded",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_encoded",
+      "target": "src_local_ai_lab_broker_compatibility_readonlyresponse",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "tests_test_broker_compatibility_checker_for",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_checker_for",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_checker_for",
+      "target": "tests_test_broker_compatibility_faketransport",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "tests_test_broker_compatibility_test_formal_evaluation_is_satisfied_by_29",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "tests_test_broker_compatibility_test_old_contract_and_missing_flags_require_upgrade",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "tests_test_broker_compatibility_test_additive_unknown_fields_are_tolerated",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "tests_test_broker_compatibility_test_http_failures_are_classified_without_claiming_upgrade",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "tests_test_broker_compatibility_test_invalid_contract_is_unknown_not_incompatible",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L107",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "tests_test_broker_compatibility_test_unsafe_endpoint_is_rejected",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L126",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "tests_test_broker_compatibility_test_transport_contract_exposes_get_only_and_token_is_not_reported",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility",
+      "target": "tests_test_broker_compatibility_test_requirement_artifact_matches_executable_policy",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L143",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_encoded",
+      "target": "src_local_ai_lab_broker_compatibility_readonlyresponse",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_checker_for",
+      "target": "tests_test_broker_compatibility_faketransport",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_checker_for",
+      "target": "tests_test_broker_compatibility_encoded",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_checker_for",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_test_formal_evaluation_is_satisfied_by_29",
+      "target": "tests_test_broker_compatibility_checker_for",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_test_old_contract_and_missing_flags_require_upgrade",
+      "target": "tests_test_broker_compatibility_checker_for",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_test_additive_unknown_fields_are_tolerated",
+      "target": "tests_test_broker_compatibility_checker_for",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_test_http_failures_are_classified_without_claiming_upgrade",
+      "target": "tests_test_broker_compatibility_faketransport",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_test_http_failures_are_classified_without_claiming_upgrade",
+      "target": "tests_test_broker_compatibility_encoded",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_test_http_failures_are_classified_without_claiming_upgrade",
+      "target": "src_local_ai_lab_broker_compatibility_readonlyresponse",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_test_http_failures_are_classified_without_claiming_upgrade",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L100",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_test_invalid_contract_is_unknown_not_incompatible",
+      "target": "tests_test_broker_compatibility_checker_for",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L108",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_test_transport_contract_exposes_get_only_and_token_is_not_reported",
+      "target": "tests_test_broker_compatibility_checker_for",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L132",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "json",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "hashlib",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "datetime",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "pytest",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "local_ai_lab_capabilities_model",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "local_ai_lab_capabilities_probe",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "tests_test_capability_probe_fakerunner",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_fakerunner",
+      "target": "tests_test_capability_probe_fakerunner_init",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_fakerunner_init",
+      "target": "src_local_ai_lab_capabilities_probe_commandresult",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_fakerunner",
+      "target": "tests_test_capability_probe_fakerunner_call",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_fakerunner_call",
+      "target": "src_local_ai_lab_capabilities_probe_commandresult",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "tests_test_capability_probe_runner",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_runner",
+      "target": "tests_test_capability_probe_fakerunner",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "tests_test_capability_probe_test_probe_records_detection_without_claiming_workload_tests",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_probe_records_detection_without_claiming_workload_tests",
+      "target": "tests_test_capability_probe_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "tests_test_capability_probe_test_failed_wsl_probe_is_an_error_not_a_negative_capability",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_failed_wsl_probe_is_an_error_not_a_negative_capability",
+      "target": "tests_test_capability_probe_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "tests_test_capability_probe_test_report_hash_covers_the_canonical_payload",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_report_hash_covers_the_canonical_payload",
+      "target": "tests_test_capability_probe_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "tests_test_capability_probe_test_report_verification_rejects_tampering",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_report_verification_rejects_tampering",
+      "target": "tests_test_capability_probe_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "tests_test_capability_probe_test_report_verification_rejects_malformed_documents",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "tests_test_capability_probe_test_command_runner_rejects_everything_outside_read_only_allowlist",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "tests_test_capability_probe_test_windows_utf16_diagnostics_are_decoded_without_nul_characters",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe",
+      "target": "tests_test_capability_probe_test_probe_command_set_is_read_only",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L120",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_probe_command_set_is_read_only",
+      "target": "tests_test_capability_probe_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L120",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_fakerunner_call",
+      "target": "src_local_ai_lab_capabilities_probe_commandresult",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_runner",
+      "target": "tests_test_capability_probe_fakerunner",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_runner",
+      "target": "src_local_ai_lab_capabilities_probe_commandresult",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_probe_records_detection_without_claiming_workload_tests",
+      "target": "tests_test_capability_probe_runner",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_failed_wsl_probe_is_an_error_not_a_negative_capability",
+      "target": "tests_test_capability_probe_runner",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_report_hash_covers_the_canonical_payload",
+      "target": "tests_test_capability_probe_runner",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_report_verification_rejects_tampering",
+      "target": "tests_test_capability_probe_runner",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_probe_command_set_is_read_only",
+      "target": "tests_test_capability_probe_runner",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_commandresult",
+      "target": "src_local_ai_lab_capabilities_model_capabilityfact",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_commandnotallowederror",
+      "target": "src_local_ai_lab_capabilities_model_capabilityfact",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_readonlycommandrunner",
+      "target": "src_local_ai_lab_capabilities_model_capabilityfact",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_memorystatusex",
+      "target": "src_local_ai_lab_capabilities_model_capabilityfact",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "target": "src_local_ai_lab_capabilities_model_capabilityfact",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_commandresult",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_commandnotallowederror",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_readonlycommandrunner",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_memorystatusex",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "target": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_commandresult",
+      "target": "src_local_ai_lab_capabilities_model_probeobservation",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_commandnotallowederror",
+      "target": "src_local_ai_lab_capabilities_model_probeobservation",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_readonlycommandrunner",
+      "target": "src_local_ai_lab_capabilities_model_probeobservation",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_memorystatusex",
+      "target": "src_local_ai_lab_capabilities_model_probeobservation",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "target": "src_local_ai_lab_capabilities_model_probeobservation",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L16",
+      "weight": 0.8
+    },
+    {
+      "source": "tests_test_broker_compatibility_faketransport",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L8",
+      "weight": 0.8
+    },
+    {
+      "source": "tests_test_broker_compatibility_faketransport",
+      "target": "src_local_ai_lab_broker_compatibility_readonlyresponse",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L8",
+      "weight": 0.8
+    },
+    {
+      "source": "tests_test_capability_probe_fakerunner",
+      "target": "src_local_ai_lab_capabilities_probe_commandnotallowederror",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L11",
+      "weight": 0.8
+    },
+    {
+      "source": "tests_test_capability_probe_fakerunner",
+      "target": "src_local_ai_lab_capabilities_probe_commandresult",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L11",
+      "weight": 0.8
+    },
+    {
+      "source": "tests_test_capability_probe_fakerunner",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L11",
+      "weight": 0.8
+    },
+    {
+      "source": "tests_test_capability_probe_fakerunner",
+      "target": "src_local_ai_lab_capabilities_probe_readonlycommandrunner",
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L11",
+      "weight": 0.8
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_check",
+      "target": "valueerror",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L154",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_broker_compatibility_normalize_broker_endpoint",
+      "target": "valueerror",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "source_location": "L303",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_model_verify_serialized_report",
+      "target": "valueerror",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/capabilities/model.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect",
+      "target": "src_local_ai_lab_capabilities_model_isoformat_utc",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_fact",
+      "target": "src_local_ai_lab_capabilities_model_capabilityfact",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L174",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_platform",
+      "target": "src_local_ai_lab_capabilities_model_probeobservation",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L197",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_memory",
+      "target": "src_local_ai_lab_capabilities_model_probeobservation",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L202",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_disk",
+      "target": "src_local_ai_lab_capabilities_model_probeobservation",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L223",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_versions",
+      "target": "src_local_ai_lab_capabilities_model_probeobservation",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L236",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_nvidia",
+      "target": "src_local_ai_lab_capabilities_model_probeobservation",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L247",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_rocm",
+      "target": "src_local_ai_lab_capabilities_model_probeobservation",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L274",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_capabilities_probe_nodeprobe_collect_wsl",
+      "target": "src_local_ai_lab_capabilities_model_probeobservation",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/capabilities/probe.py",
+      "source_location": "L285",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli_main",
+      "target": "src_local_ai_lab_capabilities_model_verify_serialized_report",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli_main",
+      "target": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "src_local_ai_lab_cli_main",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/local_ai_lab/cli.py",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_broker_compatibility_test_unsafe_endpoint_is_rejected",
+      "target": "src_local_ai_lab_broker_compatibility_normalize_broker_endpoint",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_broker_compatibility.py",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_probe_records_detection_without_claiming_workload_tests",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_failed_wsl_probe_is_an_error_not_a_negative_capability",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_report_hash_covers_the_canonical_payload",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_report_hash_covers_the_canonical_payload",
+      "target": "src_local_ai_lab_capabilities_model_verify_serialized_report",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L82",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_report_verification_rejects_tampering",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_report_verification_rejects_tampering",
+      "target": "src_local_ai_lab_capabilities_model_verify_serialized_report",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_report_verification_rejects_malformed_documents",
+      "target": "src_local_ai_lab_capabilities_model_verify_serialized_report",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_command_runner_rejects_everything_outside_read_only_allowlist",
+      "target": "src_local_ai_lab_capabilities_probe_readonlycommandrunner",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_command_runner_rejects_everything_outside_read_only_allowlist",
+      "target": "src_local_ai_lab_capabilities_probe_commandnotallowederror",
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L105",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_probe_command_set_is_read_only",
+      "target": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L122",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_capability_probe_test_windows_utf16_diagnostics_are_decoded_without_nul_characters",
+      "target": "src_local_ai_lab_capabilities_probe_readonlycommandrunner_decode_output",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_capability_probe.py",
+      "source_location": "L114",
+      "weight": 1.0
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

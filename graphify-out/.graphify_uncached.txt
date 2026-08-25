@@ -1,0 +1,5 @@
+D:\Desarrollo\Proyectos TFM\Local AI Lab\README.md
+D:\Desarrollo\Proyectos TFM\Local AI Lab\docs\Explicacion interaccion apps Local AI Lab.md
+D:\Desarrollo\Proyectos TFM\Local AI Lab\docs\Instrucciones y razones sobre como será el desarrollo de la app.md
+D:\Desarrollo\Proyectos TFM\Local AI Lab\docs\PHASE_0_REPORT.md
+D:\Desarrollo\Proyectos TFM\Local AI Lab\docs\PHASE_A_DESIGN.md

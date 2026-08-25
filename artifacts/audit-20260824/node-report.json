@@ -1,0 +1,308 @@
+{
+  "content_sha256": "e2ff8b2767b60224064b4610c860275c71df2aef822b75d92ad767a36361d91c",
+  "facts": [
+    {
+      "detail": null,
+      "key": "node.hostname",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "python.platform",
+      "status": "detected",
+      "unit": null,
+      "value": "DESKTOP-CAQ5SL5"
+    },
+    {
+      "detail": null,
+      "key": "os.system",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "python.platform",
+      "status": "detected",
+      "unit": null,
+      "value": "Windows"
+    },
+    {
+      "detail": null,
+      "key": "os.release",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "python.platform",
+      "status": "detected",
+      "unit": null,
+      "value": "11"
+    },
+    {
+      "detail": null,
+      "key": "os.version",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "python.platform",
+      "status": "detected",
+      "unit": null,
+      "value": "10.0.26200"
+    },
+    {
+      "detail": null,
+      "key": "os.machine",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "python.platform",
+      "status": "detected",
+      "unit": null,
+      "value": "AMD64"
+    },
+    {
+      "detail": null,
+      "key": "cpu.processor",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "python.platform",
+      "status": "detected",
+      "unit": null,
+      "value": "AMD64 Family 25 Model 97 Stepping 2, AuthenticAMD"
+    },
+    {
+      "detail": null,
+      "key": "cpu.logical_processors",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "python.platform",
+      "status": "detected",
+      "unit": null,
+      "value": 24
+    },
+    {
+      "detail": null,
+      "key": "memory.physical_total_bytes",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "Win32 API",
+      "status": "detected",
+      "unit": "bytes",
+      "value": 136593424384
+    },
+    {
+      "detail": null,
+      "key": "memory.physical_available_bytes",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "Win32 API",
+      "status": "detected",
+      "unit": "bytes",
+      "value": 10221322240
+    },
+    {
+      "detail": null,
+      "key": "storage.data_root",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "shutil.disk_usage",
+      "status": "detected",
+      "unit": null,
+      "value": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab"
+    },
+    {
+      "detail": null,
+      "key": "storage.total_bytes",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "shutil.disk_usage",
+      "status": "detected",
+      "unit": "bytes",
+      "value": 2000382062592
+    },
+    {
+      "detail": null,
+      "key": "storage.free_bytes",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "shutil.disk_usage",
+      "status": "detected",
+      "unit": "bytes",
+      "value": 345055395840
+    },
+    {
+      "detail": "python --version",
+      "key": "runtime.python",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "command",
+      "status": "detected",
+      "unit": null,
+      "value": "Python 3.14.0"
+    },
+    {
+      "detail": "node --version",
+      "key": "runtime.node",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "command",
+      "status": "detected",
+      "unit": null,
+      "value": "v24.11.1"
+    },
+    {
+      "detail": "pnpm --version",
+      "key": "runtime.pnpm",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "command",
+      "status": "detected",
+      "unit": null,
+      "value": "11.20.0"
+    },
+    {
+      "detail": "rustc --version",
+      "key": "runtime.rustc",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "command",
+      "status": "detected",
+      "unit": null,
+      "value": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
+    },
+    {
+      "detail": "cargo --version",
+      "key": "runtime.cargo",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "command",
+      "status": "detected",
+      "unit": null,
+      "value": "cargo 1.97.1 (c980f4866 2026-06-30)"
+    },
+    {
+      "detail": null,
+      "key": "gpu.0.vendor",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "nvidia-smi",
+      "status": "detected",
+      "unit": null,
+      "value": "NVIDIA"
+    },
+    {
+      "detail": null,
+      "key": "gpu.0.name",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "nvidia-smi",
+      "status": "detected",
+      "unit": null,
+      "value": "NVIDIA GeForce RTX 4060 Ti"
+    },
+    {
+      "detail": null,
+      "key": "gpu.0.uuid",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "nvidia-smi",
+      "status": "detected",
+      "unit": null,
+      "value": "GPU-032d5243-3c5f-3a18-7726-81de23096e8e"
+    },
+    {
+      "detail": null,
+      "key": "gpu.0.memory_total_mib",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "nvidia-smi",
+      "status": "detected",
+      "unit": "MiB",
+      "value": 16380
+    },
+    {
+      "detail": null,
+      "key": "gpu.0.driver_version",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "nvidia-smi",
+      "status": "detected",
+      "unit": null,
+      "value": "610.88"
+    },
+    {
+      "detail": null,
+      "key": "gpu.0.temperature_c",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "nvidia-smi",
+      "status": "detected",
+      "unit": "°C",
+      "value": 52
+    },
+    {
+      "detail": null,
+      "key": "gpu.0.performance_state",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "nvidia-smi",
+      "status": "detected",
+      "unit": null,
+      "value": "P2"
+    },
+    {
+      "detail": null,
+      "key": "runtime.wsl.status_available",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "source": "wsl --status",
+      "status": "detected",
+      "unit": null,
+      "value": true
+    }
+  ],
+  "limitations": [
+    "No ML workload was executed; inference and training remain untested.",
+    "No dtype, backward, LoRA, checkpoint, throughput or stability test was executed.",
+    "The node id is provisional until authenticated pairing persists a UUIDv7 identity."
+  ],
+  "node_id": "b6a1c5b7-016b-5e5d-98f1-76452be3315e",
+  "node_id_kind": "provisional_hostname_uuid5",
+  "observed_at": "2026-08-24T16:59:37.094050Z",
+  "probes": [
+    {
+      "detail": null,
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "probe": "platform",
+      "status": "completed"
+    },
+    {
+      "detail": null,
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "probe": "memory",
+      "status": "completed"
+    },
+    {
+      "detail": null,
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "probe": "disk",
+      "status": "completed"
+    },
+    {
+      "detail": null,
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "probe": "runtime.python",
+      "status": "completed"
+    },
+    {
+      "detail": null,
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "probe": "runtime.node",
+      "status": "completed"
+    },
+    {
+      "detail": null,
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "probe": "runtime.pnpm",
+      "status": "completed"
+    },
+    {
+      "detail": null,
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "probe": "runtime.rustc",
+      "status": "completed"
+    },
+    {
+      "detail": null,
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "probe": "runtime.cargo",
+      "status": "completed"
+    },
+    {
+      "detail": null,
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "probe": "nvidia-smi",
+      "status": "completed"
+    },
+    {
+      "detail": "command not found",
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "probe": "rocminfo",
+      "status": "unavailable"
+    },
+    {
+      "detail": null,
+      "observed_at": "2026-08-24T16:59:37.094050Z",
+      "probe": "wsl",
+      "status": "completed"
+    }
+  ],
+  "report_id": "01a034b6-9906-7438-9d3b-93669fea6e4d",
+  "schema_version": "1.0"
+}

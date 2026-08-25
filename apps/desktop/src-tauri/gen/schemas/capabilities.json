@@ -1,0 +1,1 @@
+{"desktop-default":{"identifier":"desktop-default","description":"Minimum permissions for the Local AI Lab main window","local":true,"windows":["main"],"permissions":["core:default"]}}

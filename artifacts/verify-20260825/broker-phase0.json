@@ -1,0 +1,20 @@
+{
+  "capabilities_observed": true,
+  "content_sha256": "595975e731dce34d50b457adb187d54ac2c8703c66a1991aa420846dcc67b4ea",
+  "endpoint": "http://192.168.1.52:8765",
+  "errors": [],
+  "health_observed": true,
+  "missing_capabilities": [],
+  "missing_strategies": [],
+  "observed_at": "2026-08-25T05:12:22.899619Z",
+  "observed_contract": "2.9",
+  "phase": "phase0",
+  "recommendation": "The deployed Broker satisfies this phase requirement set.",
+  "report_id": "01a03755-7673-751d-89c0-4f7643d15e4e",
+  "required_capabilities": [],
+  "required_contract": null,
+  "required_strategies": [],
+  "schema_version": "local-ai-lab.broker-compatibility.v1",
+  "status": "satisfied",
+  "upgrade_required": false
+}

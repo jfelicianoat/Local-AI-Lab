@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "local-ai-lab"
+version = "0.0.1"
+description = "Local-first distributed laboratory for evaluating private AI strategies"
+requires-python = ">=3.12"
+license = { text = "Proprietary" }
+dependencies = [
+  "fastapi>=0.115,<1",
+  "pydantic>=2.10,<3",
+  "uvicorn>=0.34,<1",
+]
+
+[project.scripts]
+local-ai-lab = "local_ai_lab.cli:main"
+local-ai-lab-coordinator = "local_ai_lab.coordinator.api:main"
+local-ai-lab-worker = "local_ai_lab.worker.cli:main"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<9",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-config --strict-markers"
+testpaths = ["tests"]
+pythonpath = ["src"]

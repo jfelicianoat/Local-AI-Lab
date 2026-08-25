@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-23T20:13:10.773408Z",
+  "status": "partial",
+  "coordinator_authority": "nvidia-node",
+  "nodes": [
+    {
+      "logical_name": "nvidia-node",
+      "node_id": "b6a1c5b7-016b-5e5d-98f1-76452be3315e",
+      "node_id_kind": "provisional_hostname_uuid5",
+      "roles": ["desktop", "coordinator", "worker", "vault_reader"],
+      "roles_status": "declared",
+      "capability_report": {
+        "path": "node-nvidia-20260823.json",
+        "report_id": "01a03041-72f5-7727-9732-f7e36a2dfb73",
+        "sha256": "77925647d76c669cac203655b6dbb56d2e0bbe638f89c79407becc62fd0c4578"
+      }
+    },
+    {
+      "logical_name": "amd-node",
+      "node_id": null,
+      "node_id_kind": null,
+      "roles": ["worker"],
+      "roles_status": "declared",
+      "capability_report": null
+    }
+  ],
+  "integrations": {
+    "ai_broker": {
+      "access_mode": "read_only",
+      "endpoint": null,
+      "deployed_contract_version": null,
+      "capabilities_status": "unknown",
+      "writes_to_broker_filesystem_forbidden": true
+    },
+    "model_drift": {
+      "access_mode": "contract_only",
+      "endpoint_or_command": null,
+      "automation_contract_status": "missing"
+    },
+    "athena": {
+      "enabled": false,
+      "reason": "not required before agent experiments"
+    }
+  },
+  "vault": {
+    "root": "Y:\\Mi unidad\\Vaults",
+    "root_status": "declared",
+    "sandbox_observation": "access_denied",
+    "selected_vault_id": null,
+    "access_policy": "read_only"
+  },
+  "network": {
+    "coordinator_endpoint": null,
+    "worker_endpoint": null,
+    "pairing_status": "not_started",
+    "transport_security_status": "not_started"
+  },
+  "phase_gate": {
+    "phase": "0",
+    "status": "closed",
+    "missing_evidence": [
+      "AMD node capability report",
+      "NVIDIA ML workload smoke tests",
+      "AMD ML workload smoke tests",
+      "inter-node network and authentication test",
+      "AI Broker deployed capability negotiation",
+      "read-only vault enumeration and selected vault",
+      "throughput and storage measurements"
+    ]
+  }
+}
+

@@ -1,0 +1,326 @@
+{
+  "communities": {
+    "0": [
+      "protocol",
+      "src_local_ai_lab_broker_compatibility",
+      "src_local_ai_lab_broker_compatibility_brokercheckerror",
+      "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker",
+      "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_check",
+      "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_evaluate_capabilities",
+      "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_finalize",
+      "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_init",
+      "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker_read_json",
+      "src_local_ai_lab_broker_compatibility_brokercompatibilityreport",
+      "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_payload",
+      "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_seal",
+      "src_local_ai_lab_broker_compatibility_brokercompatibilityreport_to_json",
+      "src_local_ai_lab_broker_compatibility_brokerrequirement",
+      "src_local_ai_lab_broker_compatibility_contract_at_least",
+      "src_local_ai_lab_broker_compatibility_normalize_broker_endpoint",
+      "src_local_ai_lab_broker_compatibility_py_any",
+      "src_local_ai_lab_broker_compatibility_rationale_75",
+      "src_local_ai_lab_broker_compatibility_readonlytransport",
+      "src_local_ai_lab_broker_compatibility_readonlytransport_get",
+      "src_local_ai_lab_broker_compatibility_urllibreadonlytransport",
+      "src_local_ai_lab_broker_compatibility_urllibreadonlytransport_get",
+      "tests_test_broker_compatibility_test_unsafe_endpoint_is_rejected",
+      "valueerror"
+    ],
+    "1": [
+      "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_capability_based_scheduling",
+      "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_node_capabilities",
+      "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_capability_scheduler",
+      "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_dataset_factory",
+      "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_definitive_spec",
+      "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_fine_tuning_gate",
+      "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_model_drift_evaluation",
+      "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_multisource_research",
+      "local_ai_lab_docs_instrucciones_y_razones_sobre_como_sera_el_desarrollo_de_la_app_strategy_ladder",
+      "local_ai_lab_docs_phase_0_report_closed_phase_gate",
+      "local_ai_lab_docs_phase_0_report_evidence_taxonomy",
+      "local_ai_lab_docs_phase_0_report_node_capability_report",
+      "local_ai_lab_docs_phase_0_report_nvidia_evidence",
+      "local_ai_lab_docs_phase_0_report_phase_0_report",
+      "local_ai_lab_docs_phase_a_design_ai_broker_boundary",
+      "local_ai_lab_docs_phase_a_design_dual_benchmark",
+      "local_ai_lab_docs_phase_a_design_evidence_gated_development",
+      "local_ai_lab_docs_phase_a_design_knowledge_orchestrator_boundary",
+      "local_ai_lab_docs_phase_a_design_model_drift_bridge",
+      "local_ai_lab_docs_phase_a_design_phase_a_design",
+      "local_ai_lab_docs_phase_a_design_strategy_protocol"
+    ],
+    "2": [
+      "src_local_ai_lab_capabilities_model_capabilityfact",
+      "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "src_local_ai_lab_capabilities_model_nodecapabilityreport_payload",
+      "src_local_ai_lab_capabilities_model_nodecapabilityreport_seal",
+      "src_local_ai_lab_capabilities_model_nodecapabilityreport_to_json",
+      "src_local_ai_lab_capabilities_model_probeobservation",
+      "src_local_ai_lab_capabilities_model_py_any",
+      "src_local_ai_lab_capabilities_probe_memorystatusex",
+      "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "src_local_ai_lab_capabilities_probe_nodeprobe_collect",
+      "src_local_ai_lab_capabilities_probe_nodeprobe_collect_disk",
+      "src_local_ai_lab_capabilities_probe_nodeprobe_collect_memory",
+      "src_local_ai_lab_capabilities_probe_nodeprobe_collect_nvidia",
+      "src_local_ai_lab_capabilities_probe_nodeprobe_collect_platform",
+      "src_local_ai_lab_capabilities_probe_nodeprobe_collect_rocm",
+      "src_local_ai_lab_capabilities_probe_nodeprobe_collect_versions",
+      "src_local_ai_lab_capabilities_probe_nodeprobe_collect_wsl",
+      "src_local_ai_lab_capabilities_probe_nodeprobe_fact",
+      "src_local_ai_lab_capabilities_probe_py_path"
+    ],
+    "3": [
+      "datetime",
+      "src_local_ai_lab_capabilities_model",
+      "src_local_ai_lab_capabilities_model_isoformat_utc",
+      "src_local_ai_lab_capabilities_model_rationale_74",
+      "src_local_ai_lab_capabilities_model_utc_now",
+      "src_local_ai_lab_capabilities_model_verify_serialized_report",
+      "tests_test_capability_probe",
+      "tests_test_capability_probe_py_path",
+      "tests_test_capability_probe_runner",
+      "tests_test_capability_probe_test_failed_wsl_probe_is_an_error_not_a_negative_capability",
+      "tests_test_capability_probe_test_probe_command_set_is_read_only",
+      "tests_test_capability_probe_test_probe_records_detection_without_claiming_workload_tests",
+      "tests_test_capability_probe_test_report_hash_covers_the_canonical_payload",
+      "tests_test_capability_probe_test_report_verification_rejects_malformed_documents",
+      "tests_test_capability_probe_test_report_verification_rejects_tampering"
+    ],
+    "4": [
+      "exception",
+      "src_local_ai_lab_broker_compatibility_readonlyresponse",
+      "tests_test_broker_compatibility",
+      "tests_test_broker_compatibility_checker_for",
+      "tests_test_broker_compatibility_encoded",
+      "tests_test_broker_compatibility_faketransport",
+      "tests_test_broker_compatibility_faketransport_get",
+      "tests_test_broker_compatibility_faketransport_init",
+      "tests_test_broker_compatibility_test_additive_unknown_fields_are_tolerated",
+      "tests_test_broker_compatibility_test_formal_evaluation_is_satisfied_by_29",
+      "tests_test_broker_compatibility_test_http_failures_are_classified_without_claiming_upgrade",
+      "tests_test_broker_compatibility_test_invalid_contract_is_unknown_not_incompatible",
+      "tests_test_broker_compatibility_test_old_contract_and_missing_flags_require_upgrade",
+      "tests_test_broker_compatibility_test_requirement_artifact_matches_executable_policy",
+      "tests_test_broker_compatibility_test_transport_contract_exposes_get_only_and_token_is_not_reported"
+    ],
+    "5": [
+      "clock",
+      "src_local_ai_lab_capabilities_probe",
+      "src_local_ai_lab_capabilities_probe_commandnotallowederror",
+      "src_local_ai_lab_capabilities_probe_commandresult",
+      "src_local_ai_lab_capabilities_probe_nodeprobe_init",
+      "src_local_ai_lab_capabilities_probe_rationale_39",
+      "src_local_ai_lab_capabilities_probe_readonlycommandrunner",
+      "src_local_ai_lab_capabilities_probe_readonlycommandrunner_call",
+      "src_local_ai_lab_capabilities_probe_readonlycommandrunner_decode_output",
+      "tests_test_capability_probe_fakerunner",
+      "tests_test_capability_probe_fakerunner_call",
+      "tests_test_capability_probe_fakerunner_init",
+      "tests_test_capability_probe_test_command_runner_rejects_everything_outside_read_only_allowlist",
+      "tests_test_capability_probe_test_windows_utf16_diagnostics_are_decoded_without_nul_characters"
+    ],
+    "6": [
+      "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_amd_worker",
+      "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_authoritative_coordinator_state",
+      "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_dataset_package",
+      "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_knowledge_snapshot",
+      "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_nvidia_coordinator",
+      "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_offline_job_durability",
+      "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_rag_context_transfer",
+      "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_remote_vault_rejection",
+      "local_ai_lab_docs_explicacion_interaccion_apps_local_ai_lab_single_distributed_product",
+      "local_ai_lab_docs_phase_a_design_coordinator_worker_architecture",
+      "local_ai_lab_docs_phase_a_design_local_sqlite_and_cas",
+      "local_ai_lab_docs_phase_a_design_read_only_vault_snapshots",
+      "local_ai_lab_docs_phase_a_design_security_controls"
+    ],
+    "7": [
+      "local_ai_lab_docs_phase_0_report_broker_read_only_negotiation",
+      "local_ai_lab_readme_ai_broker_compatibility",
+      "local_ai_lab_readme_capability_detector",
+      "local_ai_lab_readme_local_ai_lab",
+      "local_ai_lab_readme_read_only_dependency"
+    ],
+    "8": [
+      "argumentparser",
+      "src_local_ai_lab_cli",
+      "src_local_ai_lab_cli_build_parser",
+      "src_local_ai_lab_cli_main"
+    ],
+    "9": [
+      "src_local_ai_lab_broker_init",
+      "src_local_ai_lab_broker_init_rationale_1"
+    ],
+    "10": [
+      "src_local_ai_lab_capabilities_init",
+      "src_local_ai_lab_capabilities_init_rationale_1"
+    ],
+    "11": [
+      "pkg_local_ai_lab"
+    ],
+    "12": [
+      "scripts_run_phase0_probe"
+    ],
+    "13": [
+      "src_local_ai_lab_init"
+    ]
+  },
+  "cohesion": {
+    "0": 0.17028985507246377,
+    "1": 0.1,
+    "2": 0.32748538011695905,
+    "3": 0.26666666666666666,
+    "4": 0.2571428571428571,
+    "5": 0.24175824175824176,
+    "6": 0.16666666666666666,
+    "7": 0.4,
+    "8": 0.6666666666666666,
+    "9": 1.0,
+    "10": 1.0,
+    "11": 1.0,
+    "12": 1.0,
+    "13": 1.0
+  },
+  "gods": [
+    {
+      "id": "src_local_ai_lab_capabilities_probe_nodeprobe",
+      "label": "NodeProbe",
+      "degree": 21
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_model_nodecapabilityreport",
+      "label": "NodeCapabilityReport",
+      "degree": 18
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_model_probeobservation",
+      "label": "ProbeObservation",
+      "degree": 13
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker",
+      "label": "BrokerCompatibilityChecker",
+      "degree": 10
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_commandresult",
+      "label": "CommandResult",
+      "degree": 10
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_readonlycommandrunner",
+      "label": "ReadOnlyCommandRunner",
+      "degree": 10
+    },
+    {
+      "id": "tests_test_broker_compatibility_checker_for",
+      "label": "checker_for()",
+      "degree": 9
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_readonlyresponse",
+      "label": "ReadOnlyResponse",
+      "degree": 8
+    },
+    {
+      "id": "src_local_ai_lab_broker_compatibility_brokercompatibilityreport",
+      "label": "BrokerCompatibilityReport",
+      "degree": 8
+    },
+    {
+      "id": "src_local_ai_lab_capabilities_probe_commandnotallowederror",
+      "label": "CommandNotAllowedError",
+      "degree": 8
+    }
+  ],
+  "surprises": [
+    {
+      "source": "FakeTransport",
+      "target": "BrokerCompatibilityChecker",
+      "source_files": [
+        "tests/test_broker_compatibility.py",
+        "src/local_ai_lab/broker/compatibility.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "FakeRunner",
+      "target": "NodeProbe",
+      "source_files": [
+        "tests/test_capability_probe.py",
+        "src/local_ai_lab/capabilities/probe.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "test_probe_records_detection_without_claiming_workload_tests()",
+      "target": "NodeProbe",
+      "source_files": [
+        "tests/test_capability_probe.py",
+        "src/local_ai_lab/capabilities/probe.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "test_failed_wsl_probe_is_an_error_not_a_negative_capability()",
+      "target": "NodeProbe",
+      "source_files": [
+        "tests/test_capability_probe.py",
+        "src/local_ai_lab/capabilities/probe.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "test_report_hash_covers_the_canonical_payload()",
+      "target": "NodeProbe",
+      "source_files": [
+        "tests/test_capability_probe.py",
+        "src/local_ai_lab/capabilities/probe.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `NodeProbe` connect `Informes de capacidades` to `Sondeo no destructivo`?",
+      "why": "High betweenness centrality (0.013) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `checker_for()` connect `Pruebas de Broker` to `Contrato AI Broker`?",
+      "why": "High betweenness centrality (0.008) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 3 inferred relationships involving `NodeProbe` (e.g. with `CapabilityFact` and `NodeCapabilityReport`) actually correct?",
+      "why": "`NodeProbe` has 3 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 3 inferred relationships involving `CommandResult` (e.g. with `CapabilityFact` and `NodeCapabilityReport`) actually correct?",
+      "why": "`CommandResult` has 3 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `local-ai-lab`, `Read-only AI Broker contract negotiation.`, `Transport whose public interface cannot express a mutating HTTP method.` to the rest of the system?",
+      "why": "23 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Estrategia y evidencia` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.1 - nodes in this community are weakly interconnected."
+    }
+  ]
+}

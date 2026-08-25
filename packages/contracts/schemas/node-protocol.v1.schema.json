@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local-ai-lab.invalid/contracts/node-protocol.v1.schema.json",
+  "title": "Coordinator Worker protocol v1",
+  "$defs": {
+    "leaseMutation": {
+      "type": "object",
+      "required": ["lease_token", "lease_generation"],
+      "properties": {
+        "lease_token": { "type": "string", "minLength": 20, "maxLength": 256 },
+        "lease_generation": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "jobSpec": {
+      "type": "object",
+      "required": ["schema_version", "job_id", "correlation_id", "created_at", "kind", "payload", "requirements", "idempotency_class", "disconnect_policy", "reassignment_policy"],
+      "properties": {
+        "schema_version": { "const": "local-ai-lab.job.v1" },
+        "job_id": { "type": "string" },
+        "correlation_id": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "kind": { "type": "string", "minLength": 1 },
+        "payload": { "type": "object" },
+        "requirements": { "type": "object" },
+        "idempotency_class": { "enum": ["pure", "checkpointable", "non_repeatable"] },
+        "disconnect_policy": { "enum": ["stop", "continue", "checkpoint_then_stop"] },
+        "reassignment_policy": { "enum": ["automatic", "after_grace", "human_only"] }
+      },
+      "additionalProperties": false
+    },
+    "leaseGrant": {
+      "type": "object",
+      "required": ["job_id", "attempt_id", "node_id", "lease_token", "lease_generation", "expires_at", "spec"],
+      "properties": {
+        "job_id": { "type": "string" },
+        "attempt_id": { "type": "string" },
+        "node_id": { "type": "string" },
+        "lease_token": { "type": "string" },
+        "lease_generation": { "type": "integer", "minimum": 1 },
+        "expires_at": { "type": "string", "format": "date-time" },
+        "spec": { "$ref": "#/$defs/jobSpec" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "protocol_version": { "const": 1 },
+    "lease": { "oneOf": [{ "$ref": "#/$defs/leaseGrant" }, { "type": "null" }] }
+  },
+  "additionalProperties": true
+}

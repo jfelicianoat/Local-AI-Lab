@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local-ai-lab.invalid/contracts/phase-evidence.v1.schema.json",
+  "title": "Phase evidence v1",
+  "type": "object",
+  "required": ["id", "label", "status", "artifact_sha256", "source_reference", "observed_at"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "label": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["tested", "detected", "pending", "blocked"] },
+    "artifact_sha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+    "source_reference": { "type": ["string", "null"] },
+    "observed_at": { "type": ["string", "null"], "format": "date-time" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "enum": ["tested", "detected", "blocked"] } } },
+      "then": {
+        "properties": {
+          "artifact_sha256": { "type": "string" },
+          "source_reference": { "type": "string", "minLength": 1 },
+          "observed_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

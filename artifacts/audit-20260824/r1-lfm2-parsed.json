@@ -1,0 +1,160 @@
+{
+ "answer": "Los modelos de IA tienen varias limitaciones inherentes que deben considerarse:",
+ "findings": [
+  {
+   "claim": "No siempre producen respuestas correctas.",
+   "evidence": [
+    {
+     "snapshot_id": "2764e20a-2a91-47db-b70e-42a598b8206f",
+     "note_id": "9ce72c8c-6293-541d-8a26-ceff2654ca43",
+     "note_path": "AI Engineering, de Chip Huyen.md",
+     "section": "2. La naturaleza probabilística de los modelos",
+     "chunk_id": "b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9"
+    }
+   ]
+  },
+  {
+   "claim": "Pueden generar respuestas distintas ante la misma pregunta.",
+   "evidence": [
+    {
+     "snapshot_id": "7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f",
+     "note_id": "cac66440-e30f-5256-ab14-e0aa6f8143bc",
+     "note_path": "Workflow de desarrollo con agentes de IA.md",
+     "section": "9. Los modelos más capaces hacen más potente el enfoque validation first",
+     "chunk_id": "7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f"
+    }
+   ]
+  },
+  {
+   "claim": "Pueden inventar información o alucinar.",
+   "evidence": [
+    {
+     "snapshot_id": "7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f",
+     "note_id": "cac66440-e30f-5256-ab14-e0aa6f8143bc",
+     "note_path": "Workflow de desarrollo con agentes de IA.md",
+     "section": "9. Los modelos más capaces hacen más potente el enfoque validation first",
+     "chunk_id": "7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f"
+    }
+   ]
+  },
+  {
+   "claim": "Su comportamiento no es completamente determinista.",
+   "evidence": [
+    {
+     "snapshot_id": "7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f",
+     "note_id": "cac66440-e30f-5256-ab14-e0aa6f8143bc",
+     "note_path": "Workflow de desarrollo con agentes de IA.md",
+     "section": "9. Los modelos más capaces hacen más potente el enfoque validation first",
+     "chunk_id": "7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f"
+    }
+   ]
+  },
+  {
+   "claim": "No siempre producen la respuesta correcta.",
+   "evidence": [
+    {
+     "snapshot_id": "2764e20a-2a91-47db-b70e-42a598b8206f",
+     "note_id": "9ce72c8c-6293-541d-8a26-ceff2654ca43",
+     "note_path": "AI Engineering, de Chip Huyen.md",
+     "section": "2. La naturaleza probabilística de los modelos",
+     "chunk_id": "b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9"
+    }
+   ]
+  },
+  {
+   "claim": "Pueden generar respuestas distintas ante la misma pregunta.",
+   "evidence": [
+    {
+     "snapshot_id": "7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f",
+     "note_id": "cac66440-e30f-5256-ab14-e0aa6f8143bc",
+     "note_path": "Workflow de desarrollo con agentes de IA.md",
+     "section": "9. Los modelos más capaces hacen más potente el enfoque validation first",
+     "chunk_id": "7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f"
+    }
+   ]
+  },
+  {
+   "claim": "El modelo adecuado cambia con el tiempo.",
+   "evidence": [
+    {
+     "snapshot_id": "7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f",
+     "note_id": "2da16f9a-8fc7-5ec9-9497-511dd5193e58",
+     "note_path": "Cómo reducir el consumo de contexto y límites en asistentes de IA.md",
+     "section": "10. El modelo adecuado cambia con el tiempo",
+     "chunk_id": "b169597432fb1bf03fb23e0cad40ce0f68fa95c0bd9e2db9d0a181f2006ec3b8",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:b169597432fb1bf03fb23e0cad40ce0f68fa95c0bd9e2db9d0a181f2006ec3b8"
+    }
+   ]
+  },
+  {
+   "claim": "No siempre produce la respuesta correcta.",
+   "evidence": [
+    {
+     "snapshot_id": "2764e20a-2a91-47db-b70e-42a598b8206f",
+     "note_id": "9ce72c8c-6293-541d-8a26-ceff2654ca43",
+     "note_path": "AI Engineering, de Chip Huyen.md",
+     "section": "2. La naturaleza probabilística de los modelos",
+     "chunk_id": "b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9"
+    }
+   ]
+  },
+  {
+   "claim": "Pueden inventar información o alucinar.",
+   "evidence": [
+    {
+     "snapshot_id": "7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f",
+     "note_id": "cac66440-e30f-5256-ab14-e0aa6f8143bc",
+     "note_path": "Workflow de desarrollo con agentes de IA.md",
+     "section": "9. Los modelos más capaces hacen más potente el enfoque validation first",
+     "chunk_id": "7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f"
+    }
+   ]
+  }
+ ],
+ "contradictions": [
+  {
+   "statement": "Los modelos de IA no siempre producen la respuesta correcta.",
+   "evidence": [
+    {
+     "snapshot_id": "2764e20a-2a91-47db-b70e-42a598b8206f",
+     "note_id": "9ce72c8c-6293-541d-8a26-ceff2654ca43",
+     "note_path": "AI Engineering, de Chip Huyen.md",
+     "section": "2. La naturaleza probabilística de los modelos",
+     "chunk_id": "b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9"
+    }
+   ]
+  },
+  {
+   "statement": "Los modelos de IA no siempre producen la respuesta correcta.",
+   "evidence": [
+    {
+     "snapshot_id": "7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f",
+     "note_id": "cac66440-e30f-5256-ab14-e0aa6f8143bc",
+     "note_path": "Workflow de desarrollo con agentes de IA.md",
+     "section": "9.9. Los modelos más capaces hacen más potente el enfoque validation first",
+     "chunk_id": "7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:7ba668eb5ca3cdd91a7f502a6e6cd0f410f27b4f838304675e31cc8c889eb69f"
+    }
+   ]
+  }
+ ],
+ "uncertainties": [
+  "La naturaleza probabilística de los modelos",
+  "La posibilidad de que el modelo adecuado cambie con el tiempo",
+  "La capacidad de los modelos para adaptarse a nuevos contextos y requisitos"
+ ],
+ "missing_information": [
+  "No se proporciona información sobre cómo se seleccionan los modelos adecuados en cada momento.",
+  "No se detalla cómo se evalúa la capacidad de un modelo para ser 'más potente' en un enfoque específico.",
+  "No se menciona un mecanismo claro para evitar la generación de información incorrecta o alucinada."
+ ]
+}

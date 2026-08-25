@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local-ai-lab.invalid/schemas/workspace.v1.schema.json",
+  "title": "Local AI Lab Product Workspace v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "observed_at", "knowledge", "benchmarks", "experiments", "reviews", "datasets", "training", "exports"],
+  "properties": {
+    "schema_version": {"const": "local-ai-lab.workspace.v1"},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "knowledge": {"$ref": "#/$defs/records"},
+    "benchmarks": {"$ref": "#/$defs/records"},
+    "experiments": {"$ref": "#/$defs/records"},
+    "reviews": {"$ref": "#/$defs/records"},
+    "datasets": {"$ref": "#/$defs/records"},
+    "training": {"$ref": "#/$defs/records"},
+    "exports": {"$ref": "#/$defs/records"}
+  },
+  "$defs": {
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["record_id", "category", "title", "status", "artifact_sha256", "summary", "created_at", "updated_at"],
+        "properties": {
+          "record_id": {"type": "string"},
+          "category": {"type": "string"},
+          "title": {"type": "string"},
+          "status": {"type": "string"},
+          "artifact_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "summary": {"type": "object"},
+          "created_at": {"type": "string", "format": "date-time"},
+          "updated_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    }
+  }
+}

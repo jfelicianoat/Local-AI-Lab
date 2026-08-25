@@ -1,0 +1,93 @@
+{
+  "schema_version": "controlled-corpus.v1",
+  "suite_id": "local-ai-lab-controlled-atlas",
+  "suite_version": "1.0.0",
+  "purpose": "benchmark_only",
+  "training_eligible": false,
+  "documents": [
+    {"document_id": "atlas-overview", "relative_path": "documents/atlas-overview.md"},
+    {"document_id": "atlas-decision-old", "relative_path": "documents/atlas-decision-old.md"},
+    {"document_id": "atlas-decision-new", "relative_path": "documents/atlas-decision-new.md"},
+    {"document_id": "atlas-benchmark", "relative_path": "documents/atlas-benchmark.md"},
+    {"document_id": "atlas-roadmap", "relative_path": "documents/atlas-roadmap.md"},
+    {"document_id": "garden-notes", "relative_path": "documents/garden-notes.md"}
+  ],
+  "human_review": {
+    "status": "pending",
+    "reviewer": null,
+    "reviewed_at": null,
+    "notes": "Debe validarse manualmente antes de cerrar la puerta de Fase 3."
+  },
+  "cases": [
+    {
+      "case_id": "atlas-owner",
+      "kinds": ["single_hop", "entity", "distractor"],
+      "query": "¿Quién dirige el Proyecto Atlas?",
+      "ground_truth": {
+        "answerable": true,
+        "relevant_document_ids": ["atlas-overview"],
+        "irrelevant_document_ids": ["atlas-decision-old", "atlas-decision-new", "atlas-benchmark", "atlas-roadmap", "garden-notes"],
+        "relations": [],
+        "facts": [{"kind": "entity", "value": "Ana Torres", "document_id": "atlas-overview", "evidence_text": "El Proyecto Atlas está dirigido por Ana Torres."}],
+        "contradictions": [],
+        "missing_information": []
+      }
+    },
+    {
+      "case_id": "atlas-current-budget",
+      "kinds": ["single_hop", "numeric", "contradiction", "distractor"],
+      "query": "¿Cuál es el presupuesto vigente del Proyecto Atlas?",
+      "ground_truth": {
+        "answerable": true,
+        "relevant_document_ids": ["atlas-overview", "atlas-decision-old", "atlas-decision-new"],
+        "irrelevant_document_ids": ["atlas-benchmark", "atlas-roadmap", "garden-notes"],
+        "relations": [{"source": "atlas-decision-new", "type": "replaces", "target": "atlas-decision-old"}],
+        "facts": [{"kind": "money", "value": "120000 EUR", "document_id": "atlas-decision-new", "evidence_text": "El presupuesto aprobado pasó a 120.000 EUR."}],
+        "contradictions": [{"left_document_id": "atlas-decision-old", "right_document_id": "atlas-decision-new", "topic": "presupuesto", "left_value": "90000 EUR", "right_value": "120000 EUR", "resolution": "la decisión de junio sustituye a la de enero"}],
+        "missing_information": []
+      }
+    },
+    {
+      "case_id": "atlas-decision-evolution",
+      "kinds": ["multi_hop", "contradiction", "numeric"],
+      "query": "¿Cómo y por qué cambió la arquitectura de Atlas, y qué mediciones respaldaron el cambio?",
+      "ground_truth": {
+        "answerable": true,
+        "relevant_document_ids": ["atlas-decision-old", "atlas-decision-new", "atlas-benchmark"],
+        "irrelevant_document_ids": ["atlas-overview", "atlas-roadmap", "garden-notes"],
+        "relations": [{"source": "atlas-decision-new", "type": "replaces", "target": "atlas-decision-old"}, {"source": "atlas-decision-new", "type": "supported_by", "target": "atlas-benchmark"}],
+        "facts": [{"kind": "latency", "value": "180 ms local", "document_id": "atlas-benchmark", "evidence_text": "180 ms de latencia mediana para la alternativa local"}, {"kind": "latency", "value": "420 ms cloud", "document_id": "atlas-benchmark", "evidence_text": "420 ms para la alternativa cloud"}],
+        "contradictions": [{"left_document_id": "atlas-decision-old", "right_document_id": "atlas-decision-new", "topic": "modalidad de inferencia", "left_value": "cloud", "right_value": "local", "resolution": "la decisión de junio sustituye a la de enero"}],
+        "missing_information": []
+      }
+    },
+    {
+      "case_id": "atlas-pending-work",
+      "kinds": ["single_hop"],
+      "query": "¿Qué trabajo sigue pendiente en Atlas?",
+      "ground_truth": {
+        "answerable": true,
+        "relevant_document_ids": ["atlas-roadmap"],
+        "irrelevant_document_ids": ["atlas-overview", "atlas-decision-old", "atlas-decision-new", "atlas-benchmark", "garden-notes"],
+        "relations": [],
+        "facts": [{"kind": "pending_item", "value": "revisión del cifrado de copias de seguridad", "document_id": "atlas-roadmap", "evidence_text": "Sigue pendiente la revisión del cifrado de copias de seguridad."}],
+        "contradictions": [],
+        "missing_information": []
+      }
+    },
+    {
+      "case_id": "atlas-uptime-target",
+      "kinds": ["missing_information", "distractor"],
+      "query": "¿Cuál es el objetivo porcentual de disponibilidad en producción de Atlas?",
+      "ground_truth": {
+        "answerable": false,
+        "relevant_document_ids": ["atlas-roadmap"],
+        "irrelevant_document_ids": ["atlas-overview", "atlas-decision-old", "atlas-decision-new", "atlas-benchmark", "garden-notes"],
+        "relations": [],
+        "facts": [],
+        "contradictions": [],
+        "missing_information": ["No se ha definido un porcentaje objetivo de disponibilidad en producción."]
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+ "answer": "Los modelos de IA presentan las siguientes limitaciones según el vault:\n\n*   **Inconsistencias por naturaleza estadística:** Debido a que son sistemas estadísticos, los modelos:\n    *   No siempre producen la respuesta correcta.\n    *   Pueden generar respuestas distintas ante la misma pregunta.\n    *   Pueden inventar información o alucinar.\n    *   Su comportamiento no es completamente determinista.\n    [EVIDENCE snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9]\n*   **Limitaciones de seguridad:** No se debe confiar únicamente en el modelo para aplicar seguridad.\n    [EVIDENCE snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:8f6f91345bb6c6c4250cd53fa75c392be6bd84cd862ae55e12476466c27456fd]\n*   **Variabilidad de capacidades en el tiempo:** Las capacidades de los modelos no son estáticas; modelos más pequeños de nuevas generaciones pueden superar a modelos más grandes y antiguos en tareas específicas.\n    [EVIDENCE snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:b169597432fb1bf03fb23e0cad40ce0f68fa95c0bd9e2db9d0a181f2006ec3b8]\"}",
+ "findings": [
+  {
+   "finding": "Los modelos de IA son sistemas estadísticos que presentan inconsistencias como no producir siempre la respuesta correcta, generar respuestas distintas ante la misma pregunta, inventar información (alucinar) y no ser completamente deterministas.",
+   "evidence": [
+    "EVIDENCE snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9"
+   ]
+  },
+  {
+   "finding": "No se debe confiar únicamente en el modelo para aplicar medidas de seguridad.",
+   "evidence": [
+    "EVIDENCE snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:8f6f91345bb6c6c4250cd53fa75c392be6bd84cd862ae55e12476466c27456fd"
+   ]
+  },
+  {
+   "finding": "Las capacidades de los modelos cambian con el tiempo, ya que modelos pequeños de nuevas generaciones pueden superar a modelos grandes más antiguos en tareas específicas.",
+   "evidence": [
+    "EVIDENCE snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:b169597432fb1bf03fb23e0cad40ce0f68fa95c0bd9e2db9d0a181f2006ec3b8"
+   ]
+  }
+ ],
+ "contradictions": [],
+ "uncertainties": [],
+ "missing_information": []
+}

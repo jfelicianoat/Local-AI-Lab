@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-08-24T21:46:00.569269+00:00",
+  "nodes": {
+    "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker": {
+      "code_fingerprint": "6b475a6dd6718a88d73acdc6066436ed63531c8ab40e529b60fe2af6ebc1af88",
+      "label": "BrokerCompatibilityChecker",
+      "last": "2026-08-24T21:26:20.022454+00:00",
+      "provenance": [
+        {
+          "date": "2026-08-24T21:26:20.022454+00:00",
+          "outcome": "useful",
+          "q": "Porque en las Dependencias externas aparece como desconocido?"
+        }
+      ],
+      "score": 0.99968435,
+      "source_file": "src/local_ai_lab/broker/compatibility.py",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_local_ai_lab_coordinator_service_coordinatorservice": {
+      "code_fingerprint": "5c33315bc92187b8a058ba77eb13ddb0f015f2805d5247228672abec0851fdd7",
+      "label": "CoordinatorService",
+      "last": "2026-08-24T21:32:20.415603+00:00",
+      "provenance": [
+        {
+          "date": "2026-08-24T21:32:20.415603+00:00",
+          "outcome": "useful",
+          "q": "Haz un analisis premortem de la interface completa"
+        },
+        {
+          "date": "2026-08-24T21:26:20.022454+00:00",
+          "outcome": "useful",
+          "q": "Porque en las Dependencias externas aparece como desconocido?"
+        }
+      ],
+      "score": 1.999465051,
+      "source_file": "src/local_ai_lab/coordinator/service.py",
+      "status": "preferred",
+      "uses": 2
+    }
+  },
+  "version": 1
+}

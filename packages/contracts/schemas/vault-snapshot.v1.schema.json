@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local-ai-lab.invalid/schemas/vault-snapshot.v1.schema.json",
+  "title": "Local AI Lab Vault Snapshot Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "snapshot_id", "state", "global_hash", "created_at", "counts", "holes"],
+  "properties": {
+    "format": {"const": "vault-snapshot.v1"},
+    "snapshot_id": {"type": "string", "format": "uuid"},
+    "state": {"enum": ["COMPLETE", "INCOMPLETE"]},
+    "global_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["notes", "chunks", "links", "holes"],
+      "properties": {
+        "notes": {"type": "integer", "minimum": 0},
+        "chunks": {"type": "integer", "minimum": 0},
+        "links": {"type": "integer", "minimum": 0},
+        "holes": {"type": "integer", "minimum": 0}
+      }
+    },
+    "holes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["relative_path", "reason"],
+        "properties": {
+          "relative_path": {"type": "string"},
+          "reason": {"type": "string"}
+        }
+      }
+    }
+  }
+}

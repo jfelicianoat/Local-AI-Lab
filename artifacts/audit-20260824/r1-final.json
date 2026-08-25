@@ -1,0 +1,117 @@
+{
+ "answer": "Los modelos de IA tienen limitaciones inherentes a su naturaleza probabilística y estadística. Estas incluyen: incertidumbre en las respuestas, variabilidad en las salidas ante preguntas idénticas, posibilidad de generar información incorrecta o alucinada, y comportamiento no completamente determinista. Estas características no implican necesariamente defectos, sino que reflejan la forma en que operan los sistemas de IA. Por tanto, evaluar modelos de IA requiere métodos específicos de evaluación continua, ya que las pruebas tradicionales no son suficientes para garantizar su fiabilidad.",
+ "findings": [
+  {
+   "claim": "Los modelos de IA no siempre producen respuestas correctas.",
+   "evidence": [
+    {
+     "snapshot_id": "78dc40f6-7bcf-4f29-93ca-0b03201dbb70",
+     "note_id": "9ce72c8c-6293-541d-8a26-ceff2654ca43",
+     "note_path": "AI Engineering, de Chip Huyen.md",
+     "section": "2. La naturaleza probabilística de los modelos",
+     "chunk_id": "b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9"
+    }
+   ]
+  },
+  {
+   "claim": "Los modelos de IA pueden generar respuestas distintas ante la misma pregunta.",
+   "evidence": [
+    {
+     "snapshot_id": "78dc40f6-7bcf-4f29-93ca-0b03201dbb70",
+     "note_id": "2da16f9a-8fc7-5ec9-9497-511dd5193e58",
+     "note_path": "Cómo reducir el consumo de contexto y límites en asistentes de IA.md",
+     "section": "10. El modelo adecuado cambia con el tiempo",
+     "chunk_id": "b169597432fb1bf03fb23e0cad40ce0f68fa95c0bd9e2db9d0a181f2006ec3b8",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:c520eefb16492b252a0b1799f37efb73ce4ece79aa6307140c0d9232c349faf6"
+    }
+   ]
+  },
+  {
+   "claim": "Los modelos de IA pueden inventar información o alucinar.",
+   "evidence": [
+    {
+     "snapshot_id": "78dc40f6-7bcf-4f29-93ca-0b03201dbb70",
+     "note_id": "cac66440-e30f-5256-ab14-e0aa6f8143bc",
+     "note_path": "Workflow de desarrollo con agentes de IA.md",
+     "section": "9. Los modelos más capaces hacen más potente el enfoque validation first",
+     "chunk_id": "c520eefb16492b252a0b1799f37efb73ce4ece79aa6307140c0d9232c349faf6",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:c520eefb16492b252a0b1799f37efb73ce4ece79aa6307140c0d9232c349faf6"
+    }
+   ]
+  },
+  {
+   "claim": "El comportamiento de los modelos de IA no es completamente determinista.",
+   "evidence": [
+    {
+     "snapshot_id": "78dc40f6-7bcf-4f29-93ca-0b03201dbb70",
+     "note_id": "9ce72c8c-6293-541d-8a26-ceff2654ca43",
+     "note_path": "AI Engineering, de Chip Huyen.md",
+     "section": "2. La naturaleza probabilística de los modelos",
+     "chunk_id": "b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9"
+    }
+   ]
+  },
+  {
+   "claim": "Una aplicación de IA no puede evaluarse únicamente mediante pruebas tradicionales.",
+   "evidence": [
+    {
+     "snapshot_id": "78dc40f6-7bcf-4f29-93ca-0b03201dbb70",
+     "note_id": "2da16f9a-8fc7-5ec9-9497-511dd5193e58",
+     "note_path": "Cómo reducir el consumo de contexto y límites en asistentes de IA.md",
+     "section": "10. El modelo adecuado cambia con el tiempo",
+     "chunk_id": "b169597432fb1bf03fb23e0cad40ce0f68fa95c0bd9e2db9d0a181f2006ec3b8",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:c520eefb16492b252a0b1799f37efb73ce4ece79aa6307140c0d9232c349faf6"
+    }
+   ]
+  },
+  {
+   "claim": "Los modelos pequeños de nuevas generaciones pueden superar en tareas concretas a modelos grandes más antiguos.",
+   "evidence": [
+    {
+     "snapshot_id": "78dc40f6-7bcf-4f29-93ca-0b03201dbb70",
+     "note_id": "cac66440-e30f-5256-ab14-e0aa6f8143bc",
+     "note_path": "Cómo reducir el consumo de contexto y límites en asistentes de IA.md",
+     "section": "10. El modelo adecuado cambia con el tiempo",
+     "chunk_id": "b169597432fb1bf03fb23e0cad40ce0f68fa95c0bd9e2db9d0a181f2006ec3b8",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:c520eefb16492b252a0b1799f37efb73ce4ece79aa6307140c0d9232c349faf6"
+    }
+   ]
+  },
+  {
+   "claim": "El modelo adecuado cambia con el tiempo.",
+   "evidence": [
+    {
+     "snapshot_id": "78dc40f6-7bcf-4f29-93ca-0b03201dbb70",
+     "note_id": "2da16f9a-8fc7-5ec9-9497-511dd5193e58",
+     "note_path": "Cómo reducir el consumo de contexto y límites en asistentes de IA.md",
+     "section": "10. El modelo adecuado cambia con el tiempo",
+     "chunk_id": "b169597432fb1bf03fb23e0cad40ce0f68fa95c0bd9e2db9d0a181f2006ec3b8",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:c520eefb16492b252a0b1799f37efb73ce4ece79aa6307140c0d9232c349faf6"
+    }
+   ]
+  }
+ ],
+ "contradictions": [
+  {
+   "statement": "Los modelos de IA son sistemas deterministas.",
+   "evidence": [
+    {
+     "snapshot_id": "78dc40f6-7bcf-4f29-93ca-0b03201dbb70",
+     "note_id": "9ce72c8c-6293-541d-8a26-ceff2654ca43",
+     "note_path": "AI Engineering, de Chip Huyen.md",
+     "section": "2. La naturaleza probabilística de los modelos",
+     "chunk_id": "b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9",
+     "source_reference": "snapshot:sha256:e3c77462d7892239d0d0b3234b38b9141a299a9c4b436f1350f67f8fc6bb6418#chunk:b742d5879e9dc9255a3847240bdbef988f3068c06d37ed44e7219841dc93cde9"
+    }
+   ]
+  }
+ ],
+ "uncertainties": [
+  "La naturaleza probabilística de los modelos puede generar respuestas variables incluso ante preguntas idénticas.",
+  "La posibilidad de inventar información o alucinar no puede eliminarse completamente.",
+  "La asignación de modelos óptimos depende del contexto y evoluciona con el tiempo."
+ ],
+ "missing_information": []
+}
