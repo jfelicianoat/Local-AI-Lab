@@ -7,7 +7,7 @@ import pytest
 
 from local_ai_lab.exporting.package import ExportArtifact, ExportError, ExportPackageBuilder, ExportPackageVerifier
 from local_ai_lab.exporting.planner import CacheCleanupPlanner, ExportJobPlanner
-from local_ai_lab.exporting.executor import ModelExportExecutor, deterministic_zip
+from local_ai_lab.exporting.executor import ExportExecutionError, ModelExportExecutor, deterministic_zip
 
 
 def _artifact(tmp_path: Path, name: str, content: bytes, kind: str) -> ExportArtifact:
@@ -125,3 +125,50 @@ def test_deterministic_adapter_archive_has_stable_hash(tmp_path: Path) -> None:
     second = deterministic_zip(source, tmp_path / "second.zip")
 
     assert hashlib.sha256(first.read_bytes()).digest() == hashlib.sha256(second.read_bytes()).digest()
+
+
+def test_distillation_result_is_exportable(tmp_path: Path) -> None:
+    """El Coordinator acepta DISTILLATION_SUCCEEDED como origen de exportación.
+
+    La destilación escribe `distillation-manifest.json`, no `training-manifest.json`;
+    si el ejecutor solo reconociera el segundo, exportar un alumno destilado fallaría
+    siempre después de haber sido aceptado y encolado.
+    """
+    training = tmp_path / "distillation"
+    adapter = training / "adapter"
+    adapter.mkdir(parents=True)
+    (adapter / "adapter_model.safetensors").write_bytes(b"student-weights")
+    manifest = training / "distillation-manifest.json"
+    manifest.write_text('{"schema_version":"distillation-result.v1"}\n', encoding="utf-8")
+    payload = {
+        "resolved_training_output": str(training),
+        "source_manifest_file_sha256": hashlib.sha256(manifest.read_bytes()).hexdigest(),
+        "source_training_manifest_sha256": "a" * 64,
+        "source_artifact_reference": "distillation://run-1",
+        "formats": ["adapter"], "output_dir": str(tmp_path / "export-job"),
+        "license_id": "Apache-2.0", "serving": {"runtime": "peft"},
+    }
+    result = ModelExportExecutor()(payload, lambda event: None)
+
+    assert result["formats"] == ["adapter"]
+    assert ExportPackageVerifier().verify(Path(result["package_path"]))["serving"]["runtime"] == "peft"
+
+
+def test_export_still_rejects_a_manifest_whose_hash_does_not_match(tmp_path: Path) -> None:
+    training = tmp_path / "distillation"
+    adapter = training / "adapter"
+    adapter.mkdir(parents=True)
+    (adapter / "adapter_model.safetensors").write_bytes(b"student-weights")
+    (training / "distillation-manifest.json").write_text(
+        '{"schema_version":"distillation-result.v1"}\n', encoding="utf-8"
+    )
+    payload = {
+        "resolved_training_output": str(training),
+        "source_manifest_file_sha256": "0" * 64,
+        "source_training_manifest_sha256": "a" * 64,
+        "source_artifact_reference": "distillation://run-1",
+        "formats": ["adapter"], "output_dir": str(tmp_path / "export-job"),
+        "license_id": "Apache-2.0", "serving": {"runtime": "peft"},
+    }
+    with pytest.raises(ExportExecutionError, match="hash mismatch"):
+        ModelExportExecutor()(payload, lambda event: None)

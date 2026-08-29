@@ -15,12 +15,15 @@ estados, resolución de incidencias y listas de comprobación, está en
   TypeScript, React/Vite y Rust compilan correctamente.
 - Auditoría del 2026-08-24 contra Broker, vault y Model Drift reales, con seis defectos
   corregidos: [`docs/AUDIT_20260824.md`](docs/AUDIT_20260824.md).
+- Informe actualizado de casos de uso y plan de pruebas, con el ciclo completo ejecutado sobre
+  GPU, Broker y vault reales, Observabilidad y el tratamiento correcto de R3/R4:
+  [`docs/AUDIT_20260825.md`](docs/AUDIT_20260825.md).
 - Binario Coordinator regenerado y probado con `--help`; ejecutable Tauri de producción
   generado en `apps/desktop/src-tauri/target/release/local-ai-lab-desktop.exe`.
-- Puertas reales pendientes: dos nodos físicos, un alumno causal local y una ejecución
-  profesor→alumno sobre hardware aprobado. El profesor puede servirse desde AI Broker. AI Broker,
-  el vault real y el puente formal de Model Drift ya fueron comprobados sin modificar sus datos
-  internos.
+- Puertas reales pendientes: dos nodos físicos con TLS entre ellos y el nodo AMD/WSL. La
+  ejecución profesor→alumno ya se hizo el 2026-08-25 sobre la RTX 4060 Ti real, con profesor
+  local y con profesor servido por AI Broker. AI Broker, el vault real y el puente formal de
+  Model Drift fueron comprobados sin modificar sus datos internos.
 - Los instaladores MSI/NSIS requieren que WiX/NSIS estén disponibles localmente. Tauri intentó
   descargarlos, pero la red está deshabilitada en este entorno; el ejecutable portable sí está listo.
 

@@ -105,7 +105,7 @@ Un Worker puede conservar progreso pendiente en su propio journal si pierde la c
 
 ## 5. Cómo leer la interfaz
 
-La navegación izquierda tiene siete áreas:
+La navegación izquierda agrupa nueve áreas:
 
 1. **Resumen**: puerta actual, evidencia y dependencias externas.
 2. **Nodos**: Workers registrados, estado y capacidades probadas.
@@ -114,6 +114,8 @@ La navegación izquierda tiene siete áreas:
 5. **Revisiones**: corrección y aprobación humana.
 6. **Datasets**: creación de versiones inmutables a partir de candidatos aprobados.
 7. **Operaciones**: preflight, entrenamiento, exportación, progreso y cancelación.
+8. **Registros**: historial de trabajos, estado, Worker, etapa y correlación para diagnóstico.
+9. **Métricas**: comparación de resultados por configuración experimental completa.
 
 La columna derecha muestra la **puerta actual**:
 
@@ -261,7 +263,7 @@ Repita snapshot e índice cuando cambie el conocimiento que desea evaluar. No co
 | R1 | RAG lexical. |
 | R2 | RAG semántico. |
 | R3 | RAG híbrido lexical + semántico. |
-| R4 | R3 más expansión por grafo/wikilinks. |
+| R4 | R3 más expansión por grafo/wikilinks; es una alternativa experimental, no una mejora garantizada. |
 | L1 | Modelo local de mayor capacidad con el mejor RAG. |
 | F1 | Modelo fine-tuned. |
 | F2 | Modelo fine-tuned con RAG. |
@@ -338,7 +340,7 @@ El Worker obtiene el token del Broker desde su almacén local o la variable `LOC
 ### Caso 11. Comparar formalmente R3 y R4 con Model Drift
 
 1. Termine un R3 y un R4 con estado `EXPERIMENT_SUCCEEDED`.
-2. Compruebe que ambos usan la misma suite, snapshot, casos, `k`, modelo de embeddings y orden de tratamientos.
+2. Compruebe que ambos usan la misma suite, snapshot, casos, `k`, modelo y huella de embeddings, modelo generativo y orden de tratamientos.
 3. Abra **Experimentos > Evaluación formal · Model Drift**.
 4. Seleccione el R3 y el R4.
 5. Indique el ejecutable público, por ejemplo `...\Model_Drift\.venv\Scripts\model-drift.exe`.
@@ -346,7 +348,9 @@ El Worker obtiene el token del Broker desde su almacén local o la variable `LOC
 7. Marque la confirmación de ejecución externa.
 8. Pulse **Ejecutar comparación formal**.
 9. Espere el informe y confirme `MODEL_DRIFT_VERIFIED`.
-10. Lea el veredicto, la potencia y las limitaciones. Un resultado «sin cambios relevantes» con pocos casos no demuestra equivalencia.
+10. Lea el veredicto, la potencia y las limitaciones. Un resultado favorable a R3 o R4 solo describe esa configuración; con pocos casos no demuestra superioridad general ni equivalencia.
+
+La aplicación identifica cada resultado por la configuración completa. Por ejemplo, en las pruebas existentes R4 superó a R3 con `bert-base-uncased`, pero quedó por debajo con `all-MiniLM-L6-v2`. Con cinco casos no hay potencia para generalizar.
 
 Local AI Lab entrega ZIPs ya calculados y un plan sellado. Model Drift verifica orden, identidad y hashes. Si su CLI no expone `evaluar-tratamientos`, la operación se bloquea: hay que instalar una versión compatible de Model Drift.
 
@@ -380,9 +384,30 @@ Local AI Lab resuelve retrieval; el Broker conserva su runtime de agente o mezcl
 
 8. Lea siempre la incertidumbre. La recomendación no activa automáticamente ninguna estrategia.
 
+### Caso 14. Seguir una ejecución en Registros
+
+1. Abra **Registros** en el grupo **Observabilidad**.
+2. Use el buscador para localizar un job por identificador, correlación, Worker o estado.
+3. Seleccione el job en la lista.
+4. Revise Worker, duración, configuración y última etapa en el panel de detalle.
+5. Recorra la línea temporal para distinguir creación, asignación, ejecución y resultado.
+6. Copie el identificador de correlación cuando necesite relacionar el trabajo con un informe o diagnóstico.
+
+Un trabajo en `failed`, `orphaned` o `needs_review` aparece como atención requerida; Registros no lo reintenta ni lo oculta.
+
+### Caso 15. Comparar resultados en Métricas
+
+1. Abra **Métricas** en el grupo **Observabilidad**.
+2. Compruebe cuántas ejecuciones tienen métricas, verificación formal y una muestra de al menos 20 casos.
+3. Busque o filtre mentalmente por la configuración exacta mostrada: estrategia, embedding, huella corta, `k`, suite y snapshot.
+4. Compare recall, nDCG, MRR, latencia y tamaño de muestra.
+5. Lea **Alcance de la conclusión** antes de elegir una estrategia.
+
+No compare filas de configuraciones distintas como si aislaran únicamente R3 frente a R4. Si hay menos de 20 casos, la interfaz marca que la evidencia es insuficiente para generalizar.
+
 ## 9. Revisión humana y datasets
 
-### Caso 14. Corregir y aceptar una respuesta
+### Caso 16. Corregir y aceptar una respuesta
 
 1. Abra **Revisiones**.
 2. Seleccione un caso en la cola izquierda.
@@ -395,7 +420,7 @@ Local AI Lab resuelve retrieval; el Broker conserva su runtime de agente o mezcl
 
 Una revisión aceptada queda cerrada para edición. Si la verificación determinista falla, corrija los errores antes de enviarla.
 
-### Caso 15. Aprobar un candidato para entrenamiento
+### Caso 17. Aprobar un candidato para entrenamiento
 
 1. Parta de una revisión `accepted` con training `excluded`.
 2. Pulse **Proponer para training**. El estado pasa a `proposed`.
@@ -404,7 +429,7 @@ Una revisión aceptada queda cerrada para edición. Si la verificación determin
 
 Corregir, aceptar y aprobar para entrenamiento son tres decisiones distintas. No use los benchmarks ni sus respuestas de referencia como datos de training.
 
-### Caso 16. Construir un dataset aprobado
+### Caso 18. Construir un dataset aprobado
 
 1. Confirme que existe al menos un candidato de training `approved`.
 2. Abra **Datasets**.
@@ -418,7 +443,7 @@ El constructor deduplica ejemplos y excluye automáticamente IDs y fingerprints 
 
 ## 10. Entrenamiento, exportación y jobs
 
-### Caso 17. Ejecutar el preflight obligatorio
+### Caso 19. Ejecutar el preflight obligatorio
 
 1. Abra **Operaciones > 1 · Prueba corta obligatoria**.
 2. Seleccione un dataset `READY_FOR_TRAINING`.
@@ -432,7 +457,7 @@ El constructor deduplica ejemplos y excluye automáticamente IDs y fingerprints 
 
 El preflight comprueba compatibilidad, memoria, carga corta, checkpoint, reanudación y recarga. No sustituya esta evidencia por una casilla o una estimación manual.
 
-### Caso 18. Autorizar un entrenamiento LoRA
+### Caso 20. Autorizar un entrenamiento LoRA
 
 1. Abra **Operaciones > 2 · Entrenamiento largo autorizado**.
 2. Seleccione el preflight aprobado.
@@ -446,7 +471,7 @@ El preflight comprueba compatibilidad, memoria, carga corta, checkpoint, reanuda
 
 La aplicación fija una época desde esta interfaz. El Worker debe conservar checkpoints y validar la recarga del resultado.
 
-### Caso 19. Exportar un modelo o adaptador
+### Caso 21. Exportar un modelo o adaptador
 
 1. Abra **Operaciones > 3 · Exportación verificable**.
 2. Seleccione un entrenamiento `TRAINING_SUCCEEDED`.
@@ -467,7 +492,7 @@ La aplicación fija una época desde esta interfaz. El Worker debe conservar che
 
 La existencia de un conversor no basta: su formato debe aparecer como probado en el heartbeat del Worker.
 
-### Caso 20. Seguir o cancelar un job
+### Caso 22. Seguir o cancelar un job
 
 1. Abra **Operaciones > Jobs distribuidos**.
 2. Identifique el job por tipo, ID y correlation ID.
@@ -602,7 +627,7 @@ No pase el token como argumento ni lo copie al manual, a un informe o a una capt
 6. En cada etapa use el botón principal para abrir la herramienta necesaria. No avance por
    una marca visual: compruebe que la evidencia de la etapa anterior existe realmente.
 
-### Caso 22. Entrenar por destilación de otro LLM
+### Caso 23. Entrenar por destilación de otro LLM
 
 Esta implementación realiza **destilación secuencial supervisada**: el profesor puede estar
 servido por **AI Broker** o cargarse localmente en el Worker. Genera las respuestas de

@@ -16,21 +16,21 @@ verificada solo por existir código o documentación.
 | 2 | Vault read-only, snapshot, hashes, índice FTS5 generacional, grafo y auditoría | Tests temporales sin cambios de bytes/mtime | Pendiente vault real y symlink privilegiado |
 | 3 | Corpus controlado y registro inmutable de benchmark real humano | Validador determinista y API/UI | Pendiente aprobación humana |
 | 4 | R1 lexical y jobs R2 semántico/R3 híbrido con embeddings locales | Ejecutor distribuido y tests controlados | Pendiente modelo local real |
-| 5 | R4 con wikilinks, expansión, pesos, reranking y contexto acotado | Tests deterministas | Pendiente comparación R4/R3 real |
+| 5 | R4 con wikilinks, expansión, pesos, reranking y contexto acotado | Tests deterministas y comparaciones reales con dos embeddings | No hay superioridad estable de R4; falta una suite con potencia suficiente |
 | 6 | Respuesta multifuente, citas y verificadores | Snapshot controlado | Pendiente benchmark del vault real |
 | 7 | Revisión, diff, editor, evidencia y doble aprobación de training | Repository/API/UI y tests | Pendiente uso humano real |
 | 8 | Plan v2 sellado, ZIP R3/R4 y comparación por CLI pública de Model Drift | R3/R4 reales con embeddings locales; ciclo formal por las tres vías | **Superada** |
-| 9 | Dataset inmutable, procedencia, dedup, contaminación y splits | Tests de construcción/verificación | Pendiente candidatos reales |
-| 10 | C1–C6, resolver, LoRA, destilación secuencial profesor→alumno, checkpoint/resume, reload y manifests | Contratos, planificación, executor y flujo de producto; sin carga larga real | Pendiente hardware/modelos y overfit |
+| 9 | Dataset inmutable, procedencia, dedup, contaminación y splits | Tests y ciclo real con 10 revisiones aprobadas | Superada funcionalmente; falta Benchmark A aprobado |
+| 10 | C1–C6, resolver, LoRA, destilación secuencial profesor→alumno, checkpoint/resume, reload y manifests | Profesor local/Broker, alumno y RTX 4060 Ti reales | Superada funcionalmente; falta entrenamiento de duración/calidad representativas |
 | 11 | Ejecución F1/F2 y estrategias B0–L1 bajo contrato común | Tests de contratos | Pendiente runs reales |
-| 12 | Comparación multidimensional sin score global | API/UI y vista de registros | Pendiente runs reales |
+| 12 | Comparación multidimensional sin score global | Runs reales, API/UI, Registros y Métricas por configuración | Falta suite con potencia suficiente |
 | 13 | Selector con umbral, restricciones, incertidumbre y explicación | Tests deterministas | Pendiente evidencia aprobada |
 | 14 | Jobs A1/M1 con runtime agent/mixture delegado a AI Broker y retrieval local como client tool | Tests de planificación y ejecución contractual | Pendiente Broker/Workers reales |
-| 15 | Adapter zip, merge safetensors, GGUF y paquete verificable por CAS | Export adapter controlado | Pendiente modelo/convertidor reales |
+| 15 | Adapter zip, merge safetensors, GGUF y paquete verificable por CAS | Adapter real exportado desde destilación y verificado | Pendiente validar merge/GGUF con convertidores reales |
 
 ## Verificaciones ejecutadas
 
-- `python -m pytest -q --basetemp=.full-test-tmp-20260825-broker-teacher`: **158 passed,
+- `python -m pytest -q --basetemp=.full-test-tmp-20260825-observability`: **162 passed,
   1 skipped**. El skip corresponde a creación de symlinks no permitida por la identidad de
   pruebas de Windows.
 - `python -m compileall -q src tests`: pasa.
@@ -45,12 +45,37 @@ verificada solo por existir código o documentación.
   supervisada del alumno, checkpoint, reanudación solicitada, guardado, recarga del adapter y
   manifiesto con hashes. Se prueban los dos orígenes del profesor: caché local y AI Broker con
   modelo exacto, fallback prohibido y trazabilidad de tarea/uso/coste. La frontera
-  `torch`/Transformers/PEFT usa dobles deterministas; sigue pendiente una ejecución con un alumno
-  causal real y el entorno local de entrenamiento instalado.
+  `torch`/Transformers/PEFT también se verificó con modelos reales sobre la RTX 4060 Ti. Sigue
+  pendiente una ejecución de duración y calidad representativas; la actual valida funcionalidad,
+  recuperación y artefactos, no la mejora general del alumno.
 - MSI/NSIS: pendientes únicamente de disponer de WiX 3.14 y NSIS 3.11 en la caché local;
   Tauri no pudo descargarlos porque el entorno no permite red.
 - Graphify: 1.889 nodos y 3.879 aristas de código fuente; cero endpoints ausentes/colgantes, self-loops,
   duplicados o colisiones multigraph.
+
+## Auditoría del 2026-08-25
+
+Se verificaron todos los casos de uso contra Broker, vault, Model Drift, GPU y modelos
+reales. El detalle está en [`docs/AUDIT_20260825.md`](AUDIT_20260825.md). Resumen:
+
+- **Destilación probada de verdad**, por los dos caminos de profesor: local
+  (`SmolLM2-360M-Instruct`) y AI Broker (`gemma4:12b`, 8 invocaciones reales con telemetría).
+  El alumno `SmolLM2-135M-Instruct` se entrenó con LoRA en la RTX 4060 Ti, con reanudación
+  desde checkpoint, recarga del adapter y manifiesto con hashes.
+- **Ciclo distribuido completo** ejecutado por HTTP: vault real → revisiones aprobadas →
+  dataset → preflight → destilación → exportación, con un Worker emparejado.
+- **Dos defectos corregidos** que impedían usar la destilación en la práctica:
+  1. un entrenamiento o destilación se aceptaba pero ningún Worker podía reclamarlo, porque
+     nadie registraba los hechos `gpu.backend` y `dtype.<dtype>` que el plan exige;
+  2. un alumno destilado no se podía exportar, porque el ejecutor de exportación solo
+     reconocía `training-manifest.json`.
+- **Comparación formal con Model Drift** repetida con R3/R4 reales: `MODEL_DRIFT_VERIFIED`.
+  Con `all-MiniLM-L6-v2` R4 **no** mejora a R3, al contrario que con `bert-base-uncased`.
+  Con 5 casos no hay potencia para concluir; la expansión por grafo no está establecida.
+- **Interfaz**: la captura anterior verificó 9 secciones, 7 etapas, bloqueadores en vivo y ausencia
+  de desbordamiento. La versión actual añade `Registros`, `Métricas` e iconos —11 destinos— y
+  supera build y smoke nativo; falta repetir la comparación visual por el permiso local guardado
+  del navegador.
 
 ## Integraciones externas
 
@@ -86,8 +111,10 @@ realizar nuevas llamadas al Broker.
 producidos con embeddings locales (`bert-base-uncased` en caché, sin red) y empaquetados como
 los recoge el Worker:
 
-- R3 `R3.hybrid-rrf.v1` → recall 0.867, nDCG 0.836. R4 `R4.hybrid-graph.v1` → recall 1.000,
-  nDCG 0.936. La expansión por grafo mejora de verdad el ranking.
+- Con `bert-base-uncased`, R3 `R3.hybrid-rrf.v1` obtuvo recall 0.867 / nDCG 0.836 y R4
+  `R4.hybrid-graph.v1` recall 1.000 / nDCG 0.936. Ese resultado pertenece a esa configuración.
+- Con `all-MiniLM-L6-v2`, R3 obtuvo nDCG 0.733 y R4 0.700. El modelo de embeddings cambia
+  el resultado y cinco casos no aportan potencia suficiente: no se establece una mejora general de R4.
 - Model Drift emite el informe formal y declara sus límites: con 5 casos no hay potencia para
   concluir, y registra como garantía ausente que no observó el proceso que produjo los
   artefactos. El veredicto es «sin cambios relevantes» pese a la mejora medida.

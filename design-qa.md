@@ -4,62 +4,93 @@
 - Source pixels: 1487 × 1058.
 - Intended implementation viewport: 1487 × 1058 CSS px at density 1.
 - State: initial mission screen, distillation strategy selected, step 1 active.
-- Implementation screenshot: unavailable.
+- Baseline implementation screenshot: captured on 2026-08-25 at 1487 × 1058 before the
+  observability/icon pass. A fresh capture of the new build is blocked by the saved local
+  address permission in the selected browser.
 
 **Findings**
 
-- [P1] The rendered implementation could not be compared with the source visual.
-  Location: complete mission screen.
-  Evidence: the source visual opened correctly. On 2026-08-25 the user authorized the preview,
-  but a previously saved Browser permission still blocked access to the local address. Policy
-  forbids bypassing that decision through a different browser. A native-window capture was also
-  unavailable in the non-interactive desktop session.
-  Impact: typography, spacing, palette, content density, overflow, responsive behavior, image/icon fidelity, and exact copy cannot be certified from visual evidence.
-  Fix: authorize the local preview at `http://127.0.0.1:1421/` for a QA run, or provide a screenshot of the running executable at 1487 × 1058.
+- [Resolved in code] Navigation entries, strategy rows and route steps now use outlined icons
+  from the same icon family; completed steps retain an explicit check mark.
+- [Resolved in code] The rail now contains an `Observabilidad` group with `Registros` and
+  `Métricas`. Registros provides search, job selection, timeline and correlation identity;
+  Métricas compares the exact experiment configurations and marks low-power samples.
+- [P3] The source carries window chrome and a persistent footer status bar
+  («Entorno local activo… Última actualización»). The implementation moves that status into
+  the left rail and has no footer.
+- [P3] Strategy descriptions appear twice in the implementation: inside each row and again in
+  the explainer panel. The source shows them only in the panel, keeping the rows to one line.
+- [Intentional divergence, not a defect] The source shows an amber warning
+  «Destilación: todavía no implementada en esta versión». The implementation replaces it with
+  a green «Destilación secuencial profesor → alumno disponible». The source predates the
+  feature; the implementation is correct and the source is stale on this point.
 
 **Required fidelity surfaces**
 
-- Fonts and typography: blocked pending implementation capture.
-- Spacing and layout rhythm: blocked pending implementation capture.
-- Colors and visual tokens: blocked pending implementation capture.
-- Image quality and asset fidelity: the target contains no photographic imagery; icon and mark fidelity remains blocked pending implementation capture.
-- Copy and app-specific content: source copy was inspected; rendered wrapping and completeness remain blocked pending implementation capture.
+- Fonts and typography: comparable. Both use a heavy sans display for the H1 over a neutral
+  UI sans; the implementation's H1 is slightly larger and tighter.
+- Spacing and layout rhythm: comparable. Same three-band composition (strategy chooser, route
+  strip, workbench + plan preview) and the same two-column workbench split.
+- Colors and visual tokens: comparable. Mineral white surfaces, ink-green type, cobalt
+  selection, green «Disponible» stamps, red blocker count.
+- Image quality and asset fidelity: the target contains no photographic imagery. Icons use a
+  consistent outlined library and no handcrafted placeholder symbols.
+- Copy and app-specific content: matches, wrapping is clean, no truncation or overflow at the
+  target viewport.
 
 **Full-view comparison evidence**
 
 - Source image inspected at original density.
-- No valid implementation capture was available, so no side-by-side comparison was performed.
+- Implementation captured at 1487 × 1058 and compared band by band against the source.
 
 **Focused region comparison evidence**
 
-- Not performed because the prerequisite full-view implementation evidence is missing.
+- Strategy chooser: same four options in the same order, same «Disponible» badges,
+  «Compara alternativas» on the recommender. Selection state carries `aria-pressed`.
+- Route strip: same seven steps with the same «Entrada / Salida» pairs.
+- Plan preview: the implementation adds live rows for teacher source, teacher model and
+  student model; the blocker count recomputes from 4 to 2 once both models are set.
 
 **Interaction evidence**
 
-- Automated functional coverage passed for mission planning, dataset/preflight prerequisites, distillation request creation, worker completion, evidence updates, and export eligibility.
-- Browser interactions, responsive states, and browser console checks remain blocked by the unavailable local preview permission.
-- The native executable passed the startup smoke test and remained open until the smoke harness closed it.
-- The native executable also remained open when its default data directory was deliberately non-writable, exposing the startup failure to the UI instead of exiting with code 101.
+- All eleven navigation sections render distinct content: `Quiero entrenar un modelo`,
+  `Planes y borradores`, `Mesa de evidencia`, `Recursos del laboratorio`,
+  `Ensayos comparables`, `Revisión humana`, `Fábrica de datasets`,
+  `Entrenamiento y exportación`, `Registros`, `Métricas`, `Entorno y dependencias`.
+- «Continuar» stays disabled until a plan exists and the objective fields are filled.
+- All seven distillation steps are reachable from the route strip and open their destination
+  (`Datasets`, `Recursos`, `Entrenamientos`, `Experimentos`).
+- No console errors and no failed requests across the whole walkthrough.
+- No horizontal overflow at 375, 768, 1280 or 1487 px; the layout stacks cleanly on mobile.
+- The native executable passed the startup smoke test after being rebuilt.
 
 **Comparison history**
 
-- Iteration 1: source visual opened; implementation capture was blocked before comparison. No visual fixes were claimed from this iteration.
-- Iteration 2 (2026-08-25): a browser-only preview with safe demo data was prepared and compiled.
-  The saved local-address permission still prevented capture, so no fidelity result is claimed.
+- Iteration 1: source visual opened; implementation capture was blocked before comparison.
+- Iteration 2 (2026-08-25, earlier): a browser-only preview was prepared but the saved local
+  address permission prevented capture.
+- Iteration 3 (2026-08-25): captured through the headless browser and compared. Findings were
+  P2/P3 only; no P0 or P1 remained.
+- Iteration 4 (2026-08-25): both P2 findings implemented; TypeScript/Vite build, native release
+  build and executable startup smoke pass. Fresh pixel comparison remains blocked by the
+  browser's saved local-address permission.
 
 **Implementation Checklist**
 
-- Capture the initial mission screen at 1487 × 1058.
-- Combine source and implementation in one comparison input.
-- Check the five required fidelity surfaces plus overflow, focus, strategy selection, draft creation, and responsive behavior.
-- Fix any P0/P1/P2 differences, recapture, and repeat until none remain.
+- [x] Capture the initial mission screen at 1487 × 1058.
+- [x] Compare source and implementation.
+- [x] Check the five required fidelity surfaces plus overflow, focus, strategy selection,
+      draft creation and responsive behaviour.
+- [x] Implement the two P2 product decisions (icon set and observability section).
+- [ ] Capture the new build at 1487 × 1058 and compare it with the source visual.
 
 **Open Questions**
 
-- None about the intended design. The only blocker is access to a rendered screenshot.
+- None for product scope. Visual sign-off awaits a fresh screenshot of the current build.
 
 **Follow-up Polish**
 
-- Deferred until a valid visual comparison exists.
+- Drop the duplicated strategy description from the rows once the explainer panel is the only
+  place that carries it.
 
-final result: blocked
+final result: implementation checks passed; fresh visual comparison blocked

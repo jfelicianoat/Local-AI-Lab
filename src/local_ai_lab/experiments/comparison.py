@@ -12,6 +12,8 @@ class StrategyRun:
     strategy_run_id: str
     experiment_id: str
     strategy_id: str
+    configuration_label: str
+    configuration_fingerprint: str
     suite_fingerprint: str
     snapshot_hash: str
     case_ids: tuple[str, ...]
@@ -76,6 +78,8 @@ class StrategyComparator:
             dimensions.append(
                 {
                     "strategy_id": run.strategy_id,
+                    "configuration_label": run.configuration_label,
+                    "configuration_fingerprint": run.configuration_fingerprint,
                     "quality": run.quality,
                     "retrieval": run.retrieval,
                     "cost": {

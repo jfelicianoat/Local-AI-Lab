@@ -21,6 +21,8 @@ def _run(
 ) -> StrategyRun:
     return StrategyRun(
         strategy_run_id=f"run-{strategy}", experiment_id="exp-1", strategy_id=strategy,
+        configuration_label=f"{strategy} · model-a · k=5",
+        configuration_fingerprint=f"configuration-{strategy}",
         suite_fingerprint="a" * 64, snapshot_hash="b" * 64,
         case_ids=tuple(f"case-{index}" for index in range(cases)),
         model_fingerprint=f"model-{strategy}", prompt_fingerprint="prompt-1",
@@ -45,6 +47,7 @@ def test_f1_f2_and_best_rag_are_compared_without_global_score() -> None:
     assert len(comparison.dimensions) == 3
     assert all("score" not in row for row in comparison.dimensions)
     assert all(set(row) >= {"quality", "retrieval", "cost", "latency_ms", "peak_memory_gib", "privacy", "complexity"} for row in comparison.dimensions)
+    assert comparison.dimensions[0]["configuration_label"].startswith("F1 ·")
     assert any("unknown" in caveat for caveat in comparison.caveats)
 
 
@@ -78,5 +81,6 @@ def test_selector_uses_declared_metrics_and_explains_uncertainty() -> None:
 
     assert decision.status == "recommendation"
     assert decision.strategy_id == "R4"
+    assert decision.configuration_label == "R4 · model-a · k=5"
     assert "not certainty" in decision.uncertainty
     assert decision.evidence_references

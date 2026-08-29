@@ -101,5 +101,6 @@ class ControlledRetrievalExecutor:
             "aggregate": report["aggregate"],
             "latency_ms": report["latency_ms"],
             "case_ids": [case["case_id"] for case in suite.cases],
+            "embedding_model": payload["embedding_model"],
             "embedding_model_fingerprint": provider.model_fingerprint,
         }

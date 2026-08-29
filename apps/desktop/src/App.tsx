@@ -6,19 +6,28 @@ FIRST VIEWPORT: A compact mission rail, a complete training route, and a live pl
 FORM: Guided local-research workbench; existing evidence and expert controls remain reachable.
 */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Activity, Archive, ArrowRight, BarChart3, BookOpenCheck, Boxes, Check, CheckCircle2,
+  ClipboardCheck, Cpu, Database, FileSearch, FlaskConical, FolderOpen,
+  Gauge, Hexagon, ListChecks, Network, PackageCheck, RefreshCw, ScrollText,
+  Settings, ShieldCheck, Sparkles, Target, Users,
+  type LucideIcon,
+} from "lucide-react";
 import { buildApprovedFeedbackDataset, cancelJob, changeReviewState, changeTrainingState, checkBrokerCompatibility, createBrokerAgentExperiment, createDistillationRun, createKnowledgeIndex, createModelExport, createSemanticRetrievalBenchmark, createStrategyRun, createTrainingPreflight, createTrainingRun, createVaultSnapshot, discoverVaults, loadJobs, loadOverview, loadProductWorkspace, loadReviews, registerRealBenchmark, runControlledRetrievalBenchmark, runModelDriftComparison, saveReviewCorrection, selectStrategy } from "./api";
 import type { EvidenceItem, EvidenceStatus, JobRecord, Overview, ProductRecord, ProductWorkspace, ReviewRecord } from "./contracts";
 
-const navigation = [
-  { group: "Misión actual", label: "Misiones" },
-  { group: "Misión actual", label: "Planes y borradores" },
-  { group: "Misión actual", label: "Evidencia" },
-  { group: "Misión actual", label: "Recursos" },
-  { group: "Ejecución", label: "Experimentos" },
-  { group: "Ejecución", label: "Revisiones" },
-  { group: "Ejecución", label: "Datasets" },
-  { group: "Ejecución", label: "Entrenamientos" },
-  { group: "Configuración", label: "Configuración" },
+const navigation: { group: string; label: string; icon: LucideIcon }[] = [
+  { group: "Misión actual", label: "Misiones", icon: Target },
+  { group: "Misión actual", label: "Planes y borradores", icon: ListChecks },
+  { group: "Misión actual", label: "Evidencia", icon: Archive },
+  { group: "Misión actual", label: "Recursos", icon: FolderOpen },
+  { group: "Ejecución", label: "Experimentos", icon: FlaskConical },
+  { group: "Ejecución", label: "Revisiones", icon: ClipboardCheck },
+  { group: "Ejecución", label: "Datasets", icon: Database },
+  { group: "Ejecución", label: "Entrenamientos", icon: Cpu },
+  { group: "Observabilidad", label: "Registros", icon: ScrollText },
+  { group: "Observabilidad", label: "Métricas", icon: BarChart3 },
+  { group: "Configuración", label: "Configuración", icon: Settings },
 ];
 
 const pageCopy: Record<string, { title: string; description: string }> = {
@@ -30,6 +39,8 @@ const pageCopy: Record<string, { title: string; description: string }> = {
   Revisiones: { title: "Revisión humana", description: "Correcciones, diferencias y evidencia antes de aprobar cualquier dato de entrenamiento." },
   Datasets: { title: "Fábrica de datasets", description: "Ejemplos aprobados, deduplicados y aislados de todos los benchmarks." },
   Entrenamientos: { title: "Entrenamiento y exportación", description: "Pruebas cortas, trabajos recuperables y paquetes verificables." },
+  Registros: { title: "Actividad del laboratorio", description: "Sigue cada trabajo desde la interfaz hasta el Worker y sus dependencias externas." },
+  Métricas: { title: "Métricas por configuración", description: "Compara resultados exactos sin convertir una observación en una superioridad general." },
   Configuración: { title: "Entorno y dependencias", description: "Comprueba integraciones sin modificar sistemas externos ni persistir secretos." },
 };
 
@@ -71,20 +82,22 @@ export default function App() {
   return (
     <div className="app-shell guided-shell">
       <aside className="rail" aria-label="Navegación principal">
-        <div className="brand"><span aria-hidden="true">L</span><div><strong>Local AI Lab</strong><small>Entorno local · privado</small></div></div>
-        <nav>{["Misión actual", "Ejecución", "Configuración"].map((group) => <div className="nav-group" key={group}><p>{group}</p>{navigation.filter((item) => item.group === group).map((item) => (
+        <div className="brand"><span aria-hidden="true"><Hexagon size={28} strokeWidth={2.25} /></span><div><strong>Local AI Lab</strong><small>Entorno local · privado</small></div></div>
+        <nav>{["Misión actual", "Ejecución", "Observabilidad", "Configuración"].map((group) => <div className="nav-group" key={group}><p>{group}</p>{navigation.filter((item) => item.group === group).map((item) => {
+          const Icon = item.icon;
+          return (
           <button key={item.label} className={active === item.label ? "active" : ""} onClick={() => setActive(item.label)} aria-current={active === item.label ? "page" : undefined}>
-            <span aria-hidden="true" className="nav-mark" />{item.label}
+            <Icon aria-hidden="true" size={19} strokeWidth={1.8} />{item.label}
           </button>
-        ))}</div>)}</nav>
-        <div className="privacy-note"><strong>Entorno local activo</strong><span>Solo este equipo</span><small>Todo el procesamiento y la evidencia permanecen en el laboratorio.</small></div>
+        )})}</div>)}</nav>
+        <div className="privacy-note"><strong><ShieldCheck aria-hidden="true" size={17} /> Entorno local activo</strong><span>Solo este equipo</span><small>Todo el procesamiento y la evidencia permanecen en el laboratorio.</small></div>
       </aside>
 
       <main className="workspace">
         <header className="app-topbar">
           <div><small>Espacio de trabajo</small><strong>{overview?.phase.toUpperCase() ?? "LOCAL"}</strong></div>
-          <div className="topbar-trust"><strong>Todo se ejecuta en este equipo</strong><small>Ningún dato sale del entorno local.</small></div>
-          <button className="refresh" disabled={status === "loading"} onClick={() => void refresh()}>{status === "loading" ? "Actualizando…" : "Actualizar"}</button>
+          <div className="topbar-trust"><strong><ShieldCheck aria-hidden="true" size={17} /> Todo se ejecuta en este equipo</strong><small>Ningún dato sale del entorno local.</small></div>
+          <button className="refresh" disabled={status === "loading"} onClick={() => void refresh()}><RefreshCw aria-hidden="true" size={16} />{status === "loading" ? "Actualizando…" : "Actualizar"}</button>
         </header>
 
         {status === "error" ? <ErrorState message={error ?? "Error desconocido"} retry={() => void refresh()} /> : null}
@@ -109,6 +122,7 @@ export default function App() {
               {active === "Revisiones" ? <ReviewBoard reviews={reviews} onChanged={(changed) => setReviews((current) => current.map((item) => item.review_id === changed.review_id ? changed : item))} /> : null}
               {active === "Datasets" ? <DatasetBoard records={product?.datasets ?? []} approvedCount={reviews.filter((review) => review.training_state === "approved").length} onCreated={(record) => { setProduct((current) => current ? { ...current, datasets: [record, ...current.datasets] } : current); void refresh(); }} /> : null}
               {active === "Entrenamientos" ? <><OperationsBoard records={[...(product?.training ?? []), ...(product?.exports ?? [])]} datasets={product?.datasets ?? []} experiments={product?.experiments ?? []} nodes={overview.nodes} jobs={jobs} onChanged={() => void refresh()} /><DistillationPanel datasets={product?.datasets ?? []} preflights={(product?.training ?? []).filter((record) => record.status === "PREFLIGHT_PASSED")} experiments={product?.experiments ?? []} onChanged={() => void refresh()} /></> : null}
+              {active === "Registros" || active === "Métricas" ? <ActivityBoard mode={active === "Registros" ? "runs" : "metrics"} jobs={jobs} workspace={product} /> : null}
               {active === "Configuración" ? <><BrokerCompatibilityPanel onCreated={(record) => setProduct((current) => current ? { ...current, experiments: [record, ...current.experiments] } : current)} /><DependencySummary overview={overview} /></> : null}
             </section>
             </>}
@@ -129,12 +143,14 @@ function readMissionDraft(): MissionDraft {
   } catch { return {}; }
 }
 
-const missionStrategies: { id: MissionStrategy; title: string; badge: string; description: string }[] = [
-  { id: "lora", title: "LoRA / SFT local", badge: "Disponible", description: "Especializa un modelo local con ejemplos aprobados y un adapter recuperable." },
-  { id: "rag", title: "Fine-tuning + RAG", badge: "Disponible", description: "Combina comportamiento entrenado con conocimiento recuperado desde un snapshot." },
-  { id: "distillation", title: "Destilación de otro LLM", badge: "Disponible", description: "Un modelo profesor genera respuestas supervisadas para entrenar un modelo alumno más pequeño." },
-  { id: "recommend", title: "Que la app recomiende", badge: "Compara alternativas", description: "Usa evidencia comparable para elegir la solución menos compleja que cumpla el objetivo." },
+const missionStrategies: { id: MissionStrategy; title: string; badge: string; description: string; icon: LucideIcon }[] = [
+  { id: "lora", title: "LoRA / SFT local", badge: "Disponible", description: "Especializa un modelo local con ejemplos aprobados y un adapter recuperable.", icon: Database },
+  { id: "rag", title: "Fine-tuning + RAG", badge: "Disponible", description: "Combina comportamiento entrenado con conocimiento recuperado desde un snapshot.", icon: FileSearch },
+  { id: "distillation", title: "Destilación de otro LLM", badge: "Disponible", description: "Un modelo profesor genera respuestas supervisadas para entrenar un modelo alumno más pequeño.", icon: Network },
+  { id: "recommend", title: "Que la app recomiende", badge: "Compara alternativas", description: "Usa evidencia comparable para elegir la solución menos compleja que cumpla el objetivo.", icon: Sparkles },
 ];
+
+const missionStepIcons: LucideIcon[] = [Target, Users, Database, ShieldCheck, FlaskConical, BarChart3, PackageCheck];
 
 const missionFlows: Record<MissionStrategy, { title: string; input: string; output: string; destination?: string }[]> = {
   lora: [
@@ -220,9 +236,9 @@ function MissionBoard({ overview, product, onNavigate }: { overview: Overview; p
 
   return <section className="mission-board" aria-labelledby="mission-title">
     <header className="mission-heading"><div><p className="context">Misión actual</p><h1 id="mission-title">Quiero entrenar un modelo</h1><p>Elige una estrategia para construir tu plan guiado paso a paso.</p></div><div className="draft-state"><strong>{savedAt ? "Borrador guardado" : "Nuevo plan"}</strong><small>{savedAt ? formatTime(savedAt) : "Se guardará automáticamente"}</small></div></header>
-    <div className="strategy-start"><div><h2>¿Cómo quieres conseguirlo?</h2><div className="strategy-list">{missionStrategies.map((item) => <button key={item.id} className={strategy === item.id ? "selected" : ""} onClick={() => chooseStrategy(item.id)} aria-pressed={strategy === item.id}><span><strong>{item.title}</strong><small>{item.description}</small></span><b>{item.badge}</b></button>)}</div><button className="primary-action" onClick={createPlan}>{created ? "Recrear plan guiado" : "Crear plan guiado"}</button></div><div className="strategy-explainer"><strong>{missionStrategies.find((item) => item.id === strategy)?.title}</strong><p>{missionStrategies.find((item) => item.id === strategy)?.description}</p>{strategy === "distillation" ? <div className="capability-note"><strong>Destilación secuencial profesor → alumno disponible</strong><span>El profesor puede ejecutarse mediante AI Broker o desde la caché local. El alumno siempre se entrena localmente con LoRA y después se compara contra el baseline.</span></div> : null}</div></div>
-    <ol className="mission-flow" aria-label="Recorrido completo">{flow.map((step, index) => <li key={step.title} className={index === activeStep ? "active" : index < activeStep ? "complete" : ""}><button onClick={() => created && setActiveStep(index)} disabled={!created}><span>{index + 1}</span><strong>{step.title}</strong><small>Entrada: {step.input}</small><small>Salida: {step.output}</small></button></li>)}</ol>
-    <div className="mission-workbench"><section className="step-workspace"><div className="step-title"><span>{activeStep + 1}</span><div><h2>{current.title}</h2><p>{activeStep === 0 ? "Define qué debe aprender el modelo, cómo sabrás que tuvo éxito y qué límites debe respetar." : `Completa esta etapa para producir: ${current.output}.`}</p></div></div>{activeStep === 0 ? <div className="mission-fields"><label><span>Tarea que debe aprender</span><textarea value={task} onChange={(event) => setTask(event.target.value)} placeholder="Describe la tarea o comportamiento que el modelo alumno debe dominar." /></label><label><span>Criterio de éxito</span><textarea value={success} onChange={(event) => setSuccess(event.target.value)} placeholder="Indica una medida verificable frente al baseline." /></label><label><span>Restricciones</span><textarea value={constraints} onChange={(event) => setConstraints(event.target.value)} placeholder="Datos excluidos, idiomas, latencia, permisos de uso o límites de privacidad." /></label></div> : strategy === "distillation" && activeStep === 1 ? <div className="mission-fields two-columns"><label><span>Dónde está el profesor</span><select value={teacherSource} onChange={(event) => setTeacherSource(event.target.value as "broker" | "local")}><option value="broker">AI Broker</option><option value="local">Caché local del Worker</option></select></label><label><span>{teacherSource === "broker" ? "Modelo profesor en AI Broker" : "Modelo profesor local"}</span><input value={teacherModel} onChange={(event) => setTeacherModel(event.target.value)} placeholder={teacherSource === "broker" ? "Nombre exacto anunciado por el Broker" : "Ruta o ID ya presente en caché"} /></label><label><span>Modelo alumno local</span><input value={studentModel} onChange={(event) => setStudentModel(event.target.value)} placeholder="Ruta o ID ya presente en caché" /></label></div> : <div className="step-guidance"><strong>Qué ocurrirá aquí</strong><p>La aplicación abrirá las herramientas necesarias con el contexto del plan y conservará la evidencia producida para poder reanudar el recorrido.</p></div>}<footer><button className="secondary-action" onClick={saveDraft}>Guardar borrador</button><button className="primary-action" disabled={!created || (activeStep === 0 && (!task.trim() || !success.trim()))} onClick={continueFlow}>{current.destination ? `Abrir ${current.destination}` : activeStep === flow.length - 1 ? "Revisar resultado" : "Continuar"}</button></footer></section>
+    <div className="strategy-start"><div><h2>¿Cómo quieres conseguirlo?</h2><div className="strategy-list">{missionStrategies.map((item) => { const Icon = item.icon; return <button key={item.id} className={strategy === item.id ? "selected" : ""} onClick={() => chooseStrategy(item.id)} aria-pressed={strategy === item.id}><Icon aria-hidden="true" size={25} strokeWidth={1.7} /><span><strong>{item.title}</strong><small>{item.description}</small></span><b>{item.badge}</b></button>; })}</div><button className="primary-action" onClick={createPlan}>{created ? "Recrear plan guiado" : "Crear plan guiado"}</button></div><div className="strategy-explainer"><strong>{missionStrategies.find((item) => item.id === strategy)?.title}</strong><p>{missionStrategies.find((item) => item.id === strategy)?.description}</p>{strategy === "distillation" ? <div className="capability-note"><strong>Destilación secuencial profesor → alumno disponible</strong><span>El profesor puede ejecutarse mediante AI Broker o desde la caché local. El alumno siempre se entrena localmente con LoRA y después se compara contra el baseline.</span></div> : null}</div></div>
+    <ol className="mission-flow" aria-label="Recorrido completo">{flow.map((step, index) => { const StepIcon = missionStepIcons[index] ?? CheckCircle2; return <li key={step.title} className={index === activeStep ? "active" : index < activeStep ? "complete" : ""}><button onClick={() => created && setActiveStep(index)} disabled={!created}><span>{index < activeStep ? <Check aria-label="Completado" size={17} /> : <StepIcon aria-hidden="true" size={17} strokeWidth={1.8} />}</span><strong>{index + 1}. {step.title}</strong><small>Entrada: {step.input}</small><small>Salida: {step.output}</small></button></li>; })}</ol>
+    <div className="mission-workbench"><section className="step-workspace"><div className="step-title"><span>{(() => { const StepIcon = missionStepIcons[activeStep] ?? CheckCircle2; return <StepIcon aria-hidden="true" size={18} />; })()}</span><div><h2>{activeStep + 1} · {current.title}</h2><p>{activeStep === 0 ? "Define qué debe aprender el modelo, cómo sabrás que tuvo éxito y qué límites debe respetar." : `Completa esta etapa para producir: ${current.output}.`}</p></div></div>{activeStep === 0 ? <div className="mission-fields"><label><span>Tarea que debe aprender</span><textarea value={task} onChange={(event) => setTask(event.target.value)} placeholder="Describe la tarea o comportamiento que el modelo alumno debe dominar." /></label><label><span>Criterio de éxito</span><textarea value={success} onChange={(event) => setSuccess(event.target.value)} placeholder="Indica una medida verificable frente al baseline." /></label><label><span>Restricciones</span><textarea value={constraints} onChange={(event) => setConstraints(event.target.value)} placeholder="Datos excluidos, idiomas, latencia, permisos de uso o límites de privacidad." /></label></div> : strategy === "distillation" && activeStep === 1 ? <div className="mission-fields two-columns"><label><span>Dónde está el profesor</span><select value={teacherSource} onChange={(event) => setTeacherSource(event.target.value as "broker" | "local")}><option value="broker">AI Broker</option><option value="local">Caché local del Worker</option></select></label><label><span>{teacherSource === "broker" ? "Modelo profesor en AI Broker" : "Modelo profesor local"}</span><input value={teacherModel} onChange={(event) => setTeacherModel(event.target.value)} placeholder={teacherSource === "broker" ? "Nombre exacto anunciado por el Broker" : "Ruta o ID ya presente en caché"} /></label><label><span>Modelo alumno local</span><input value={studentModel} onChange={(event) => setStudentModel(event.target.value)} placeholder="Ruta o ID ya presente en caché" /></label></div> : <div className="step-guidance"><strong>Qué ocurrirá aquí</strong><p>La aplicación abrirá las herramientas necesarias con el contexto del plan y conservará la evidencia producida para poder reanudar el recorrido.</p></div>}<footer><button className="secondary-action" onClick={saveDraft}>Guardar borrador</button><button className="primary-action" disabled={!created || (activeStep === 0 && (!task.trim() || !success.trim()))} onClick={continueFlow}>{current.destination ? `Abrir ${current.destination}` : activeStep === flow.length - 1 ? "Revisar resultado" : "Continuar"}</button></footer></section>
       <aside className="plan-preview"><h2>Vista previa del plan</h2><dl><div><dt>Estrategia</dt><dd>{missionStrategies.find((item) => item.id === strategy)?.title}</dd></div>{strategy === "distillation" ? <><div><dt>Origen del profesor</dt><dd>{teacherSource === "broker" ? "AI Broker" : "Worker local"}</dd></div><div><dt>Modelo profesor</dt><dd>{teacherModel || "Sin definir"}</dd></div><div><dt>Modelo alumno</dt><dd>{studentModel || "Sin definir"}</dd></div></> : null}<div><dt>Datasets disponibles</dt><dd>{product?.datasets.length ?? 0}</dd></div><div><dt>Workers registrados</dt><dd>{overview.nodes.length}</dd></div><div><dt>Límite de privacidad</dt><dd>Solo este equipo</dd></div><div><dt>Bloqueadores detectados</dt><dd className={blockers.length ? "pending" : "tested"}>{blockers.length || "Ninguno"}</dd></div></dl>{blockers.length ? <ul>{blockers.map((blocker) => <li key={blocker}>{blocker}</li>)}</ul> : null}<div className="expected-result"><strong>Resultado final esperado</strong><span>{strategy === "distillation" ? "Modelo alumno validado + informe comparativo + paquete exportable" : "Modelo validado + evidencia comparable + paquete exportable"}</span></div></aside></div>
   </section>;
 }
@@ -244,7 +260,7 @@ function NodeTable({ nodes }: { nodes: Overview["nodes"] }) {
 }
 
 function RecordBoard({ records, emptyTitle, emptyText }: { records: ProductRecord[]; emptyTitle: string; emptyText: string }) {
-  if (!records.length) return <div className="record-empty"><span aria-hidden="true">◇</span><div><strong>{emptyTitle}</strong><p>{emptyText}</p></div></div>;
+  if (!records.length) return <div className="record-empty"><Archive aria-hidden="true" size={24} /><div><strong>{emptyTitle}</strong><p>{emptyText}</p></div></div>;
   return <div className="record-grid">{records.map((record) => <article className="record-card" key={record.record_id}><div className="record-card-head"><span className="record-kind">{record.category}</span><span className={`stamp ${recordStatus(record.status)}`}>{record.status}</span></div><h3>{record.title}</h3><dl>{summaryRows(record.summary).map(([key, value]) => <div key={key}><dt>{humanize(key)}</dt><dd>{value}</dd></div>)}</dl><footer><code title={record.artifact_sha256}>sha256:{record.artifact_sha256.slice(0, 12)}…</code><time>{formatTime(record.updated_at)}</time></footer></article>)}</div>;
 }
 
@@ -308,11 +324,11 @@ function ExperimentBoard({ records, snapshots, nodes, onCreated }: { records: Pr
   const experimentRecords = records.filter((record) => record.category === "experiment" || record.category === "comparison");
   const r3Runs = records.filter((record) => record.status === "EXPERIMENT_SUCCEEDED" && record.summary.strategy_id === "R3");
   const r4Runs = records.filter((record) => record.status === "EXPERIMENT_SUCCEEDED" && record.summary.strategy_id === "R4");
-  return <><div className="operation-forms experiment-forms"><fieldset><legend>R1 · baseline lexical</legend><label><span>Profundidad de retrieval (k)</span><input type="number" min={1} max={100} value={k} onChange={(event) => setK(Math.max(1, Math.min(100, Number(event.target.value))))} disabled={busy} /></label><button onClick={() => void run()} disabled={busy}>{busy ? "Trabajando…" : "Ejecutar R1 controlado"}</button><p>Se ejecuta localmente sobre un snapshot sintético; no usa AI Broker ni el vault real.</p></fieldset><fieldset><legend>R2–R4 · retrieval con embeddings</legend><label><span>Estrategia</span><select value={semanticStrategy} onChange={(event) => setSemanticStrategy(event.target.value as "R2" | "R3" | "R4")}><option value="R2">R2 · semántico</option><option value="R3">R3 · híbrido</option><option value="R4">R4 · híbrido + grafo</option></select></label><label><span>Worker</span><select value={semanticNode} onChange={(event) => setSemanticNode(event.target.value)}><option value="">Selecciona</option>{nodes.map((node) => <option key={node.node_id} value={node.node_id}>{node.hostname}</option>)}</select></label><label><span>Modelo de embeddings local exacto</span><input value={embeddingModel} onChange={(event) => setEmbeddingModel(event.target.value)} placeholder="ruta o ID ya presente en caché" /></label><label><span>SHA-256 del modelo/cache</span><input value={embeddingFingerprint} onChange={(event) => setEmbeddingFingerprint(event.target.value.toLowerCase())} maxLength={64} /></label><label><span>Dispositivo probado</span><input value={embeddingDevice} onChange={(event) => setEmbeddingDevice(event.target.value)} placeholder="cpu, cuda o mps" /></label><button onClick={() => void runSemantic()} disabled={busy || !semanticNode || !embeddingModel.trim() || !/^[0-9a-f]{64}$/.test(embeddingFingerprint) || !embeddingDevice.trim()}>Enviar benchmark</button><p>El Worker debe publicar <code>embeddings.semantic</code> como probado; no se descarga ningún modelo.</p></fieldset><fieldset className="wide-fieldset"><legend>Benchmark A · vault real</legend><p>La referencia debe estar escrita y aprobada por una persona; la aplicación valida cada evidencia contra un snapshot completo.</p><button onClick={prepareRealTemplate} disabled={busy || snapshots.length === 0}>Preparar plantilla del snapshot</button><label><span>Definición revisada</span><textarea className="definition-editor" value={realDefinition} onChange={(event) => setRealDefinition(event.target.value)} spellCheck={false} placeholder="Prepara la plantilla y completa consulta, autor, respuesta y evidencias." /></label><button onClick={() => void saveReal()} disabled={busy || !realDefinition.trim()}>Validar y registrar benchmark real</button></fieldset><fieldset className="wide-fieldset"><legend>Evaluación formal · Model Drift</legend><label><span>R3 completado</span><select value={r3Id} onChange={(event) => setR3Id(event.target.value)}><option value="">Selecciona</option>{r3Runs.map((item) => <option key={item.record_id} value={item.record_id}>{item.record_id.slice(0, 8)} · {String(item.summary.suite_fingerprint).slice(0, 8)}</option>)}</select></label><label><span>R4 completado</span><select value={r4Id} onChange={(event) => setR4Id(event.target.value)}><option value="">Selecciona</option>{r4Runs.map((item) => <option key={item.record_id} value={item.record_id}>{item.record_id.slice(0, 8)} · {String(item.summary.suite_fingerprint).slice(0, 8)}</option>)}</select></label><label><span>Ejecutable público de Model Drift</span><input value={driftExecutable} onChange={(event) => setDriftExecutable(event.target.value)} /></label><label><span>Carpeta de Model Drift</span><input value={driftDirectory} onChange={(event) => setDriftDirectory(event.target.value)} /></label><label className="confirmation"><input type="checkbox" checked={driftConfirmed} onChange={(event) => setDriftConfirmed(event.target.checked)} /><span>Confirmo la ejecución externa mediante el CLI público; no se leerá su base de datos.</span></label><button onClick={() => void compareFormal()} disabled={busy || !r3Id || !r4Id || !driftExecutable.trim() || !driftDirectory.trim() || !driftConfirmed}>Ejecutar comparación formal</button></fieldset></div>{message ? <p className="knowledge-message" role="status">{message}</p> : null}{experimentRecords.length ? <ComparisonTable records={experimentRecords} /> : <RecordBoard records={[]} emptyTitle="Todavía no hay ensayos comparables" emptyText="Ejecuta R1 y después R2–R4 con un Worker y modelo local probados." />}</>;
+  return <><div className="experiment-caveat"><Activity aria-hidden="true" size={20} /><div><strong>R3 y R4 no tienen un ganador general</strong><p>Cada resultado pertenece a una configuración exacta de embeddings, k, suite y snapshot. Con muestras pequeñas la aplicación mostrará incertidumbre y no afirmará que el grafo mejora de forma estable.</p></div></div><div className="operation-forms experiment-forms"><fieldset><legend>R1 · baseline lexical</legend><label><span>Profundidad de retrieval (k)</span><input type="number" min={1} max={100} value={k} onChange={(event) => setK(Math.max(1, Math.min(100, Number(event.target.value))))} disabled={busy} /></label><button onClick={() => void run()} disabled={busy}>{busy ? "Trabajando…" : "Ejecutar R1 controlado"}</button><p>Se ejecuta localmente sobre un snapshot sintético; no usa AI Broker ni el vault real.</p></fieldset><fieldset><legend>R2–R4 · retrieval con embeddings</legend><label><span>Estrategia</span><select value={semanticStrategy} onChange={(event) => setSemanticStrategy(event.target.value as "R2" | "R3" | "R4")}><option value="R2">R2 · semántico</option><option value="R3">R3 · híbrido</option><option value="R4">R4 · híbrido + grafo</option></select></label><label><span>Worker</span><select value={semanticNode} onChange={(event) => setSemanticNode(event.target.value)}><option value="">Selecciona</option>{nodes.map((node) => <option key={node.node_id} value={node.node_id}>{node.hostname}</option>)}</select></label><label><span>Modelo de embeddings local exacto</span><input value={embeddingModel} onChange={(event) => setEmbeddingModel(event.target.value)} placeholder="ruta o ID ya presente en caché" /></label><label><span>SHA-256 del modelo/cache</span><input value={embeddingFingerprint} onChange={(event) => setEmbeddingFingerprint(event.target.value.toLowerCase())} maxLength={64} /></label><label><span>Dispositivo probado</span><input value={embeddingDevice} onChange={(event) => setEmbeddingDevice(event.target.value)} placeholder="cpu, cuda o mps" /></label><button onClick={() => void runSemantic()} disabled={busy || !semanticNode || !embeddingModel.trim() || !/^[0-9a-f]{64}$/.test(embeddingFingerprint) || !embeddingDevice.trim()}>Enviar benchmark</button><p>El Worker debe publicar <code>embeddings.semantic</code> como probado; no se descarga ningún modelo.</p></fieldset><fieldset className="wide-fieldset"><legend>Benchmark A · vault real</legend><p>La referencia debe estar escrita y aprobada por una persona; la aplicación valida cada evidencia contra un snapshot completo.</p><button onClick={prepareRealTemplate} disabled={busy || snapshots.length === 0}>Preparar plantilla del snapshot</button><label><span>Definición revisada</span><textarea className="definition-editor" value={realDefinition} onChange={(event) => setRealDefinition(event.target.value)} spellCheck={false} placeholder="Prepara la plantilla y completa consulta, autor, respuesta y evidencias." /></label><button onClick={() => void saveReal()} disabled={busy || !realDefinition.trim()}>Validar y registrar benchmark real</button></fieldset><fieldset className="wide-fieldset"><legend>Evaluación formal · Model Drift</legend><p>Solo se aceptan parejas con el mismo embedding, k, suite, snapshot y modelo generativo. Así se aísla el efecto de añadir el grafo.</p><label><span>R3 completado</span><select value={r3Id} onChange={(event) => setR3Id(event.target.value)}><option value="">Selecciona</option>{r3Runs.map((item) => <option key={item.record_id} value={item.record_id}>{configurationName(item)}</option>)}</select></label><label><span>R4 completado</span><select value={r4Id} onChange={(event) => setR4Id(event.target.value)}><option value="">Selecciona</option>{r4Runs.map((item) => <option key={item.record_id} value={item.record_id}>{configurationName(item)}</option>)}</select></label><label><span>Ejecutable público de Model Drift</span><input value={driftExecutable} onChange={(event) => setDriftExecutable(event.target.value)} /></label><label><span>Carpeta de Model Drift</span><input value={driftDirectory} onChange={(event) => setDriftDirectory(event.target.value)} /></label><label className="confirmation"><input type="checkbox" checked={driftConfirmed} onChange={(event) => setDriftConfirmed(event.target.checked)} /><span>Confirmo la ejecución externa mediante el CLI público; no se leerá su base de datos.</span></label><button onClick={() => void compareFormal()} disabled={busy || !r3Id || !r4Id || !driftExecutable.trim() || !driftDirectory.trim() || !driftConfirmed}>Ejecutar comparación formal</button></fieldset></div>{message ? <p className="knowledge-message" role="status">{message}</p> : null}{experimentRecords.length ? <ComparisonTable records={experimentRecords} /> : <RecordBoard records={[]} emptyTitle="Todavía no hay ensayos comparables" emptyText="Ejecuta R1 y después R2–R4 con un Worker y modelo local probados." />}</>;
 }
 
 function ComparisonTable({ records }: { records: ProductRecord[] }) {
-  return <div className="table-wrap comparison-table"><table><caption>Trade-offs por estrategia, sin score global</caption><thead><tr><th>Estrategia</th><th>Calidad retrieval</th><th>Coste</th><th>Privacidad</th><th>Estado formal</th><th>Evidencia</th></tr></thead><tbody>{records.map((record) => <tr key={record.record_id}><td><strong>{String(record.summary.strategy_id ?? record.title)}</strong><small>{record.status}</small></td><td><span>Recall@k {formatMetric(record.summary.recall_at_k)}</span><small>Precision {formatMetric(record.summary.precision_at_k)} · MRR {formatMetric(record.summary.mrr)} · nDCG {formatMetric(record.summary.ndcg_at_k)}</small></td><td>{String(record.summary.cost ?? "unknown")}</td><td>{String(record.summary.privacy ?? "unknown")}</td><td>{String(record.summary.formal_status ?? "unverified")}</td><td><code title={record.artifact_sha256}>sha256:{record.artifact_sha256.slice(0, 12)}…</code></td></tr>)}</tbody></table></div>;
+  return <div className="table-wrap comparison-table"><table><caption>Trade-offs por configuración exacta, sin score global</caption><thead><tr><th>Configuración</th><th>Calidad retrieval</th><th>Muestra</th><th>Coste</th><th>Estado formal</th><th>Evidencia</th></tr></thead><tbody>{records.map((record) => { const cases = caseCount(record); return <tr key={record.record_id}><td><strong>{configurationName(record)}</strong><small>{record.status}</small></td><td><span>Recall@k {formatMetric(record.summary.recall_at_k)}</span><small>Precision {formatMetric(record.summary.precision_at_k)} · MRR {formatMetric(record.summary.mrr)} · nDCG {formatMetric(record.summary.ndcg_at_k)}</small></td><td><span>{cases || "—"} casos</span><small>{cases > 0 && cases < 20 ? "Potencia insuficiente para generalizar" : "Umbral declarable según el estudio"}</small></td><td>{String(record.summary.cost ?? record.summary.cost_amount ?? "unknown")}</td><td>{String(record.summary.formal_status ?? "unverified")}</td><td><code title={record.artifact_sha256}>sha256:{record.artifact_sha256.slice(0, 12)}…</code></td></tr>; })}</tbody></table></div>;
 }
 
 function BrokerCompatibilityPanel({ onCreated }: { onCreated: (record: ProductRecord) => void }) {
@@ -350,7 +366,7 @@ function StrategySelectorPanel({ records, onCreated }: { records: ProductRecord[
     } catch (reason) { setMessage(reason instanceof Error ? reason.message : "No se pudo evaluar la selección."); }
     finally { setBusy(false); }
   };
-  return <section className="selector-panel"><h3>Selector de estrategia · recomendación explicable</h3><p>No se activa hasta que existan resultados comparables y conserva la incertidumbre.</p><div className="selector-options">{eligible.map((record) => <label key={record.record_id}><input type="checkbox" checked={selected.includes(record.record_id)} onChange={() => toggle(record.record_id)} /><span>{String(record.summary.strategy_id)} · {record.record_id.slice(0, 8)}</span></label>)}</div><div className="knowledge-controls"><label><span>Mínimo de casos comparables</span><input type="number" min={1} value={minimumCases} onChange={(event) => setMinimumCases(Math.max(1, Number(event.target.value)))} /></label><label className="confirmation"><input type="checkbox" checked={formal} onChange={(event) => setFormal(event.target.checked)} /><span>Exigir veredicto formal de Model Drift</span></label><button onClick={() => void decide()} disabled={busy || selected.length < 2}>{busy ? "Evaluando…" : "Generar recomendación"}</button></div>{message ? <p className="knowledge-message" role="status">{message}</p> : null}</section>;
+  return <section className="selector-panel"><h3>Selector de configuración · recomendación explicable</h3><p>Compara configuraciones completas, no nombres aislados como R3 o R4. No se activa hasta que la evidencia sea comparable y conserva la incertidumbre.</p><div className="selector-options">{eligible.map((record) => <label key={record.record_id}><input type="checkbox" checked={selected.includes(record.record_id)} onChange={() => toggle(record.record_id)} /><span>{configurationName(record)}</span></label>)}</div><div className="knowledge-controls"><label><span>Mínimo de casos comparables</span><input type="number" min={1} value={minimumCases} onChange={(event) => setMinimumCases(Math.max(1, Number(event.target.value)))} /></label><label className="confirmation"><input type="checkbox" checked={formal} onChange={(event) => setFormal(event.target.checked)} /><span>Exigir veredicto formal de Model Drift</span></label><button onClick={() => void decide()} disabled={busy || selected.length < 2}>{busy ? "Evaluando…" : "Generar recomendación"}</button></div>{message ? <p className="knowledge-message" role="status">{message}</p> : null}</section>;
 }
 
 function AgentExperimentPanel({ records, nodes, onCreated }: { records: ProductRecord[]; nodes: Overview["nodes"]; onCreated: (record: ProductRecord) => void }) {
@@ -577,6 +593,55 @@ function DistillationPanel({ datasets, preflights, experiments, onChanged }: { d
   </section>;
 }
 
+function ActivityBoard({ mode, jobs, workspace }: { mode: "runs" | "metrics"; jobs: JobRecord[]; workspace: ProductWorkspace | null }) {
+  const records = useMemo(() => workspace ? [
+    ...workspace.knowledge, ...workspace.benchmarks, ...workspace.experiments,
+    ...workspace.reviews, ...workspace.datasets, ...workspace.training, ...workspace.exports,
+  ] : [], [workspace]);
+  const [query, setQuery] = useState("");
+  const [selectedId, setSelectedId] = useState(jobs[0]?.job_id ?? "");
+  const selected = jobs.find((job) => job.job_id === selectedId) ?? jobs[0];
+  const filteredJobs = jobs.filter((job) => {
+    const related = relatedRecord(job, records);
+    return [job.job_id, job.correlation_id, job.kind, job.state, job.assigned_node_id, related?.title]
+      .some((value) => String(value ?? "").toLocaleLowerCase("es").includes(query.toLocaleLowerCase("es")));
+  });
+  const metricRecords = records.filter((record) =>
+    ["experiment", "comparison"].includes(record.category) && (
+      typeof record.summary.recall_at_k === "number"
+      || typeof record.summary.ndcg_at_k === "number"
+      || typeof record.summary.latency_ms === "number"
+      || record.summary.formal_status === "model_drift_verified"
+    )
+  );
+  const activeJobs = jobs.filter((job) => !terminalJobStates.has(job.state.toLowerCase())).length;
+  const completedJobs = jobs.filter((job) => job.state.toLowerCase() === "succeeded").length;
+  const failedJobs = jobs.filter((job) => ["failed", "cancelled"].includes(job.state.toLowerCase())).length;
+
+  if (mode === "metrics") return <section className="activity-board" aria-labelledby="metrics-heading">
+    <div className="activity-summary"><article><BarChart3 aria-hidden="true" /><div><strong>{metricRecords.length}</strong><span>configuraciones medidas</span></div></article><article><BookOpenCheck aria-hidden="true" /><div><strong>{metricRecords.filter((record) => record.summary.formal_status === "model_drift_verified").length}</strong><span>con informe formal</span></div></article><article><Gauge aria-hidden="true" /><div><strong>{metricRecords.filter((record) => caseCount(record) >= 20).length}</strong><span>con 20+ casos</span></div></article></div>
+    <div className="experiment-caveat"><Network aria-hidden="true" size={20} /><div><strong>La unidad de comparación es la configuración completa</strong><p>Embedding, modelo, k, suite y snapshot forman parte del resultado. R4 no se presenta como mejora establecida; con menos de 20 casos se señala evidencia insuficiente para generalizar.</p></div></div>
+    {metricRecords.length ? <div className="table-wrap metric-ledger"><table><caption id="metrics-heading">Resultados observados por configuración</caption><thead><tr><th>Configuración</th><th>Retrieval</th><th>Latencia</th><th>Muestra</th><th>Verificación</th><th>Ámbito de la conclusión</th></tr></thead><tbody>{metricRecords.map((record) => { const cases = caseCount(record); return <tr key={record.record_id}><td><strong>{configurationName(record)}</strong><small>{shortFingerprint(record.summary.configuration_fingerprint ?? record.artifact_sha256)}</small></td><td><span>Recall {formatMetric(record.summary.recall_at_k)}</span><small>nDCG {formatMetric(record.summary.ndcg_at_k)} · MRR {formatMetric(record.summary.mrr)}</small></td><td>{formatDuration(record.summary.latency_ms)}</td><td><strong>{cases || "—"}</strong><small>{cases > 0 && cases < 20 ? "Potencia insuficiente" : cases >= 20 ? "Umbral mínimo cubierto" : "No registrado"}</small></td><td><span className={`stamp ${record.summary.formal_status === "model_drift_verified" ? "tested" : "pending"}`}>{String(record.summary.formal_status ?? "unverified")}</span></td><td>{record.summary.claim_scope === "configuration_specific" ? "Solo esta configuración" : "No generalizable sin comparación formal"}</td></tr>; })}</tbody></table></div> : <ActivityEmpty icon={BarChart3} title="Todavía no hay métricas comparables" text="Ejecuta estrategias sobre la misma suite y snapshot. La vista conservará el embedding y el resto de la configuración." />}
+  </section>;
+
+  const related = selected ? relatedRecord(selected, records) : undefined;
+  const progress = selected?.latest_progress ?? null;
+  const finished = selected ? terminalJobStates.has(selected.state.toLowerCase()) : false;
+  return <section className="activity-board" aria-labelledby="runs-heading">
+    <div className="activity-summary"><article><Activity aria-hidden="true" /><div><strong>{activeJobs}</strong><span>en curso</span></div></article><article><CheckCircle2 aria-hidden="true" /><div><strong>{completedJobs}</strong><span>completados</span></div></article><article><ShieldCheck aria-hidden="true" /><div><strong>{failedJobs}</strong><span>requieren atención</span></div></article></div>
+    <div className="activity-toolbar"><label><span>Buscar por trabajo, correlación, nodo o estado</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="p. ej. R4, worker-amd o correlation ID" /></label><span>{filteredJobs.length} de {jobs.length} ejecuciones</span></div>
+    {jobs.length ? <div className="activity-layout"><div className="run-list" role="list" aria-label="Ejecuciones observadas">{filteredJobs.map((job) => { const JobIcon = jobIcon(job.kind); return <button type="button" role="listitem" key={job.job_id} className={job.job_id === selected?.job_id ? "selected" : ""} onClick={() => setSelectedId(job.job_id)}><JobIcon aria-hidden="true" size={20} /><span><strong>{friendlyJobKind(job.kind)}</strong><small>{job.assigned_node_id ?? "Esperando Worker"} · {formatTime(job.updated_at)}</small></span><b className={`stamp ${recordStatus(job.state)}`}>{friendlyJobState(job.state)}</b></button>; })}</div>{selected ? <article className="run-detail"><header><div><p className="context">Ejecución seleccionada</p><h3 id="runs-heading">{related?.title ?? friendlyJobKind(selected.kind)}</h3></div><span className={`stamp ${recordStatus(selected.state)}`}>{friendlyJobState(selected.state)}</span></header><dl className="run-facts"><div><dt>Worker</dt><dd>{selected.assigned_node_id ?? "Sin asignar"}</dd></div><div><dt>Duración observada</dt><dd>{elapsedTime(selected.created_at, selected.updated_at)}</dd></div><div><dt>Configuración</dt><dd>{related ? configurationName(related) : "No aplica"}</dd></div><div><dt>Última etapa</dt><dd>{friendlyStage(progress?.stage)}</dd></div></dl><ol className="run-timeline"><TimelineStep icon={ListChecks} label="Trabajo creado" detail={formatTime(selected.created_at)} state="complete" /><TimelineStep icon={Cpu} label="Worker asignado" detail={selected.assigned_node_id ?? "Pendiente"} state={selected.assigned_node_id ? "complete" : "pending"} /><TimelineStep icon={Activity} label="Ejecución" detail={progress ? progressSummary(progress) : "Sin progreso recibido"} state={finished ? "complete" : progress ? "active" : "pending"} /><TimelineStep icon={PackageCheck} label="Resultado y artefactos" detail={finished ? friendlyJobState(selected.state) : "Pendiente"} state={finished ? selected.state.toLowerCase() === "succeeded" ? "complete" : "blocked" : "pending"} /></ol><div className="correlation-box"><div><span>Seguimiento de extremo a extremo</span><code>{selected.correlation_id}</code></div><button type="button" onClick={() => void navigator.clipboard?.writeText(selected.correlation_id)}>Copiar ID</button></div></article> : null}</div> : <ActivityEmpty icon={ScrollText} title="Todavía no hay ejecuciones" text="Cuando se envíe un benchmark, entrenamiento o exportación aparecerá aquí con su correlación y recorrido completo." />}
+  </section>;
+}
+
+function TimelineStep({ icon: Icon, label, detail, state }: { icon: LucideIcon; label: string; detail: string; state: "complete" | "active" | "pending" | "blocked" }) {
+  return <li className={state}><Icon aria-hidden="true" size={18} /><div><strong>{label}</strong><span>{detail}</span></div></li>;
+}
+
+function ActivityEmpty({ icon: Icon, title, text }: { icon: LucideIcon; title: string; text: string }) {
+  return <div className="activity-empty"><Icon aria-hidden="true" size={28} /><div><strong>{title}</strong><p>{text}</p></div></div>;
+}
+
 function KnowledgeBoard({ records, onCreated }: { records: ProductRecord[]; onCreated: (record: ProductRecord) => void }) {
   const [root, setRoot] = useState("Y:\\Mi unidad\\Vaults");
   const [vaults, setVaults] = useState<string[]>([]);
@@ -619,7 +684,7 @@ function ReviewBoard({ reviews, onChanged }: { reviews: ReviewRecord[]; onChange
   useEffect(() => {
     if (selected) setEditor(JSON.stringify(selected.corrected ?? selected.original, null, 2));
   }, [selected?.review_id, selected?.updated_at]);
-  if (!reviews.length) return <div className="review-empty"><div className="review-example"><span>Original</span><p>La respuesta aparecerá aquí cuando exista una ejecución real.</p></div><div className="review-arrow" aria-hidden="true">→</div><div className="review-example corrected"><span>Corrección con evidencia</span><p>Ningún candidato pasa a training sin una revisión aceptada y otra aprobación explícita.</p></div></div>;
+  if (!reviews.length) return <div className="review-empty"><div className="review-example"><span>Original</span><p>La respuesta aparecerá aquí cuando exista una ejecución real.</p></div><div className="review-arrow" aria-hidden="true"><ArrowRight size={22} /></div><div className="review-example corrected"><span>Corrección con evidencia</span><p>Ningún candidato pasa a training sin una revisión aceptada y otra aprobación explícita.</p></div></div>;
   if (!selected) return null;
   const perform = async (operation: () => Promise<ReviewRecord>, success: string) => {
     setBusy(true); setMessage(null);
@@ -640,6 +705,98 @@ function ReviewBoard({ reviews, onChanged }: { reviews: ReviewRecord[]; onChange
 function summaryRows(summary: Record<string, unknown>): [string, string][] {
   return Object.entries(summary).slice(0, 6).map(([key, value]) => [key, typeof value === "object" ? JSON.stringify(value) : String(value)]);
 }
+const terminalJobStates = new Set(["succeeded", "failed", "cancelled"]);
+
+function relatedRecord(job: JobRecord, records: ProductRecord[]): ProductRecord | undefined {
+  return records.find((record) => record.record_id === job.job_id || record.summary.job_id === job.job_id);
+}
+
+function configurationName(record: ProductRecord): string {
+  if (typeof record.summary.configuration_label === "string" && record.summary.configuration_label.trim()) {
+    return record.summary.configuration_label;
+  }
+  const strategy = typeof record.summary.strategy_id === "string" ? record.summary.strategy_id : record.title;
+  const embedding = typeof record.summary.embedding_model === "string" && record.summary.embedding_model.trim()
+    ? record.summary.embedding_model
+    : strategy === "R1" ? "lexical" : "embedding no registrado";
+  const k = typeof record.summary.k === "number" ? ` · k=${record.summary.k}` : "";
+  return `${strategy} · ${embedding}${k}`;
+}
+
+function caseCount(record: ProductRecord): number {
+  if (typeof record.summary.case_count === "number") return record.summary.case_count;
+  return Array.isArray(record.summary.case_ids) ? record.summary.case_ids.length : 0;
+}
+
+function shortFingerprint(value: unknown): string {
+  return typeof value === "string" && value ? `config:${value.slice(0, 12)}…` : "configuración sin fingerprint";
+}
+
+function jobIcon(kind: string): LucideIcon {
+  if (kind.includes("training")) return Cpu;
+  if (kind.includes("retrieval") || kind.includes("strategy")) return FileSearch;
+  if (kind.includes("export")) return PackageCheck;
+  if (kind.includes("agent") || kind.includes("broker")) return Network;
+  return Boxes;
+}
+
+function friendlyJobKind(kind: string): string {
+  const known: Record<string, string> = {
+    "retrieval.benchmark.v1": "Benchmark de retrieval",
+    "strategy.suite.v1": "Comparación de estrategia",
+    "broker.agent_experiment.v1": "Experimento con AI Broker",
+    "training.preflight.v1": "Prueba corta de entrenamiento",
+    "training.lora.v1": "Entrenamiento LoRA",
+    "training.distillation.v1": "Destilación profesor → alumno",
+    "model.export.v1": "Exportación de modelo",
+  };
+  return known[kind] ?? humanize(kind);
+}
+
+function friendlyJobState(state: string): string {
+  const known: Record<string, string> = {
+    ready: "En cola", leased: "Asignado", acknowledged: "Iniciando",
+    running: "En ejecución", succeeded: "Completado", failed: "Fallido",
+    cancelled: "Cancelado", cancel_requested: "Cancelando",
+  };
+  return known[state.toLowerCase()] ?? humanize(state);
+}
+
+function friendlyStage(stage: unknown): string {
+  if (typeof stage !== "string" || !stage) return "Sin progreso recibido";
+  const known: Record<string, string> = {
+    load_local_embedding_model: "Cargando embeddings locales",
+    evaluate_ground_truth: "Evaluando ground truth",
+    strategy_case: "Ejecutando casos de estrategia",
+    teacher_generation: "Generando respuestas del profesor",
+    student_training: "Entrenando el alumno",
+    save_adapter: "Guardando adapter",
+  };
+  return known[stage] ?? humanize(stage);
+}
+
+function progressSummary(progress: Record<string, unknown>): string {
+  const stage = friendlyStage(progress.stage);
+  const current = typeof progress.case === "number" ? progress.case : typeof progress.current === "number" ? progress.current : null;
+  const total = typeof progress.total === "number" ? progress.total : null;
+  return current !== null && total !== null ? `${stage} · ${current}/${total}` : stage;
+}
+
+function elapsedTime(start: string, end: string): string {
+  const startMs = new Date(start).valueOf();
+  const endMs = new Date(end).valueOf();
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs < startMs) return "No disponible";
+  const seconds = Math.round((endMs - startMs) / 1000);
+  if (seconds < 60) return `${seconds} s`;
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes} min ${seconds % 60} s`;
+}
+
+function formatDuration(value: unknown): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "—";
+  return value < 1000 ? `${value.toFixed(0)} ms` : `${(value / 1000).toFixed(2)} s`;
+}
+
 function humanize(value: string) { return value.replaceAll("_", " "); }
 function formatMetric(value: unknown) { return typeof value === "number" && Number.isFinite(value) ? value.toFixed(3) : "—"; }
 function recordStatus(value: string): EvidenceStatus { const folded = value.toLowerCase(); return folded.includes("block") || folded.includes("reject") || folded.includes("incomplete") ? "blocked" : folded.includes("complete") || folded.includes("approved") || folded.includes("verified") ? "tested" : folded.includes("pending") || folded.includes("draft") ? "pending" : "detected"; }

@@ -217,6 +217,13 @@ class CoordinatorService:
             raise ValueError("semantic benchmark requires a registered node")
         if not embedding_model.strip() or len(embedding_model_fingerprint) != 64:
             raise ValueError("semantic benchmark requires an exact local model and SHA-256 fingerprint")
+        configuration = {
+            "strategy_id": strategy_id,
+            "embedding_model": embedding_model,
+            "embedding_model_fingerprint": embedding_model_fingerprint,
+            "device": device,
+            "k": k,
+        }
         baseline = run_controlled_lexical_benchmark(
             self.repository.path.parent / "experiments", k=k
         )
@@ -259,7 +266,11 @@ class CoordinatorService:
                 "job_id": job.job_id, "strategy_id": strategy_id,
                 "suite_fingerprint": baseline.suite.fingerprint,
                 "snapshot_hash": baseline.snapshot_hash, "human_review": baseline.suite.review_status,
-                "node_id": node_id, "embedding_model_fingerprint": embedding_model_fingerprint,
+                "node_id": node_id, "embedding_model": embedding_model,
+                "embedding_model_fingerprint": embedding_model_fingerprint,
+                "device": device,
+                "configuration_label": f"{strategy_id} · {embedding_model} · k={k}",
+                "configuration_fingerprint": sha256_json(configuration),
                 "k": k, "state": submitted["state"], "formal_status": "unverified",
                 "case_ids": [case["case_id"] for case in baseline.suite.cases],
                 "cost": "local / not metered", "privacy": "local_only",
@@ -324,6 +335,13 @@ class CoordinatorService:
         for key in ("suite_fingerprint", "snapshot_hash"):
             if r3["summary"].get(key) != r4["summary"].get(key):
                 raise ValueError(f"R3 and R4 are not comparable: {key} differs")
+        for key in ("embedding_model_fingerprint", "k"):
+            if not r3["summary"].get(key) or r3["summary"].get(key) != r4["summary"].get(key):
+                raise ValueError(
+                    f"R3 and R4 are not an isolated graph comparison: {key} differs or is missing"
+                )
+        if r3["summary"].get("target_model") != r4["summary"].get("target_model"):
+            raise ValueError("R3 and R4 are not an isolated graph comparison: target_model differs")
         integration = ModelDriftIntegration(
             command_prefix=(str(Path(executable).resolve(strict=True)),),
             working_directory=Path(working_directory),
@@ -377,6 +395,16 @@ class CoordinatorService:
                 "measurement_mode": "external_deterministic_treatments",
                 "formal_status": "model_drift_verified",
                 "local_rag_metrics_separate": True,
+                "embedding_model": r3["summary"].get("embedding_model"),
+                "embedding_model_fingerprint": r3["summary"]["embedding_model_fingerprint"],
+                "k": r3["summary"]["k"],
+                "case_count": len(r3["summary"].get("case_ids", [])),
+                "claim_scope": "configuration_specific",
+                "superiority_established": False,
+                "interpretation": (
+                    "R3 and R4 were compared under one exact configuration; "
+                    "this does not establish general R4 superiority"
+                ),
             },
         )
         self.repository.record_artifact_location(
@@ -450,6 +478,19 @@ class CoordinatorService:
             runs.append(StrategyRun(
                 strategy_run_id=record["record_id"], experiment_id="selector-comparison",
                 strategy_id=strategy_id, suite_fingerprint=str(summary["suite_fingerprint"]),
+                configuration_label=str(
+                    summary.get("configuration_label")
+                    or f"{strategy_id} · {summary.get('embedding_model') or 'sin embeddings'} · k={summary.get('k', '?')}"
+                ),
+                configuration_fingerprint=str(
+                    summary.get("configuration_fingerprint")
+                    or sha256_json({
+                        "strategy_id": strategy_id,
+                        "embedding_model_fingerprint": summary.get("embedding_model_fingerprint"),
+                        "k": summary.get("k"),
+                        "target_model": summary.get("target_model"),
+                    })
+                ),
                 snapshot_hash=str(summary["snapshot_hash"]), case_ids=case_ids,
                 model_fingerprint=str(summary.get("embedding_model_fingerprint") or "0" * 64),
                 prompt_fingerprint="0" * 64, retrieval_fingerprint=record["artifact_sha256"],
@@ -481,6 +522,8 @@ class CoordinatorService:
         decision_id = str(uuid.uuid4())
         payload = {
             "status": decision.status, "strategy_id": decision.strategy_id,
+            "configuration_label": decision.configuration_label,
+            "configuration_fingerprint": decision.configuration_fingerprint,
             "explanation": list(decision.explanation),
             "evidence_references": list(decision.evidence_references),
             "uncertainty": decision.uncertainty, "experiment_ids": experiment_ids,
@@ -632,6 +675,15 @@ class CoordinatorService:
             training = self.repository.product_record(training_job_id or "")
             if training is None or training["status"] != "TRAINING_SUCCEEDED":
                 raise ValueError("F1/F2 requires a successful Local AI Lab training result")
+        configuration = {
+            "strategy_id": strategy_id,
+            "target_model": target_model,
+            "embedding_model": embedding_model,
+            "embedding_model_fingerprint": embedding_model_fingerprint,
+            "device": device,
+            "training_job_id": training_job_id,
+            "k": k,
+        }
         baseline = run_controlled_lexical_benchmark(self.repository.path.parent / "experiments", k=k)
         experiment_root = baseline.report_path.parent
         package_root = self.repository.path.parent / "packages"
@@ -678,6 +730,13 @@ class CoordinatorService:
                 "snapshot_hash": baseline.snapshot_hash,
                 "case_ids": [case["case_id"] for case in baseline.suite.cases],
                 "node_id": node_id, "target_model": target_model,
+                "embedding_model": embedding_model,
+                "embedding_model_fingerprint": embedding_model_fingerprint,
+                "device": device, "k": k,
+                "configuration_label": (
+                    f"{strategy_id} · {embedding_model or target_model['model']} · k={k}"
+                ),
+                "configuration_fingerprint": sha256_json(configuration),
                 "training_job_id": training_job_id, "privacy": "local_only",
                 "formal_status": "unverified", "state": submitted["state"],
             },
@@ -1459,6 +1518,8 @@ class CoordinatorService:
                 "redundancy": aggregate.get("redundancy"),
                 "latency_ms": payload.get("latency_ms"),
                 "case_ids": payload.get("case_ids"),
+                "embedding_model": payload.get("embedding_model", record["summary"].get("embedding_model")),
+                "embedding_model_fingerprint": payload.get("embedding_model_fingerprint"),
             })
         if kind == "broker.agent_experiment.v1" and outcome == "succeeded":
             summary.update({
@@ -1470,6 +1531,11 @@ class CoordinatorService:
                 "latency_ms": payload.get("latency_ms"),
                 "privacy": payload.get("privacy"),
                 "formal_status": payload.get("formal_status", "unverified"),
+                "embedding_model": payload.get("embedding_model", record["summary"].get("embedding_model")),
+                "embedding_model_fingerprint": payload.get(
+                    "embedding_model_fingerprint",
+                    record["summary"].get("embedding_model_fingerprint"),
+                ),
             })
             for candidate in payload.get("review_candidates", []):
                 if not isinstance(candidate, dict):
@@ -1552,6 +1618,7 @@ class CoordinatorService:
                     job["assigned_node_id"], kind=workload,
                     status=evidence_status, evidence_sha256=workload_evidence_sha256,
                 )
+            self._record_preflight_hardware_facts(job, kind, payload)
         self.record_product_item(
             record_id=job_id, category=record["category"], title=record["title"],
             status=status, artifact_sha256=artifact_sha256, summary=summary,
@@ -1562,6 +1629,42 @@ class CoordinatorService:
                 local_path=self.artifacts.blob_path(first["sha256"]),
                 artifact_sha256=first["sha256"],
             )
+
+    def _record_preflight_hardware_facts(
+        self, job: dict[str, Any], kind: str, payload: dict[str, Any]
+    ) -> None:
+        """Convierte el preflight superado en los hechos que exige `required_facts`.
+
+        `FineTuningPlanBuilder` y `DistillationPlanBuilder` exigen `gpu.backend` y
+        `dtype.<dtype>` para que un Worker pueda reclamar el job. La sonda de capacidades
+        no los produce nunca porque no ejecuta cargas ML: el preflight es lo único que los
+        observa de verdad. Sin este paso el job se acepta, queda en `ready` y ningún nodo
+        lo reclama jamás.
+        """
+        if kind != "training.preflight.v1":
+            return
+        backend = payload.get("backend")
+        dtype = payload.get("dtype")
+        checks = payload.get("checks")
+        if not isinstance(backend, str) or dtype not in {"bf16", "fp16"}:
+            return
+        if not isinstance(checks, dict) or not all(checks.values()):
+            return
+        detail = f"training.preflight.v1 {job['job_id']}"
+        facts = [
+            {"key": "gpu.backend", "value": backend, "status": "tested", "detail": detail},
+            {"key": f"dtype.{dtype}", "value": True, "status": "tested", "detail": detail},
+            # El preflight entrena 20 pasos con LoRA, guarda, recarga y reanuda desde el
+            # checkpoint. Solo se registran los hechos que esa ejecución demuestra; la
+            # memoria utilizable sigue sin medirse y por eso no se declara aquí.
+            {"key": "training.lora", "value": True, "status": "tested", "detail": detail},
+            {"key": "training.backward", "value": True, "status": "tested", "detail": detail},
+            {"key": "training.twenty_steps", "value": True, "status": "tested", "detail": detail},
+            {"key": "training.checkpoint_resume", "value": True, "status": "tested", "detail": detail},
+        ]
+        self.repository.record_capability_facts(
+            job["assigned_node_id"], facts=facts, source="training.preflight.v1"
+        )
 
     def _authenticate(self, node_id: str, token: str) -> None:
         if not self.repository.authenticate_node(node_id, token):

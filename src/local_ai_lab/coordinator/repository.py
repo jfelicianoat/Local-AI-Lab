@@ -5,11 +5,13 @@ import secrets
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping, Sequence
 
 from local_ai_lab.domain.common import canonical_json, new_id, sha256_text, utc_timestamp
 from local_ai_lab.domain.jobs import TERMINAL_STATES, JobSpec, JobState, LeaseGrant, assert_transition
 from local_ai_lab.storage.sqlite import SQLiteStore
+
+_EVIDENCE_RANK = {"declared": 0, "detected": 1, "tested": 2, "benchmarked": 3}
 
 
 class CoordinatorConflict(RuntimeError):
@@ -228,6 +230,20 @@ class CoordinatorRepository(SQLiteStore):
                 merged["workloads"] = sorted(
                     workloads.values(), key=lambda item: item["kind"]
                 )
+                # Los hechos se fusionan por rango de evidencia, igual que las cargas de
+                # trabajo. Un informe de sonda solo observa `detected`; si se aceptara tal
+                # cual borraría los hechos `tested` que dejó un job ya ejecutado en este
+                # nodo, y el planificador dejaría de poder despachar entrenamientos.
+                facts: dict[str, dict[str, Any]] = {}
+                for item in [*existing.get("facts", []), *merged.get("facts", [])]:
+                    if not isinstance(item, dict) or not isinstance(item.get("key"), str):
+                        continue
+                    previous = facts.get(item["key"])
+                    if previous is None or _EVIDENCE_RANK.get(
+                        item.get("status"), -1
+                    ) >= _EVIDENCE_RANK.get(previous.get("status"), -1):
+                        facts[item["key"]] = item
+                merged["facts"] = sorted(facts.values(), key=lambda item: item["key"])
                 encoded_capabilities = canonical_json(merged)
             changed = db.execute(
                 """UPDATE nodes SET status='online', last_heartbeat_at=?,
@@ -601,6 +617,55 @@ class CoordinatorRepository(SQLiteStore):
                 "evidence_sha256": evidence_sha256, "observed_at": utc_timestamp(),
             })
             capabilities["workloads"] = sorted(workloads, key=lambda item: item.get("kind", ""))
+            db.execute(
+                "UPDATE nodes SET capabilities_json=? WHERE node_id=?",
+                (canonical_json(capabilities), node_id),
+            )
+
+    def record_capability_facts(
+        self, node_id: str, *, facts: Sequence[Mapping[str, Any]], source: str
+    ) -> None:
+        """Guarda hechos que un job ya ejecutado demostró en este nodo.
+
+        La sonda de capacidades solo alcanza `detected` porque no ejecuta cargas ML. Los
+        hechos que el planificador exige en `required_facts` (`gpu.backend`, `dtype.*`)
+        solo pueden nacer de un job real, y sin ellos ningún Worker puede reclamar un
+        entrenamiento ni una destilación.
+        """
+        prepared: list[dict[str, Any]] = []
+        for fact in facts:
+            key = fact.get("key")
+            status = fact.get("status")
+            if not isinstance(key, str) or not key:
+                raise ValueError("capability facts require a key")
+            if status not in {"tested", "benchmarked"}:
+                raise ValueError("recorded capability facts require tested/benchmarked status")
+            prepared.append({
+                "key": key,
+                "value": fact.get("value"),
+                "status": status,
+                "source": source,
+                "observed_at": utc_timestamp(),
+                "unit": fact.get("unit"),
+                "detail": fact.get("detail"),
+            })
+        if not prepared:
+            return
+        replaced = {fact["key"] for fact in prepared}
+        with self.transaction() as db:
+            row = db.execute(
+                "SELECT capabilities_json FROM nodes WHERE node_id=?", (node_id,)
+            ).fetchone()
+            if row is None:
+                raise KeyError(f"unknown node: {node_id}")
+            capabilities = json.loads(row["capabilities_json"]) if row["capabilities_json"] else {}
+            kept = [
+                item for item in capabilities.get("facts", [])
+                if isinstance(item, dict) and item.get("key") not in replaced
+            ]
+            capabilities["facts"] = sorted(
+                [*kept, *prepared], key=lambda item: item.get("key", "")
+            )
             db.execute(
                 "UPDATE nodes SET capabilities_json=? WHERE node_id=?",
                 (canonical_json(capabilities), node_id),

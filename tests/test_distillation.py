@@ -526,3 +526,116 @@ def test_distillation_executor_generates_trains_reloads_and_manifests(
         "student_training",
         "reload_verification",
     ]
+
+
+def _completed_preflight(service: CoordinatorService, node_id: str, token: str) -> str:
+    """Ejecuta un preflight de extremo a extremo tal y como lo hace un Worker real."""
+    job = JobSpec(
+        kind="training.preflight.v1",
+        payload={"base_model": "student", "dtype": "bf16"},
+        requirements={"node_ids": [node_id]},
+    )
+    service.submit_job(job, f"submit-{job.job_id}")
+    service.record_product_item(
+        record_id=job.job_id, category="training", title="Preflight · student",
+        status="PREFLIGHT_QUEUED", artifact_sha256=job.fingerprint(),
+        summary={"job_id": job.job_id, "kind": job.kind},
+    )
+    lease = service.claim_job(node_id=node_id, token=token, idempotency_key=f"claim-{job.job_id}")
+    service.ack_job(
+        node_id=node_id, token=token, job_id=job.job_id,
+        lease_token=lease["lease_token"], lease_generation=lease["lease_generation"],
+        idempotency_key=f"ack-{job.job_id}",
+    )
+    service.complete_job(
+        node_id=node_id, token=token, job_id=job.job_id, attempt_id=lease["attempt_id"],
+        lease_token=lease["lease_token"], lease_generation=lease["lease_generation"],
+        outcome="succeeded",
+        payload={
+            "preflight_sha256": "c" * 64,
+            "backend": "cuda",
+            "dtype": "bf16",
+            "checks": {
+                "overfit_8_examples": True, "save": True, "reload": True,
+                "resume": True, "contamination_check": True, "manifest_check": True,
+            },
+        },
+        idempotency_key=f"complete-{job.job_id}",
+    )
+    return job.job_id
+
+
+def test_passed_preflight_lets_a_worker_claim_the_planned_distillation(tmp_path: Path) -> None:
+    """Un job planificado debe poder reclamarse por el nodo que superó su preflight.
+
+    El plan exige `gpu.backend` y `dtype.bf16`, hechos que la sonda de capacidades nunca
+    produce. Si el preflight superado no los registra, el job queda en `ready` para
+    siempre sin que nada lo señale.
+    """
+    service = CoordinatorService(tmp_path / "coordinator.db")
+    pairing = service.create_pairing_code()
+    registration = service.pair_and_register(
+        pairing_code=pairing, node_id="worker-real", hostname="real-host"
+    )
+    token = registration["device_token"]
+    service.heartbeat(
+        node_id="worker-real", token=token,
+        capabilities={
+            "facts": [
+                {"key": "gpu.0.name", "value": "GPU", "status": "detected",
+                 "source": "nvidia-smi", "observed_at": "2026-08-25T00:00:00Z"},
+            ],
+            "workloads": [],
+        },
+    )
+    _completed_preflight(service, "worker-real", token)
+
+    planned = DistillationPlanBuilder().build(
+        _proposal(),
+        contract=_contract(),
+        hardware=HardwareResolution("selected", "worker-real", "cuda", "bf16", ()),
+        preflight=_checks(),
+        chat_template_fingerprint="d" * 64,
+        seed=7,
+        lora_config={"rank": 8},
+        generation_config={"temperature": 0.0, "max_new_tokens": 128},
+    )
+    service.submit_job(planned, "submit-planned-distillation")
+
+    lease = service.claim_job(
+        node_id="worker-real", token=token, idempotency_key="claim-planned-distillation"
+    )
+    assert lease is not None, "el Worker que superó el preflight no pudo reclamar la destilación"
+    assert lease["job_id"] == planned.job_id
+
+
+def test_a_probe_heartbeat_cannot_erase_facts_earned_by_a_job(tmp_path: Path) -> None:
+    """El informe de sonda solo alcanza `detected` y no debe borrar hechos `tested`."""
+    service = CoordinatorService(tmp_path / "coordinator.db")
+    pairing = service.create_pairing_code()
+    registration = service.pair_and_register(
+        pairing_code=pairing, node_id="worker-real", hostname="real-host"
+    )
+    token = registration["device_token"]
+    _completed_preflight(service, "worker-real", token)
+    service.heartbeat(
+        node_id="worker-real", token=token,
+        capabilities={
+            "facts": [
+                {"key": "gpu.0.name", "value": "GPU", "status": "detected",
+                 "source": "nvidia-smi", "observed_at": "2026-08-25T00:00:00Z"},
+            ],
+            "workloads": [],
+        },
+    )
+
+    node = service.repository.node_record("worker-real")
+    facts = {
+        item["key"]: item
+        for item in json.loads(node["capabilities_json"])["facts"]
+    }
+    assert facts["gpu.backend"]["value"] == "cuda"
+    assert facts["gpu.backend"]["status"] == "tested"
+    assert facts["dtype.bf16"]["value"] is True
+    assert facts["gpu.0.name"]["status"] == "detected"
+    assert "gpu.usable_memory_gib" not in facts

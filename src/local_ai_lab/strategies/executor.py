@@ -118,6 +118,8 @@ class StrategySuiteExecutor:
             "quality": {"deterministic_pass_rate": fmean(verification_values)},
             "retrieval": retrieval_metrics, "latency_ms": sum(item["latency_ms"] for item in results),
             "privacy": "local_only", "formal_status": "unverified", "results": results,
+            "embedding_model": payload.get("embedding_model"),
+            "embedding_model_fingerprint": payload.get("embedding_model_fingerprint"),
         }
         output = Path(payload["report_dir"]).resolve()
         if str(output).startswith(("\\\\", "//")) or output.exists():
@@ -131,6 +133,8 @@ class StrategySuiteExecutor:
             "case_ids": report["case_ids"], "quality": report["quality"],
             "retrieval": retrieval_metrics, "latency_ms": report["latency_ms"],
             "privacy": "local_only", "formal_status": "unverified",
+            "embedding_model": payload.get("embedding_model"),
+            "embedding_model_fingerprint": payload.get("embedding_model_fingerprint"),
             "review_candidates": review_candidates,
             "report_sha256": hashlib.sha256(report_path.read_bytes()).hexdigest(),
         }

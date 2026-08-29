@@ -41,8 +41,21 @@ class ModelExportExecutor:
         progress: Callable[[dict[str, Any]], None],
     ) -> dict[str, Any]:
         training_root = Path(payload["resolved_training_output"]).resolve(strict=True)
-        training_manifest = training_root / "training-manifest.json"
-        if not training_manifest.is_file():
+        # Una destilación produce `distillation-manifest.json`, no `training-manifest.json`.
+        # El Coordinator ya acepta DISTILLATION_SUCCEEDED como origen de exportación, así
+        # que aquí hay que reconocer ambos; el hash sigue siendo la garantía de integridad.
+        training_manifest = next(
+            (
+                candidate
+                for candidate in (
+                    training_root / "training-manifest.json",
+                    training_root / "distillation-manifest.json",
+                )
+                if candidate.is_file()
+            ),
+            None,
+        )
+        if training_manifest is None:
             raise ExportExecutionError("training manifest is missing")
         manifest_sha = _sha(training_manifest)
         if manifest_sha != payload["source_manifest_file_sha256"]:

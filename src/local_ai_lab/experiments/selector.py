@@ -25,6 +25,8 @@ class SelectionDecision:
     explanation: tuple[str, ...]
     evidence_references: tuple[str, ...]
     uncertainty: str
+    configuration_label: str | None = None
+    configuration_fingerprint: str | None = None
 
 
 class StrategySelector:
@@ -81,6 +83,7 @@ class StrategySelector:
         return SelectionDecision(
             "recommendation", chosen.strategy_id, tuple(explanation), chosen.evidence_references,
             "This is an evidence-bounded recommendation, not certainty; it must be revisited when the suite, snapshot, model or constraints change.",
+            chosen.configuration_label, chosen.configuration_fingerprint,
         )
 
     @staticmethod
