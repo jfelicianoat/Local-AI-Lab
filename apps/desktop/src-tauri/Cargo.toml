@@ -1,6 +1,6 @@
 [package]
 name = "local-ai-lab-desktop"
-version = "0.1.0"
+version = "0.1.1"
 description = "Local AI Lab desktop shell"
 authors = ["Local AI Lab"]
 edition = "2021"

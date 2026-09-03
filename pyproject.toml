@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "local-ai-lab"
-version = "0.0.1"
+version = "0.0.2"
 description = "Local-first distributed laboratory for evaluating private AI strategies"
 requires-python = ">=3.12"
 license = { text = "Proprietary" }
