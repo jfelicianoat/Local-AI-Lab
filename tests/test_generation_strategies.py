@@ -13,20 +13,60 @@ from local_ai_lab.retrieval.engine import RetrievalCandidate
 from local_ai_lab.strategies.generation import B0Strategy, RagStrategy
 
 
+#: Lo que anuncia un Broker 2.10 con todo puesto. Copiado de un
+#: `/api/v1/capabilities` real (05-sep-2026), no inventado: un fake que promete
+#: capacidades con otro nombre pasa todos los tests y falla en producción.
+CAPABILITIES_210 = {
+    "contract_version": "2.10",
+    "prompt_compression_override": True,
+    "auxiliary_invocations": True,
+    "auxiliary_invocations_optout": True,
+    "invocation_contract": True,
+    "prompt_compression_echo": True,
+    "task_artifacts": True,
+    "canonical_artifacts": True,
+}
+
+#: Un Broker anterior: no anuncia nada del 2.10, así que no debe recibir sus
+#: campos. La validación del contrato es `extra="forbid"`.
+CAPABILITIES_29 = {"contract_version": "2.9", "invocation_telemetry": True}
+
+
 class FakeBrokerTransport:
-    def __init__(self, assistant_content: str, *, fallback: bool = False, usage=None) -> None:
+    def __init__(
+        self,
+        assistant_content: str,
+        *,
+        fallback: bool = False,
+        usage=None,
+        capabilities=None,
+        invocations=None,
+        artifacts=None,
+    ) -> None:
         self.assistant_content = assistant_content
         self.fallback = fallback
         self.usage = usage or {}
+        self.capabilities = CAPABILITIES_210 if capabilities is None else capabilities
+        self.invocations = invocations if invocations is not None else [{"invocation_id": "i-1"}]
+        self.artifacts = artifacts
         self.calls = []
 
     def request(self, method, url, *, headers, body, timeout):
         payload = json.loads(body) if body else None
         self.calls.append((method, url, headers, payload))
+        if url.endswith("/api/v1/capabilities"):
+            return BrokerHttpResponse(200, json.dumps(self.capabilities).encode())
         if method == "POST":
             return BrokerHttpResponse(200, b'{"task_id":"task-1"}')
         if url.endswith("/invocations"):
-            return BrokerHttpResponse(200, b'{"items":[{"invocation_id":"i-1"}]}')
+            return BrokerHttpResponse(
+                200, json.dumps({"task_id": "task-1", "items": self.invocations}).encode()
+            )
+        if url.endswith("/artifacts"):
+            items = self.artifacts if self.artifacts is not None else []
+            return BrokerHttpResponse(
+                200, json.dumps({"task_id": "task-1", "items": items}).encode()
+            )
         state = {
             "task_id": "task-1", "status": "succeeded",
             "assistant_content": self.assistant_content,
@@ -34,6 +74,21 @@ class FakeBrokerTransport:
             "fallback_used": self.fallback, "usage": self.usage,
         }
         return BrokerHttpResponse(200, json.dumps(state).encode())
+
+
+def submitted_task(transport) -> dict:
+    """El cuerpo del POST que crea la tarea.
+
+    Desde el contrato 2.10 el cliente lee `/api/v1/capabilities` antes de enviar
+    nada —un campo del 2.10 contra un Broker que no lo tiene no se ignora, hace
+    fallar la petición entera con 422—, así que la creación ya no es la primera
+    llamada. Buscarla por su ruta en vez de por su posición evita que el test se
+    rompa cada vez que el cliente aprenda a preguntar algo más.
+    """
+    for method, url, _headers, payload in transport.calls:
+        if method == "POST" and url.endswith("/api/v1/tasks"):
+            return payload
+    raise AssertionError("no task creation POST was recorded")
 
 
 def _client(transport: FakeBrokerTransport) -> BrokerTaskClient:
@@ -50,7 +105,7 @@ def test_b0_uses_broker_exact_target_without_fallback_or_learning() -> None:
         correlation_id="corr-1",
     )
 
-    submitted = transport.calls[0][3]
+    submitted = submitted_task(transport)
     assert execution.raw_response == "plain response"
     assert submitted["model_requirements"]["fallback_allowed"] is False
     assert submitted["exclude_from_model_learning"] is True
@@ -85,6 +140,8 @@ def test_broker_29_nested_result_completes_client_tool_loop() -> None:
                 return BrokerHttpResponse(202, b'{"task_id":"task-29"}')
             if method == "POST" and url.endswith("/tool_results"):
                 return BrokerHttpResponse(202, b'{"accepted":true}')
+            if url.endswith("/api/v1/capabilities"):
+                return BrokerHttpResponse(200, json.dumps(CAPABILITIES_29).encode())
             if url.endswith("/invocations"):
                 return BrokerHttpResponse(200, b'{"items":[{"invocation_id":"i-29"}]}')
             self.poll_count += 1
@@ -119,7 +176,7 @@ def test_broker_29_nested_result_completes_client_tool_loop() -> None:
         client_tool_handler=lambda call: json.dumps({"query": call["arguments"]["query"], "hits": []}),
     )
 
-    submitted = transport.calls[0][3]
+    submitted = submitted_task(transport)
     tool_submission = next(call[3] for call in transport.calls if call[1].endswith("/tool_results"))
     assert submitted["idempotency_key"] == "lal:corr-29"
     assert submitted["risk"]["data_classification"] == "local_only"
@@ -175,7 +232,7 @@ def test_rag_strategy_sends_exact_context_and_verifies_returned_evidence(tmp_pat
     assert source in execution.exact_context
     assert execution.verification is not None
     assert execution.verification.deterministic_pass is True
-    assert source in transport.calls[0][3]["content"]["prompt"]
+    assert source in submitted_task(transport)["content"]["prompt"]
 
 
 def test_task_client_authenticates_like_the_capability_negotiator() -> None:
@@ -202,7 +259,7 @@ def test_task_timeout_follows_max_wait_so_the_broker_does_not_kill_a_slow_local_
         correlation_id="corr-timeout",
     )
 
-    submitted = transport.calls[0][3]
+    submitted = submitted_task(transport)
     assert submitted["execution"]["timeout_seconds"] == 1200
     assert submitted["generation"]["max_output_tokens"] >= 4000
     assert submitted["generation"]["seed"] is not None
@@ -223,3 +280,155 @@ def test_broker_errors_carry_the_response_body_so_a_403_is_distinguishable() -> 
             target_model={"provider": "local", "deployment": "desktop", "model": "test"},
             correlation_id="corr-403",
         )
+
+
+# ---------------------------------------------------------------------------
+# Contrato 2.10: ejecución demostrable (Client_API.md, 8.1/8.3/8.4/8.5)
+# ---------------------------------------------------------------------------
+
+
+def test_a_210_broker_receives_uncompressed_prompt_and_content_exclusivity() -> None:
+    transport = FakeBrokerTransport("response")
+    B0Strategy(_client(transport)).execute(
+        query="Hello", target_model={"provider": "local", "deployment": "desktop", "model": "test"},
+        correlation_id="corr-210",
+    )
+
+    submitted = submitted_task(transport)
+    # 8.5: medir sobre un prompt podado no compara lo que dice comparar.
+    assert submitted["prompt_compression"] == "off"
+    # 8.4: `local_only` mantiene el sondeo dentro de la máquina, pero «local»
+    # no es «el modelo bajo prueba».
+    assert submitted["auxiliary_invocations"] is False
+
+
+def test_a_29_broker_receives_none_of_the_210_fields() -> None:
+    """La validación del contrato es `extra="forbid"`: enviarlos es un 422."""
+    transport = FakeBrokerTransport("response", capabilities=CAPABILITIES_29)
+    B0Strategy(_client(transport)).execute(
+        query="Hello", target_model={"provider": "local", "deployment": "desktop", "model": "test"},
+        correlation_id="corr-29",
+    )
+
+    submitted = submitted_task(transport)
+    assert "prompt_compression" not in submitted
+    assert "auxiliary_invocations" not in submitted
+
+
+def test_the_shadow_probe_is_separated_from_the_work_that_was_asked_for() -> None:
+    """8.1: bajo un mismo task_id conviven la tarea y el trabajo del Broker."""
+    transport = FakeBrokerTransport(
+        "response",
+        invocations=[
+            {"invocation_id": "i-1", "role": "single", "contractual": True,
+             "prompt_compression": {"requested": "off", "effective": "off"}},
+            {"invocation_id": "i-2", "role": "shadow_probe", "contractual": False,
+             "prompt_compression": {"requested": "off", "effective": "off"}},
+        ],
+    )
+    execution = B0Strategy(_client(transport)).execute(
+        query="Hello", target_model={"provider": "local", "deployment": "desktop", "model": "test"},
+        correlation_id="corr-shadow",
+    )
+
+    assert len(execution.broker.telemetry) == 2
+    assert len(execution.broker.contractual_telemetry) == 1
+    assert execution.broker.contractual_telemetry[0]["invocation_id"] == "i-1"
+    assert execution.broker.auxiliary_roles == ("shadow_probe",)
+
+
+def test_without_the_boolean_the_role_name_is_the_only_thing_left() -> None:
+    """Contra un Broker 2.9, y por eso el 2.10 añadió el booleano."""
+    transport = FakeBrokerTransport(
+        "response",
+        capabilities=CAPABILITIES_29,
+        invocations=[
+            {"invocation_id": "i-1", "role": "single"},
+            {"invocation_id": "i-2", "role": "shadow_probe"},
+        ],
+    )
+    execution = B0Strategy(_client(transport)).execute(
+        query="Hello", target_model={"provider": "local", "deployment": "desktop", "model": "test"},
+        correlation_id="corr-legacy",
+    )
+
+    assert len(execution.broker.contractual_telemetry) == 1
+    assert execution.broker.auxiliary_roles == ("shadow_probe",)
+
+
+def test_a_compressed_invocation_is_reported_not_rounded_to_off() -> None:
+    """El eco existe para destapar esto: se pidió `off` y se comprimió igual."""
+    transport = FakeBrokerTransport(
+        "response",
+        invocations=[
+            {"invocation_id": "i-1", "role": "chunk_map", "contractual": True,
+             "prompt_compression": {"requested": "off", "effective": "off"}},
+            {"invocation_id": "i-2", "role": "single", "contractual": True,
+             "prompt_compression": {"requested": "off", "effective": "medium"}},
+        ],
+    )
+    execution = B0Strategy(_client(transport)).execute(
+        query="Hello", target_model={"provider": "local", "deployment": "desktop", "model": "test"},
+        correlation_id="corr-compressed",
+    )
+
+    assert execution.broker.prompt_compression == "medium"
+
+
+def test_without_the_echo_no_compression_claim_is_made() -> None:
+    """«No consta» y «se cumplió» no son lo mismo."""
+    transport = FakeBrokerTransport("response", capabilities=CAPABILITIES_29)
+    execution = B0Strategy(_client(transport)).execute(
+        query="Hello", target_model={"provider": "local", "deployment": "desktop", "model": "test"},
+        correlation_id="corr-noecho",
+    )
+
+    assert execution.broker.prompt_compression is None
+
+
+def test_the_deliverable_is_closed_on_the_final_artifact_not_the_first_one() -> None:
+    """8.3: se filtra por `final`, no por `artifact_type` ni por posición."""
+    transport = FakeBrokerTransport(
+        "response",
+        artifacts=[
+            {"artifact_id": "art-img", "artifact_type": "image_output",
+             "sha256": "0" * 64, "final": False},
+            {"artifact_id": "art-out", "artifact_type": "single_output",
+             "sha256": "a" * 64, "final": True},
+        ],
+    )
+    execution = B0Strategy(_client(transport)).execute(
+        query="Hello", target_model={"provider": "local", "deployment": "desktop", "model": "test"},
+        correlation_id="corr-artifact",
+    )
+
+    assert execution.broker.deliverable_sha256 == "a" * 64
+
+
+def test_without_canonical_artifacts_no_deliverable_hash_is_invented() -> None:
+    transport = FakeBrokerTransport("response", capabilities=CAPABILITIES_29)
+    execution = B0Strategy(_client(transport)).execute(
+        query="Hello", target_model={"provider": "local", "deployment": "desktop", "model": "test"},
+        correlation_id="corr-noartifact",
+    )
+
+    assert execution.broker.deliverable_sha256 is None
+
+
+def test_unreadable_capabilities_do_not_block_the_work() -> None:
+    """Client_API.md, 2: un fallo de lectura no significa que el Broker no sepa."""
+    class BrokenCapabilities(FakeBrokerTransport):
+        def request(self, method, url, *, headers, body, timeout):
+            if url.endswith("/api/v1/capabilities"):
+                self.calls.append((method, url, headers, None))
+                return BrokerHttpResponse(500, b'{"detail":{"code":"BOOM"}}')
+            return super().request(method, url, headers=headers, body=body, timeout=timeout)
+
+    transport = BrokenCapabilities("response")
+    execution = B0Strategy(_client(transport)).execute(
+        query="Hello", target_model={"provider": "local", "deployment": "desktop", "model": "test"},
+        correlation_id="corr-broken",
+    )
+
+    assert execution.raw_response == "response"
+    assert "prompt_compression" not in submitted_task(transport)

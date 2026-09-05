@@ -36,6 +36,25 @@ class UrllibBrokerTaskTransport:
             return BrokerHttpResponse(error.code, error.read())
 
 
+#: Roles que el Broker ejecuta por su cuenta, para brokers anteriores al 2.10
+#: que no marcan `contractual`. El vocabulario real tiene quince roles y crece,
+#: así que nombrarlos es frágil por definición: contra un 2.10 esto no se usa.
+LEGACY_NON_CONTRACTUAL_ROLES = frozenset({"shadow_probe"})
+
+
+def is_contractual(item: Mapping[str, Any]) -> bool:
+    """Si esta invocación ejecuta el trabajo que se pidió (Client_API.md, 8.1).
+
+    Bajo un mismo `task_id` conviven las llamadas de la tarea y las que el
+    Broker lanza para medir su catálogo. El contrato 2.10 lo declara con un
+    booleano justamente para que nadie mantenga una lista negra de roles.
+    """
+    declared = item.get("contractual")
+    if isinstance(declared, bool):
+        return declared
+    return item.get("role") not in LEGACY_NON_CONTRACTUAL_ROLES
+
+
 @dataclass(frozen=True, slots=True)
 class BrokerInvocation:
     task_id: str
@@ -49,6 +68,46 @@ class BrokerInvocation:
     cost_source: str
     cost_verification_status: str
     latency_ms: float
+    #: Contrato 2.10 (8.1): solo las invocaciones que ejecutan esta tarea. Es lo
+    #: que hay que mirar para validar la política de ejecución; el resto es
+    #: trabajo del Broker que ni se factura ni respeta el `target_model`.
+    contractual_telemetry: tuple[dict[str, Any], ...] = ()
+    #: Contrato 2.10 (8.4): roles de las invocaciones que NO son de esta tarea.
+    #: Vacío es la respuesta deseable: nadie más vio el contenido.
+    auxiliary_roles: tuple[str, ...] = ()
+    #: Contrato 2.10 (8.5): la poda que se aplicó de verdad al prompt. `None`
+    #: significa que el Broker no lo declara, no que no hubiera poda.
+    prompt_compression: str | None = None
+    #: Contrato 2.10 (8.3): sha256 del artefacto marcado `final: true`, que
+    #: cierra sobre los bytes exactos que produjo el modelo.
+    deliverable_sha256: str | None = None
+
+
+def effective_compression(contractual: tuple[dict[str, Any], ...]) -> str | None:
+    """La poda que se aplicó DE VERDAD al prompt (Client_API.md, 8.5).
+
+    La aserción es sobre las invocaciones **contractuales**: el Broker fuerza
+    `off` en las que procesan contenido generado —fragmentos de map-reduce,
+    síntesis, el juez de confianza—, así que mezclarlas confundiría una política
+    con un automatismo. `None` cuando no consta, que no es «no hubo poda»: es un
+    Broker anterior al 2.10, o llamadas que no envían prompt de usuario.
+    """
+    observed: list[str] = []
+    for item in contractual:
+        echo = item.get("prompt_compression")
+        if not isinstance(echo, dict):
+            continue
+        value = echo.get("effective")
+        if isinstance(value, str) and value:
+            observed.append(value)
+    if not observed:
+        return None
+    # Si alguna se comprimió, eso es lo que hay que enseñar: decir `off` porque
+    # la mayoría lo estaba sería exactamente el dato que el eco viene a destapar.
+    for value in observed:
+        if value != "off":
+            return value
+    return "off"
 
 
 class BrokerTaskClient:
@@ -62,6 +121,7 @@ class BrokerTaskClient:
         max_wait: float = 300.0,
         task_timeout_seconds: int | None = None,
         generation_defaults: Mapping[str, Any] | None = None,
+        capabilities: Mapping[str, Any] | None = None,
     ) -> None:
         self.endpoint = normalize_broker_endpoint(endpoint)
         self.token = token
@@ -80,6 +140,33 @@ class BrokerTaskClient:
         self.generation_defaults: dict[str, Any] = {"max_output_tokens": 8000, "seed": 42}
         if generation_defaults is not None:
             self.generation_defaults.update(generation_defaults)
+        # Lo que promete el Broker EN MARCHA. Se lee una vez, al primer envío, y
+        # no en cada petición: solo cambia cuando cambia su configuración. Un
+        # campo del 2.10 enviado a un Broker que no lo tiene NO se ignora — la
+        # validación es `extra="forbid"` y la petición entera falla con 422—,
+        # así que aquí no se supone nada por el número de versión.
+        self._capabilities: dict[str, Any] | None = capabilities if capabilities is None else dict(capabilities)
+        self._capabilities_read = capabilities is not None
+
+    def capabilities(self) -> dict[str, Any]:
+        """`/api/v1/capabilities`, leído una sola vez (Client_API.md, 2).
+
+        Si no se puede leer no se bloquea el trabajo: el propio contrato lo pide
+        —un fallo de red, de token o de parseo no significa que el Broker no
+        sepa hacer lo que se le pide—. Se devuelve vacío, que hace que los
+        campos opcionales del 2.10 no se envíen, y la tarea sale igual.
+        """
+        if self._capabilities_read:
+            return self._capabilities or {}
+        self._capabilities_read = True
+        try:
+            self._capabilities = self._json("GET", "/api/v1/capabilities", None, timeout=10)
+        except BrokerInvocationError:
+            self._capabilities = None
+        return self._capabilities or {}
+
+    def _supports(self, capability: str) -> bool:
+        return self.capabilities().get(capability) is True
 
     def invoke(
         self,
@@ -113,6 +200,16 @@ class BrokerTaskClient:
         }
         if json_schema is not None:
             body["output"] = {"format": "json", "json_schema": json_schema}
+        # Un benchmark sobre un prompt podado no compara lo que dice comparar:
+        # el modelo no vio el caso, vio un resumen del caso. Desde el contrato
+        # 2.10 esto además tiene acuse de recibo por invocación (8.5).
+        if self._supports("prompt_compression_override"):
+            body["prompt_compression"] = "off"
+        # 8.4: `local_only` ya mantiene el sondeo en sombra dentro de la
+        # máquina, pero «local» no es «el modelo bajo prueba». Un experimento
+        # que fija el modelo exacto no quiere que su contenido lo vea otro.
+        if self._supports("auxiliary_invocations_optout"):
+            body["auxiliary_invocations"] = False
         started = time.monotonic()
         submitted = self._json("POST", "/api/v1/tasks", body, timeout=30)
         task_id = submitted.get("task_id")
@@ -173,13 +270,50 @@ class BrokerTaskClient:
         usage = result_payload.get("usage") if isinstance(result_payload.get("usage"), dict) else {}
         raw_cost = usage.get("cost_actual_usd", usage.get("cost_usd"))
         cost_amount = str(raw_cost) if raw_cost is not None else None
+        items = tuple(item for item in telemetry if isinstance(item, dict))
+        contractual = tuple(item for item in items if is_contractual(item))
+        auxiliary = tuple(
+            str(item.get("role", "unknown")) for item in items if not is_contractual(item)
+        )
         return BrokerInvocation(
             task_id, text, model_used if isinstance(model_used, dict) else {}, fallback,
-            usage, tuple(item for item in telemetry if isinstance(item, dict)), cost_amount,
+            usage, items, cost_amount,
             "USD", "broker_invocation_telemetry" if raw_cost is not None else "not_available",
             "verified" if raw_cost is not None else "unknown",
             (time.monotonic() - started) * 1000.0,
+            contractual_telemetry=contractual,
+            auxiliary_roles=tuple(sorted(set(auxiliary))),
+            prompt_compression=effective_compression(contractual),
+            deliverable_sha256=self._deliverable_sha256(task_id),
         )
+
+    def _deliverable_sha256(self, task_id: str) -> str | None:
+        """sha256 del artefacto marcado `final: true` (Client_API.md, 8.3).
+
+        `/artifacts` es la vía canónica para recoger el entregable: viene tipado
+        y con su hash sobre los bytes exactos que produjo el modelo. `result` no
+        tiene esquema en el OpenAPI y no va a tenerlo, así que un experimento
+        que tiene que rendir cuentas después no puede cerrarse solo sobre él.
+
+        Se filtra por el booleano y no por `artifact_type`: la lista de tipos
+        crece con cada estrategia nueva, y cerrar con «el primero de la lista»
+        cerraría con la imagen que acompaña en vez de con la respuesta.
+        """
+        if not (self._supports("task_artifacts") and self._supports("canonical_artifacts")):
+            return None
+        try:
+            payload = self._json("GET", f"/api/v1/tasks/{task_id}/artifacts", None, timeout=30)
+        except BrokerInvocationError:
+            return None
+        items = payload.get("items")
+        if not isinstance(items, list):
+            return None
+        for item in items:
+            if isinstance(item, dict) and item.get("final") is True:
+                digest = item.get("sha256")
+                if isinstance(digest, str) and digest:
+                    return digest
+        return None
 
     def _json(self, method: str, path: str, payload: dict[str, Any] | None, *, timeout: float) -> dict[str, Any]:
         headers = {"Accept": "application/json"}

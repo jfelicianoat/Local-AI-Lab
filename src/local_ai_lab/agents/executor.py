@@ -164,6 +164,16 @@ class BrokerAgentExperimentExecutor:
                     "source": invocation.cost_source,
                     "verification_status": invocation.cost_verification_status,
                 },
+                # Evidencia del contrato 2.10 (Client_API.md, 8.1/8.3/8.4/8.5).
+                # `None` o vacío significa «el Broker no lo declara», que no es
+                # lo mismo que «no ocurrió»: un informe que no distingue las dos
+                # cosas afirma más de lo que puede sostener.
+                "execution_evidence": {
+                    "prompt_compression": invocation.prompt_compression,
+                    "deliverable_sha256": invocation.deliverable_sha256,
+                    "auxiliary_roles": list(invocation.auxiliary_roles),
+                    "contractual_invocations": len(invocation.contractual_telemetry),
+                },
             })
             review_candidates.append({
                 "case_id": case["case_id"], "query": case["query"],

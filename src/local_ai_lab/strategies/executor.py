@@ -91,6 +91,16 @@ class StrategySuiteExecutor:
                 "verification": verification, "latency_ms": execution.broker.latency_ms,
                 "model_used": execution.broker.model_used, "fallback_used": execution.broker.fallback_used,
                 "cost": cost, "context_sha256": hashlib.sha256(execution.exact_context.encode()).hexdigest(),
+                # Evidencia del contrato 2.10 (Client_API.md, 8.1/8.3/8.4/8.5).
+                # `None` o vacío significa «el Broker no lo declara», que no es
+                # lo mismo que «no ocurrió»: un informe que no distingue las dos
+                # cosas afirma más de lo que puede sostener.
+                "execution_evidence": {
+                    "prompt_compression": execution.broker.prompt_compression,
+                    "deliverable_sha256": execution.broker.deliverable_sha256,
+                    "auxiliary_roles": list(execution.broker.auxiliary_roles),
+                    "contractual_invocations": len(execution.broker.contractual_telemetry),
+                },
             })
             review_candidates.append({
                 "case_id": case["case_id"], "query": case["query"],

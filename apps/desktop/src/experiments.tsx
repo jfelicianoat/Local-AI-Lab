@@ -85,7 +85,7 @@ export function ComparisonTable({ records }: { records: ProductRecord[] }) {
 export function BrokerCompatibilityPanel({ onCreated }: { onCreated: (record: ProductRecord) => void }) {
   const [endpoint, setEndpoint] = useState("http://127.0.0.1:8000");
   const [token, setToken] = useState("");
-  const [phase, setPhase] = useState<"phase0" | "retrieval" | "formal_evaluation" | "agent_experiments">("phase0");
+  const [phase, setPhase] = useState<"phase0" | "retrieval" | "formal_evaluation" | "agent_experiments" | "demonstrable_execution">("phase0");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const inspect = async () => {
@@ -98,7 +98,7 @@ export function BrokerCompatibilityPanel({ onCreated }: { onCreated: (record: Pr
     } catch (reason) { setMessage(reason instanceof Error ? reason.message : "No se pudo negociar con AI Broker."); }
     finally { setBusy(false); }
   };
-  return <section className="broker-panel"><h3>AI Broker · negociación read-only</h3><div className="knowledge-controls"><label><span>Endpoint local</span><input value={endpoint} onChange={(event) => setEndpoint(event.target.value)} /></label><label><span>Fase a comprobar</span><select value={phase} onChange={(event) => setPhase(event.target.value as typeof phase)}><option value="phase0">Conectividad básica</option><option value="retrieval">Generación RAG</option><option value="formal_evaluation">Evaluación formal 2.9</option><option value="agent_experiments">A1 + M1 (2.9)</option></select></label><label><span>Token efímero (si hace falta)</span><input type="password" value={token} onChange={(event) => setToken(event.target.value)} autoComplete="off" /></label><button onClick={() => void inspect()} disabled={busy || !endpoint.trim()}>{busy ? "Consultando…" : "Consultar health + capabilities"}</button><p>Solo GET sobre <code>/health</code> y <code>/api/v1/capabilities</code>. El token no se persiste.</p></div>{message ? <p className="knowledge-message" role="status">{message}</p> : null}</section>;
+  return <section className="broker-panel"><h3>AI Broker · negociación read-only</h3><div className="knowledge-controls"><label><span>Endpoint local</span><input value={endpoint} onChange={(event) => setEndpoint(event.target.value)} /></label><label><span>Fase a comprobar</span><select value={phase} onChange={(event) => setPhase(event.target.value as typeof phase)}><option value="phase0">Conectividad básica</option><option value="retrieval">Generación RAG</option><option value="formal_evaluation">Evaluación formal 2.9</option><option value="agent_experiments">A1 + M1 (2.9)</option><option value="demonstrable_execution">Ejecución demostrable (2.10)</option></select></label><label><span>Token efímero (si hace falta)</span><input type="password" value={token} onChange={(event) => setToken(event.target.value)} autoComplete="off" /></label><button onClick={() => void inspect()} disabled={busy || !endpoint.trim()}>{busy ? "Consultando…" : "Consultar health + capabilities"}</button><p>Solo GET sobre <code>/health</code> y <code>/api/v1/capabilities</code>. El token no se persiste.</p></div>{message ? <p className="knowledge-message" role="status">{message}</p> : null}</section>;
 }
 
 export function StrategySelectorPanel({ records, onCreated }: { records: ProductRecord[]; onCreated: (record: ProductRecord) => void }) {

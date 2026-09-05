@@ -61,6 +61,36 @@ PHASE_REQUIREMENTS: dict[str, BrokerRequirement] = {
         strategies=("agent", "mixture_of_agents"),
         description="Run A1 and M1 with exact models, client tools and traceable execution.",
     ),
+    # Contrato 2.10 (Client_API.md, 12). Se añade como conjunto propio en vez de
+    # endurecer `formal_evaluation`: ese quedó sellado en el artefacto de la fase
+    # 0 y reescribirlo haría que un informe antiguo dijese lo que hoy pedimos, no
+    # lo que se exigió entonces. Un Broker 2.9 sigue sirviendo para medir; lo que
+    # no puede es DEMOSTRAR cómo midió.
+    "demonstrable_execution": BrokerRequirement(
+        phase="demonstrable_execution",
+        minimum_contract="2.10",
+        boolean_capabilities=(
+            "exact_target_model",
+            "generation_determinism",
+            "exclude_from_model_learning",
+            "invocation_telemetry",
+            "execution_fingerprint",
+            # 8.1: `contractual` separa el trabajo de la tarea del que el Broker
+            # hace por su cuenta bajo el mismo task_id.
+            "invocation_contract",
+            # 8.5: acuse de recibo de que el prompt llegó sin podar.
+            "prompt_compression_echo",
+            # 8.3: el entregable viene marcado con `final: true` y su sha256.
+            "task_artifacts",
+            "canonical_artifacts",
+        ),
+        strategies=("single",),
+        description=(
+            "Prove how a measurement ran: separate the Broker's own calls from the "
+            "task's, echo the prompt compression that was actually applied, and close "
+            "the deliverable on a typed artifact with its sha256."
+        ),
+    ),
 }
 
 

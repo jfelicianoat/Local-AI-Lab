@@ -58,6 +58,7 @@ Para explorar la interfaz, crear snapshots y ejecutar R1 no hacen falta AI Broke
 | R2, R3 y R4 | Worker conectado con `embeddings.semantic` probado y modelo de embeddings ya cacheado. |
 | B0–F2 | Worker, AI Broker compatible y modelo exacto disponible. |
 | A1/M1 | AI Broker 2.9 compatible con agentes/client tools o mixture of agents. |
+| Ejecución demostrable | AI Broker **2.10**: separa el trabajo del Broker del suyo (`invocation_contract`), acusa recibo de la compresión del prompt (`prompt_compression_echo`) y marca el entregable (`canonical_artifacts`). |
 | Comparación formal | R3 y R4 comparables y Model Drift con `evaluar-tratamientos`. |
 | Entrenamiento | Dataset aprobado, Worker preparado, modelo base local y preflight superado. |
 | Exportación | Entrenamiento completado y formato probado por el Worker. |
@@ -141,6 +142,7 @@ Después de que termine un Worker o una herramienta externa, pulse **Actualizar 
    - **Generación RAG** para `retrieval`.
    - **Evaluación formal 2.9** para `formal_evaluation`.
    - **A1 + M1 (2.9)** para `agent_experiments`.
+   - **Ejecución demostrable (2.10)** para `demonstrable_execution`.
 
 5. Si el Broker exige autenticación, escriba el token en **Token efímero**.
 6. Pulse **Consultar health + capabilities**.
@@ -601,6 +603,8 @@ No pase el token como argumento ni lo copie al manual, a un informe o a una capt
 | No aparece ningún Worker | No está emparejado, ejecutándose o sincronizado | Revise Worker, endpoint TLS y heartbeat; actualice evidencia. |
 | Botón R2–R4 desactivado | Falta Worker, modelo, hash válido o dispositivo | Complete todos los campos y use un SHA-256 de 64 caracteres. |
 | `UPGRADE_REQUIRED` en Broker | El contrato observado no cubre la fase | Instale una versión que anuncie las capacidades ausentes y repita la consulta. |
+| `execution_evidence.prompt_compression` es `null` | El Broker no acusa recibo de la compresión (anterior al 2.10) | No significa que no hubiera poda: significa que no consta. Use un Broker 2.10 si el experimento tiene que demostrarlo. |
+| `execution_evidence.auxiliary_roles` no está vacío | El Broker sondeó otro modelo con el mismo contenido bajo su `task_id` (§8.4) | No es un fallo ni se le factura, pero el contenido lo vio otro modelo. Si eso no es tolerable, exija `auxiliary_invocations_optout`. |
 | `UNKNOWN` en Broker | Red, token o respuesta no confirmada | Compruebe conectividad y autenticación antes de concluir incompatibilidad. |
 | Model Drift se bloquea | CLI antigua, falta confirmación o tratamientos no comparables | Compruebe `evaluar-tratamientos`, rutas, hashes, R3/R4 y la casilla de confirmación. |
 | No se puede enviar una revisión | Corrección inválida o evidencia no verificada | Guarde un objeto JSON válido y resuelva los errores de verificación. |
