@@ -12,8 +12,8 @@ $TestRoot = Join-Path $ProjectRoot ".test-tmp\desktop-smoke"
 $DataRoot = Join-Path $TestRoot ([guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Force -Path $DataRoot | Out-Null
 
+$PreviousDataRoot = $env:LOCAL_AI_LAB_DATA_DIR
 $env:LOCAL_AI_LAB_DATA_DIR = $DataRoot
-$Started = Get-Date
 $Desktop = $null
 try {
     $Desktop = Start-Process `
@@ -43,22 +43,23 @@ try {
     if (-not (Test-Path -LiteralPath $Database -PathType Leaf)) {
         throw "The Coordinator did not initialize its database."
     }
-    Write-Output "Desktop startup smoke passed."
-    Write-Output $Executable
 }
 finally {
-    if ($null -ne $Desktop) {
-        $Desktop.Refresh()
-        if (-not $Desktop.HasExited) {
-            Stop-Process -Id $Desktop.Id -ErrorAction SilentlyContinue
+    try {
+        if ($null -ne $Desktop) {
+            $Desktop.Refresh()
+            if (-not $Desktop.HasExited) {
+                # Stop only this desktop and its descendants, including the sidecar.
+                & taskkill.exe /PID $Desktop.Id /T /F | Out-Null
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Could not stop the smoke-test process tree (desktop PID $($Desktop.Id))."
+                }
+            }
         }
     }
-    Start-Sleep -Milliseconds 500
-    $Sidecars = @(
-        Get-Process -Name "local-ai-lab-coordinator" -ErrorAction SilentlyContinue |
-            Where-Object { $_.StartTime -ge $Started }
-    )
-    foreach ($Sidecar in $Sidecars) {
-        Stop-Process -Id $Sidecar.Id -ErrorAction SilentlyContinue
+    finally {
+        $env:LOCAL_AI_LAB_DATA_DIR = $PreviousDataRoot
     }
 }
+Write-Output "Desktop startup smoke passed."
+Write-Output $Executable

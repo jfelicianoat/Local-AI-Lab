@@ -1,6 +1,8 @@
 # Estado de implementación
 
-Fecha de corte: 2026-08-25.
+Fecha de corte histórica: 2026-08-25. Para el estado actual de esta revisión,
+consulte [RELEASE_STATUS_20260929.md](RELEASE_STATUS_20260929.md). Las cifras y
+afirmaciones de build de este documento no describen el árbol de trabajo actual.
 
 Este documento separa deliberadamente **implementado**, **probado localmente** y **pendiente
 de prueba real**. Ninguna capacidad de hardware o integración externa se presenta como

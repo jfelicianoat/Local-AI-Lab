@@ -29,6 +29,10 @@ class FeedbackStateError(ValueError):
     pass
 
 
+class FeedbackConflictError(FeedbackStateError):
+    """A human decision was made against an older review revision."""
+
+
 class FeedbackRepository:
     def __init__(self, database: Path) -> None:
         self.store = SQLiteStore(database)
@@ -55,6 +59,7 @@ class FeedbackRepository:
                   diff_text TEXT,
                   created_at TEXT NOT NULL,
                   updated_at TEXT NOT NULL,
+                  revision INTEGER NOT NULL DEFAULT 1,
                   UNIQUE(run_id, case_id, reviewer)
                 );
                 CREATE TABLE IF NOT EXISTS feedback_events(
@@ -69,6 +74,8 @@ class FeedbackRepository:
                 );
                 CREATE INDEX IF NOT EXISTS feedback_events_review_idx
                   ON feedback_events(review_id, occurred_at);
+                CREATE INDEX IF NOT EXISTS reviews_page_idx
+                  ON reviews(updated_at DESC, review_id ASC);
                 """
             )
             columns = {
@@ -79,6 +86,8 @@ class FeedbackRepository:
                 connection.execute(
                     "ALTER TABLE reviews ADD COLUMN context_json TEXT NOT NULL DEFAULT '{}'"
                 )
+            if "revision" not in columns:
+                connection.execute("ALTER TABLE reviews ADD COLUMN revision INTEGER NOT NULL DEFAULT 1")
 
     def create_review(
         self,
@@ -96,7 +105,21 @@ class FeedbackRepository:
         review_id = str(uuid.uuid4())
         now = utc_timestamp()
         encoded = canonical_json(original_response)
+        original_hash = sha256_json(original_response)
+        context_json = canonical_json(run_context)
         with self.store.transaction() as connection:
+            existing = connection.execute(
+                "SELECT * FROM reviews WHERE run_id=? AND case_id=? AND reviewer=?",
+                (run_id, case_id, reviewer),
+            ).fetchone()
+            if existing is not None:
+                if (
+                    existing["snapshot_id"] != snapshot_id
+                    or existing["context_json"] != context_json
+                    or existing["original_sha256"] != original_hash
+                ):
+                    raise FeedbackStateError("review identity conflicts with existing content")
+                return self.get(existing["review_id"])
             connection.execute(
                 """INSERT INTO reviews(
                    review_id, run_id, case_id, snapshot_id, reviewer, status, training_state,
@@ -105,7 +128,7 @@ class FeedbackRepository:
                    ) VALUES (?, ?, ?, ?, ?, 'draft', 'excluded', ?, ?, ?, NULL, NULL, NULL, NULL, ?, ?)""",
                 (
                     review_id, run_id, case_id, snapshot_id, reviewer,
-                    canonical_json(run_context), encoded, sha256_json(original_response), now, now,
+                    context_json, encoded, original_hash, now, now,
                 ),
             )
             self._event(connection, review_id, "review_created", reviewer, None, "draft", {})
@@ -118,10 +141,12 @@ class FeedbackRepository:
         actor: str,
         corrected_response: dict[str, Any],
         verifier: ResearchResponseVerifier,
+        expected_revision: int | None = None,
     ) -> dict[str, Any]:
         report = verifier.verify(corrected_response)
         with self.store.transaction() as connection:
             current = self._row(connection, review_id)
+            self._require_revision(current, expected_revision)
             if current["status"] not in {"draft", "submitted"}:
                 raise FeedbackStateError("accepted or rejected reviews cannot be edited")
             original = json.loads(current["original_json"])
@@ -134,7 +159,7 @@ class FeedbackRepository:
             )
             connection.execute(
                 """UPDATE reviews SET corrected_json=?, corrected_sha256=?, verification_json=?,
-                   diff_text=?, updated_at=? WHERE review_id=?""",
+                   diff_text=?, updated_at=?, revision=revision+1 WHERE review_id=?""",
                 (
                     canonical_json(corrected_response), sha256_json(corrected_response),
                     canonical_json(report.as_dict()), diff, utc_timestamp(), review_id,
@@ -146,34 +171,41 @@ class FeedbackRepository:
             )
         return self.get(review_id)
 
-    def transition_review(self, review_id: str, *, to_state: str, actor: str) -> dict[str, Any]:
+    def transition_review(self, review_id: str, *, to_state: str, actor: str,
+                          reason: str | None = None, expected_revision: int | None = None) -> dict[str, Any]:
         with self.store.transaction() as connection:
             current = self._row(connection, review_id)
+            self._require_revision(current, expected_revision)
             from_state = current["status"]
             if to_state not in REVIEW_TRANSITIONS.get(from_state, set()):
                 raise FeedbackStateError(f"invalid review transition: {from_state} -> {to_state}")
+            if to_state == "rejected" and (not reason or not reason.strip()):
+                raise FeedbackStateError("rejection requires a reason")
             if to_state in {"submitted", "accepted"}:
                 if current["corrected_json"] is None or current["verification_json"] is None:
                     raise FeedbackStateError("a correction must be saved before submission")
                 if not json.loads(current["verification_json"])["deterministic_pass"]:
                     raise FeedbackStateError("correction does not pass deterministic verification")
             connection.execute(
-                "UPDATE reviews SET status=?, updated_at=? WHERE review_id=?",
+                "UPDATE reviews SET status=?, updated_at=?, revision=revision+1 WHERE review_id=?",
                 (to_state, utc_timestamp(), review_id),
             )
-            self._event(connection, review_id, "review_transition", actor, from_state, to_state, {})
+            self._event(connection, review_id, "review_transition", actor, from_state, to_state,
+                        {"reason": reason.strip()} if reason else {})
         return self.get(review_id)
 
-    def transition_training(self, review_id: str, *, to_state: str, actor: str) -> dict[str, Any]:
+    def transition_training(self, review_id: str, *, to_state: str, actor: str,
+                            expected_revision: int | None = None) -> dict[str, Any]:
         with self.store.transaction() as connection:
             current = self._row(connection, review_id)
+            self._require_revision(current, expected_revision)
             from_state = current["training_state"]
             if to_state not in TRAINING_TRANSITIONS.get(from_state, set()):
                 raise FeedbackStateError(f"invalid training transition: {from_state} -> {to_state}")
             if current["status"] != "accepted":
                 raise FeedbackStateError("only accepted feedback can become a training candidate")
             connection.execute(
-                "UPDATE reviews SET training_state=?, updated_at=? WHERE review_id=?",
+                "UPDATE reviews SET training_state=?, updated_at=?, revision=revision+1 WHERE review_id=?",
                 (to_state, utc_timestamp(), review_id),
             )
             self._event(connection, review_id, "training_transition", actor, from_state, to_state, {})
@@ -213,6 +245,52 @@ class FeedbackRepository:
             ).fetchall()
         return [self.get(row["review_id"]) for row in rows]
 
+    def list_reviews_page(
+        self, *, limit: int = 50, cursor: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        if not 1 <= limit <= 200:
+            raise ValueError("review page size must be between 1 and 200")
+        if cursor is not None and (set(cursor) != {"updated_at", "id"} or
+                                   not all(isinstance(value, str) and value for value in cursor.values())):
+            raise ValueError("invalid review cursor")
+        clause = "WHERE updated_at < ? OR (updated_at = ? AND review_id > ?)" if cursor else ""
+        params = (cursor["updated_at"], cursor["updated_at"], cursor["id"]) if cursor else ()
+        with self.store.connect() as connection:
+            total = connection.execute("SELECT COUNT(*) FROM reviews").fetchone()[0]
+            rows = connection.execute(
+                f"SELECT * FROM reviews {clause} "
+                "ORDER BY updated_at DESC, review_id ASC LIMIT ?",
+                (*params, limit + 1),
+            ).fetchall()
+            selected = rows[:limit]
+            events_by_review: dict[str, list[dict[str, Any]]] = {
+                row["review_id"]: [] for row in selected
+            }
+            if selected:
+                placeholders = ",".join("?" for _ in selected)
+                events = connection.execute(
+                    f"SELECT * FROM feedback_events WHERE review_id IN ({placeholders}) "
+                    "ORDER BY occurred_at, event_id",
+                    tuple(events_by_review),
+                ).fetchall()
+                for event in events:
+                    decoded = dict(event)
+                    decoded["details"] = json.loads(decoded.pop("details_json"))
+                    events_by_review[event["review_id"]].append(decoded)
+            items = []
+            for row in selected:
+                item = dict(row)
+                for field in ("context_json", "original_json", "corrected_json", "verification_json"):
+                    encoded = item.pop(field)
+                    item[field.removesuffix("_json")] = json.loads(encoded) if encoded else None
+                item["events"] = events_by_review[row["review_id"]]
+                items.append(item)
+        last = selected[-1] if selected else None
+        return {"items": items, "pagination": {
+            "total": total, "has_more": len(rows) > limit,
+            "cursor": {"updated_at": last["updated_at"], "id": last["review_id"]} if last else None,
+        }}
+
     @staticmethod
     def _validate_context(context: dict[str, Any], snapshot_id: str) -> None:
         required = {
@@ -241,6 +319,16 @@ class FeedbackRepository:
                 raise ValueError("unknown price must have verification_status=unknown")
         elif not isinstance(cost["amount"], str):
             raise ValueError("cost amount must be a decimal string or null")
+
+    @staticmethod
+    def _require_revision(current, expected_revision: int | None) -> None:
+        # BEGIN IMMEDIATE serializes this check with the mutation and event append.
+        # Internal workflows may act on current state; desktop requests must supply a revision.
+        if expected_revision is not None and current["revision"] != expected_revision:
+            raise FeedbackConflictError(
+                "Esta revisión cambió en otra sesión. Actualiza los datos y revisa "
+                "la versión guardada antes de continuar."
+            )
 
     @staticmethod
     def _row(connection, review_id: str):

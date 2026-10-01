@@ -39,6 +39,8 @@ def _proposal(**changes: object) -> DistillationProposal:
         "student_license": "Apache-2.0",
         "teacher_outputs_training_allowed": True,
         "student_finetuning_allowed": True,
+        "contains_mutable_facts": False,
+        "minimum_quality_gain": 0.05,
         "teacher_source": "local",
         "teacher_broker_endpoint": None,
         "teacher_target_model": None,
@@ -132,6 +134,8 @@ def test_distillation_plan_is_checkpointable_and_keeps_models_distinct() -> None
         ({"student_model": "local/teacher-7b"}, "different models"),
         ({"teacher_outputs_training_allowed": False}, "teacher license"),
         ({"student_finetuning_allowed": False}, "student license"),
+        ({"contains_mutable_facts": True}, "not eligible"),
+        ({"minimum_quality_gain": 0}, "positive measurable quality gain"),
         ({"approved_by": None}, "human approval"),
     ],
 )
@@ -179,6 +183,7 @@ def test_distillation_plan_accepts_exact_broker_teacher_without_a_token() -> Non
 
 
 def test_successful_distillation_promotes_product_and_worker_evidence(tmp_path: Path) -> None:
+    from result_fixtures import training_inputs, training_package
     service = CoordinatorService(tmp_path / "coordinator.db")
     pairing = service.create_pairing_code()
     registration = service.pair_and_register(
@@ -187,7 +192,7 @@ def test_successful_distillation_promotes_product_and_worker_evidence(tmp_path: 
     token = registration["device_token"]
     job = JobSpec(
         kind="training.distillation.v1",
-        payload={"teacher_model": "teacher", "student_model": "student"},
+        payload=training_inputs(distillation=True),
         requirements={"node_ids": ["worker-distill"]},
     )
     service.submit_job(job, "submit-distillation-fixture")
@@ -218,11 +223,7 @@ def test_successful_distillation_promotes_product_and_worker_evidence(tmp_path: 
         lease_token=lease["lease_token"],
         lease_generation=lease["lease_generation"],
         outcome="succeeded",
-        payload={
-            "manifest_sha256": "a" * 64,
-            "manifest_file_sha256": "b" * 64,
-            "distilled_examples": 12,
-        },
+        payload=training_package(service, lease, tmp_path / "distillation-result"),
         idempotency_key="complete-distillation",
     )
 
@@ -249,7 +250,7 @@ def test_distillation_executor_generates_trains_reloads_and_manifests(
             {"role": "user", "content": "Explica la destilación."},
             {"role": "assistant", "content": "Respuesta humana."},
         ],
-        "provenance": {"review_id": "review-1"},
+        "provenance": {"review_id": "review-1", "snapshot_id": "snapshot-distill"},
     }
     payloads = {
         "train.jsonl": (canonical_json(example) + "\n").encode(),
@@ -266,6 +267,7 @@ def test_distillation_executor_generates_trains_reloads_and_manifests(
             "examples": [example["example_id"]],
             "split_seed_sha256": split_seed_sha256,
             "benchmark_fingerprints": [],
+            "source_snapshot_ids": ["snapshot-distill"],
         }
     )
     manifest = {
@@ -277,6 +279,7 @@ def test_distillation_executor_generates_trains_reloads_and_manifests(
         "split_seed_sha256": split_seed_sha256,
         "benchmark_case_ids_excluded": [],
         "benchmark_fingerprints": [],
+        "source_snapshot_ids": ["snapshot-distill"],
         "counts": {"included": 1, "excluded": 0, "train": 1, "validation": 0, "test": 0},
         "artifacts": {name: hashlib.sha256(data).hexdigest() for name, data in payloads.items()},
     }
@@ -362,11 +365,12 @@ def test_distillation_executor_generates_trains_reloads_and_manifests(
             self.output_dir = str(values["output_dir"])
 
     class Trainer:
-        def __init__(self, *, model: FakeModel, args: TrainingArguments, train_dataset: list[dict[str, object]], data_collator: object) -> None:
+        def __init__(self, *, model: FakeModel, args: TrainingArguments, train_dataset: list[dict[str, object]], data_collator: object, callbacks: list[object]) -> None:
             self.model = model
             self.args = args
             self.train_dataset = train_dataset
             self.data_collator = data_collator
+            self.callbacks = callbacks
 
         def train(self, *, resume_from_checkpoint: object) -> SimpleNamespace:
             calls["resume"] = resume_from_checkpoint
@@ -374,7 +378,12 @@ def test_distillation_executor_generates_trains_reloads_and_manifests(
             assert batch["labels"][0][0] == -100
             checkpoint = Path(self.args.output_dir) / "checkpoint-1"
             checkpoint.mkdir(parents=True)
-            (checkpoint / "trainer_state.json").write_text("{}", encoding="utf-8")
+            (checkpoint / "trainer_state.json").write_text('{"global_step":1}', encoding="utf-8")
+            (checkpoint / "optimizer.pt").write_bytes(b"optimizer")
+            (checkpoint / "scheduler.pt").write_bytes(b"scheduler")
+            (checkpoint / "adapter_model.safetensors").write_bytes(b"adapter")
+            for callback in self.callbacks:
+                callback.on_save(self.args, SimpleNamespace(global_step=1), SimpleNamespace())
             return SimpleNamespace(metrics={"train_loss": 0.125, "train_steps": 1})
 
     class LoraConfig:
@@ -406,10 +415,15 @@ def test_distillation_executor_generates_trains_reloads_and_manifests(
     transformers.AutoModelForCausalLM = AutoModelForCausalLM  # type: ignore[attr-defined]
     transformers.AutoTokenizer = AutoTokenizer  # type: ignore[attr-defined]
     transformers.Trainer = Trainer  # type: ignore[attr-defined]
+    transformers.TrainerCallback = type("TrainerCallback", (), {})  # type: ignore[attr-defined]
     transformers.TrainingArguments = TrainingArguments  # type: ignore[attr-defined]
     monkeypatch.setitem(sys.modules, "torch", torch)
     monkeypatch.setitem(sys.modules, "peft", peft)
     monkeypatch.setitem(sys.modules, "transformers", transformers)
+    monkeypatch.setattr(
+        "local_ai_lab.training.distillation.model_weights_fingerprint",
+        lambda _model: "c" * 64,
+    )
 
     stages: list[dict[str, object]] = []
     output = tmp_path / "distillation-output"
@@ -428,7 +442,11 @@ def test_distillation_executor_generates_trains_reloads_and_manifests(
             "dtype": "bf16",
             "seed": 7,
             "max_steps": 1,
-            "resume_from_checkpoint": "checkpoint-approved",
+            "_worker_attempt": {
+                "source_job_id": "job-distill", "source_attempt_id": "attempt-distill",
+                "source_lease_generation": 1, "source_spec_sha256": "e" * 64,
+                "training_kind": "training.distillation.v1",
+            },
         },
         stages.append,
     )
@@ -438,17 +456,49 @@ def test_distillation_executor_generates_trains_reloads_and_manifests(
     assert distilled["messages"][-1]["content"] == "Respuesta sintetizada por el profesor."
     assert distilled["distillation"]["teacher_model"] == "local/teacher"
     assert calls["reload_verified"] is True
-    assert calls["resume"] == "checkpoint-approved"
+    assert calls["resume"] is None
     assert result_manifest["distilled_examples"] == 1
     assert result_manifest["metrics"] == {"train_loss": 0.125, "train_steps": 1}
+    assert result_manifest["base_weights_sha256"] == "c" * 64
     assert result["manifest_sha256"] == result_manifest["content_sha256"]
+    from local_ai_lab.training.checkpoints import verify_checkpoint_bundle
+    checkpoint_bundle = output.with_name(output.name + "-checkpoints") / "checkpoint-1.zip"
+    checkpoint_manifest = verify_checkpoint_bundle(checkpoint_bundle)
+    assert checkpoint_manifest["training_kind"] == "training.distillation.v1"
+    assert any(item["path"].endswith("distilled-train.jsonl") for item in checkpoint_manifest["files"])
     assert [stage["stage"] for stage in stages] == [
         "loading_teacher",
         "teacher_generation",
         "loading_student",
         "student_training",
+        "checkpoint",
         "reload_verification",
     ]
+
+    from local_ai_lab.artifacts.archive import safe_extract_zip
+    mounted = safe_extract_zip(checkpoint_bundle, tmp_path / "approved-checkpoint")
+    loaded_before = list(calls["loaded"])
+    resumed_stages: list[dict[str, object]] = []
+    resumed_output = tmp_path / "resumed-distillation"
+    TransformersSequenceDistillationExecutor()(
+        {
+            "resolved_dataset_path": str(dataset), "output_dir": str(resumed_output),
+            "teacher_model": "local/teacher", "teacher_model_fingerprint": "a" * 64,
+            "student_model": "local/student", "student_model_fingerprint": "b" * 64,
+            "dataset_fingerprint": fingerprint,
+            "chat_template_fingerprint": template_fingerprint,
+            "generation_config": {"temperature": 0.0, "max_new_tokens": 64},
+            "lora_config": {"rank": 4, "alpha": 8}, "dtype": "bf16",
+            "seed": 7, "max_steps": 1,
+            "resume_from_checkpoint": str(mounted / "checkpoint-1"),
+            "expected_base_weights_sha256": "c" * 64,
+        }, resumed_stages.append,
+    )
+    assert (resumed_output / "distilled-train.jsonl").read_bytes() == (
+        output / "distilled-train.jsonl"
+    ).read_bytes()
+    assert ("model", "local/teacher") not in calls["loaded"][len(loaded_before):]
+    assert resumed_stages[0]["stage"] == "restoring_teacher_supervision"
 
     class FakeBrokerClient:
         def __init__(self, *, endpoint: str, token: str | None, **_values: object) -> None:
@@ -529,10 +579,11 @@ def test_distillation_executor_generates_trains_reloads_and_manifests(
 
 
 def _completed_preflight(service: CoordinatorService, node_id: str, token: str) -> str:
-    """Ejecuta un preflight de extremo a extremo tal y como lo hace un Worker real."""
+    """Comprueba el protocolo de publicación con un paquete sintético, sin GPU."""
+    from result_fixtures import preflight_inputs, preflight_package
     job = JobSpec(
         kind="training.preflight.v1",
-        payload={"base_model": "student", "dtype": "bf16"},
+        payload=preflight_inputs(),
         requirements={"node_ids": [node_id]},
     )
     service.submit_job(job, f"submit-{job.job_id}")
@@ -551,15 +602,7 @@ def _completed_preflight(service: CoordinatorService, node_id: str, token: str) 
         node_id=node_id, token=token, job_id=job.job_id, attempt_id=lease["attempt_id"],
         lease_token=lease["lease_token"], lease_generation=lease["lease_generation"],
         outcome="succeeded",
-        payload={
-            "preflight_sha256": "c" * 64,
-            "backend": "cuda",
-            "dtype": "bf16",
-            "checks": {
-                "overfit_8_examples": True, "save": True, "reload": True,
-                "resume": True, "contamination_check": True, "manifest_check": True,
-            },
-        },
+        payload=preflight_package(service, lease, service.repository.path.parent / f"result-{job.job_id}"),
         idempotency_key=f"complete-{job.job_id}",
     )
     return job.job_id
@@ -617,6 +660,10 @@ def test_a_probe_heartbeat_cannot_erase_facts_earned_by_a_job(tmp_path: Path) ->
         pairing_code=pairing, node_id="worker-real", hostname="real-host"
     )
     token = registration["device_token"]
+    service.heartbeat(
+        node_id="worker-real", token=token,
+        capabilities={"facts": [{"key": "gpu.0.name", "value": "GPU", "status": "detected"}]},
+    )
     _completed_preflight(service, "worker-real", token)
     service.heartbeat(
         node_id="worker-real", token=token,

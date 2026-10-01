@@ -15,6 +15,10 @@ from local_ai_lab.coordinator.service.entrenamiento import EntrenamientoMixin
 class NodosMixin(EntrenamientoMixin):
     """Emparejamiento de nodos, latidos y transferencia de artefactos."""
 
+    def revoke_node(self, node_id: str) -> dict[str, str]:
+        self.repository.revoke_node(node_id)
+        return {"node_id": node_id, "status": "revoked"}
+
     def pair_and_register(
         self,
         *,
@@ -45,23 +49,34 @@ class NodosMixin(EntrenamientoMixin):
         expected_size: int, chunk_size: int, idempotency_key: str,
     ) -> dict[str, Any]:
         self._authenticate(node_id, token)
-        return self._idempotent(
+        job = self.repository.active_artifact_job(node_id)
+        def initiate() -> dict[str, Any]:
+            result = asdict(self.artifacts.initiate(
+                expected_sha256=expected_sha256, expected_size=expected_size,
+                chunk_size=chunk_size,
+            ))
+            self.repository.bind_artifact_upload(
+                artifact_id=result["artifact_id"], node_id=node_id,
+                job=job, sha256=expected_sha256,
+            )
+            return result
+        response = self._idempotent(
             scope=f"node:{node_id}:artifact:initiate", key=idempotency_key,
             request={
                 "expected_sha256": expected_sha256, "expected_size": expected_size,
                 "chunk_size": chunk_size,
             },
-            operation=lambda: asdict(self.artifacts.initiate(
-                expected_sha256=expected_sha256, expected_size=expected_size,
-                chunk_size=chunk_size,
-            )),
+            operation=initiate,
         )
+        self.repository.require_upload_not_retired(response["artifact_id"])
+        return response
 
     def put_artifact_chunk(
         self, *, node_id: str, token: str, artifact_id: str, index: int,
         content: bytes, chunk_sha256: str, idempotency_key: str,
     ) -> dict[str, Any]:
         self._authenticate(node_id, token)
+        self.repository.authorize_artifact_upload(artifact_id=artifact_id, node_id=node_id)
         return self._idempotent(
             scope=f"artifact:{artifact_id}:chunk:{index}", key=idempotency_key,
             request={"index": index, "chunk_sha256": chunk_sha256, "size": len(content)},
@@ -75,6 +90,7 @@ class NodosMixin(EntrenamientoMixin):
         self, *, node_id: str, token: str, artifact_id: str, idempotency_key: str,
     ) -> dict[str, Any]:
         self._authenticate(node_id, token)
+        self.repository.authorize_artifact_upload(artifact_id=artifact_id, node_id=node_id)
         return self._idempotent(
             scope=f"artifact:{artifact_id}:commit", key=idempotency_key,
             request={"artifact_id": artifact_id},
@@ -83,6 +99,7 @@ class NodosMixin(EntrenamientoMixin):
 
     def artifact_download(self, *, node_id: str, token: str, sha256: str) -> Path:
         self._authenticate(node_id, token)
+        self.repository.active_artifact_job(node_id, sha256=sha256)
         if not self.artifacts.verify(sha256):
             raise KeyError(f"unknown or corrupt artifact: {sha256}")
         return self.artifacts.blob_path(sha256)

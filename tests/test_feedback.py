@@ -96,6 +96,22 @@ def test_training_candidate_requires_acceptance_and_two_explicit_transitions(tmp
     assert approved["training_state"] == "approved"
 
 
+def test_rejection_records_required_reason(tmp_path: Path) -> None:
+    snapshot, verifier, response, context = _fixture(tmp_path)
+    repository = FeedbackRepository(tmp_path / "feedback.sqlite3")
+    review = repository.create_review(
+        run_id="run-1", case_id="case-1", snapshot_id=snapshot.snapshot_id,
+        reviewer="ana", run_context=context, original_response=response,
+    )
+    repository.save_correction(review["review_id"], actor="ana", corrected_response=response, verifier=verifier)
+    repository.transition_review(review["review_id"], to_state="submitted", actor="ana")
+    with pytest.raises(FeedbackStateError, match="requires a reason"):
+        repository.transition_review(review["review_id"], to_state="rejected", actor="lead")
+    rejected = repository.transition_review(review["review_id"], to_state="rejected", actor="lead", reason="La fuente no responde la pregunta")
+    assert rejected["status"] == "rejected"
+    assert rejected["events"][-1]["details"]["reason"] == "La fuente no responde la pregunta"
+
+
 def test_invalid_correction_cannot_be_submitted(tmp_path: Path) -> None:
     snapshot, verifier, corrected, context = _fixture(tmp_path)
     repository = FeedbackRepository(tmp_path / "feedback.sqlite3")
@@ -122,9 +138,54 @@ def test_feedback_repository_migrates_legacy_review_table(tmp_path: Path) -> Non
                verification_json TEXT, diff_text TEXT, created_at TEXT NOT NULL,
                updated_at TEXT NOT NULL, UNIQUE(run_id, case_id, reviewer))"""
         )
+        connection.execute("""INSERT INTO reviews(review_id, run_id, case_id, snapshot_id,
+            reviewer, status, training_state, original_json, original_sha256, created_at, updated_at)
+            VALUES ('legacy', 'run', 'case', 'snapshot', 'ana', 'draft', 'excluded',
+                    '{"answer":"Conservada"}', 'original-hash', 'before', 'before')""")
 
-    FeedbackRepository(database)
+    repository = FeedbackRepository(database)
 
     with sqlite3.connect(database) as connection:
         columns = {row[1] for row in connection.execute("PRAGMA table_info(reviews)")}
     assert "context_json" in columns
+    assert "revision" in columns
+    assert repository.get("legacy")["revision"] == 1
+    assert repository.get("legacy")["original"] == {"answer": "Conservada"}
+    assert FeedbackRepository(database).get("legacy") == repository.get("legacy")
+
+
+def test_feedback_revision_detects_aba_even_with_identical_timestamps(tmp_path: Path, monkeypatch) -> None:
+    from local_ai_lab.feedback import repository as feedback_module
+
+    monkeypatch.setattr(feedback_module, "utc_timestamp", lambda: "2026-10-01T12:00:00.000000Z")
+    snapshot, verifier, response, context = _fixture(tmp_path)
+    repository = FeedbackRepository(tmp_path / "feedback.sqlite3")
+    initial = repository.create_review(run_id="run", case_id="case", snapshot_id=snapshot.snapshot_id,
+        reviewer="ana", run_context=context, original_response=response)
+    first = repository.save_correction(initial["review_id"], actor="ana", corrected_response=response,
+        verifier=verifier, expected_revision=initial["revision"])
+    repository.save_correction(initial["review_id"], actor="other",
+        corrected_response={**response, "answer": "Temporal"}, verifier=verifier)
+    restored = repository.save_correction(initial["review_id"], actor="other", corrected_response=response,
+        verifier=verifier)
+    assert restored["updated_at"] == first["updated_at"]
+    assert restored["corrected"] == first["corrected"]
+    assert restored["revision"] == first["revision"] + 2
+    with pytest.raises(feedback_module.FeedbackConflictError):
+        repository.transition_review(initial["review_id"], actor="ana", to_state="submitted",
+            expected_revision=first["revision"])
+    assert repository.get(initial["review_id"]) == restored
+
+
+def test_replaying_same_review_creation_is_idempotent(tmp_path: Path) -> None:
+    snapshot, _, response, context = _fixture(tmp_path)
+    repository = FeedbackRepository(tmp_path / "feedback.sqlite3")
+    values = dict(
+        run_id="run-1", case_id="case-1", snapshot_id=snapshot.snapshot_id,
+        reviewer="reviewer", run_context=context, original_response=response,
+    )
+    first = repository.create_review(**values)
+    replay = repository.create_review(**values)
+    assert replay["review_id"] == first["review_id"]
+    assert len(repository.list_reviews()) == 1
+    assert [event["event_type"] for event in replay["events"]] == ["review_created"]

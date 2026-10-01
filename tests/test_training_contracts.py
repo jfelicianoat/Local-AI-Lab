@@ -90,7 +90,7 @@ def test_long_training_job_requires_every_gate_and_is_checkpointable() -> None:
     hardware = TrainingHardwareResolver().resolve([_report("node-1")])
     proposal = FineTuningProposal(
         "proposal-1", "format", "Reduce schema failures", "a" * 64, "b" * 64,
-        False, "lead@example",
+        False, 0.05, "lead@example",
     )
     preflight = {
         "overfit_8_examples": True, "save": True, "reload": True, "resume": True,
@@ -115,7 +115,7 @@ def test_fine_tuning_cannot_be_used_to_memorize_mutable_vault_facts() -> None:
     )
     proposal = FineTuningProposal(
         "proposal-1", "behavior", "Memorize current vault", "a" * 64, "b" * 64,
-        True, "lead",
+        True, 0.05, "lead",
     )
     with pytest.raises(ValueError, match="memorize mutable facts"):
         TrainingPlanBuilder().build(

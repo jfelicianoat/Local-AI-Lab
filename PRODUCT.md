@@ -51,8 +51,10 @@ Knowledge Orchestrator, Model Drift ni Athena; se integra con sus contratos.
 - Diseño aprobado y fronteras: `docs/PHASE_A_DESIGN.md`.
 - Evidencia parcial de hardware NVIDIA: `artifacts/phase0/node-nvidia-20260823.json`.
 - Contratos y pruebas locales del núcleo distribuido en `src/local_ai_lab/` y `tests/`.
-- No existen aún evidencias reales del nodo AMD, del vault seleccionado, de la red entre
-  nodos ni del servicio AI Broker desplegado. La interfaz no debe presentarlas como probadas.
+- Los informes del 25 de agosto registran pruebas reales puntuales de vault, Broker,
+  NVIDIA y Model Drift. Siguen pendientes el nodo AMD/WSL y una prueba TLS entre dos
+  equipos físicos; ninguna evidencia histórica sustituye una comprobación actual
+  del endpoint, modelo, Worker y snapshot elegidos.
 
 ## Product Principles
 

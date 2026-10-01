@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Sequence
 
-from local_ai_lab.benchmark.controlled import ControlledCorpusSuite
+from local_ai_lab.benchmark.execution import load_execution_suite
 from local_ai_lab.benchmark.retrieval_runner import RetrievalBenchmarkRunner
 from local_ai_lab.domain.common import canonical_json
 from local_ai_lab.knowledge_index.projection import KnowledgeIndex
@@ -81,7 +81,7 @@ class ControlledRetrievalExecutor:
         if strategy == "R4":
             retriever = GraphRetriever(snapshot, retriever)
         progress({"stage": "evaluate_ground_truth", "strategy_id": strategy})
-        suite = ControlledCorpusSuite.load(suite_root, require_human_approval=False)
+        suite = load_execution_suite(suite_root, snapshot)
         started = time.perf_counter()
         report = RetrievalBenchmarkRunner().run(suite, retriever, k=int(payload.get("k", 5))).payload
         report["latency_ms"] = (time.perf_counter() - started) * 1000.0

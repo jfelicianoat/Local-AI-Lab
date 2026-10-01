@@ -8,7 +8,7 @@ from pathlib import Path
 from statistics import fmean
 from typing import Any, Callable
 
-from local_ai_lab.benchmark.controlled import ControlledCorpusSuite
+from local_ai_lab.benchmark.execution import load_execution_suite
 from local_ai_lab.broker.client import BrokerTaskClient
 from local_ai_lab.domain.common import canonical_json
 from local_ai_lab.evaluation.response_verifier import ResearchResponseVerifier
@@ -81,9 +81,7 @@ class BrokerAgentExperimentExecutor:
         if strategy not in {"A1", "M1"}:
             raise ValueError("Broker agent executor only accepts A1 or M1")
         snapshot = Path(payload["resolved_snapshot"]).resolve(strict=True)
-        suite = ControlledCorpusSuite.load(
-            Path(payload["resolved_suite"]).resolve(strict=True), require_human_approval=False
-        )
+        suite = load_execution_suite(Path(payload["resolved_suite"]).resolve(strict=True), snapshot)
         provider = LocalTransformersEmbeddingProvider(
             payload["embedding_model"], payload["embedding_model_fingerprint"],
             device=payload.get("device", "cpu"), batch_size=int(payload.get("batch_size", 8)),
@@ -206,6 +204,7 @@ class BrokerAgentExperimentExecutor:
             "quality": {"deterministic_pass_rate": fmean(pass_values)},
             "latency_ms": sum(item["latency_ms"] for item in results),
             "privacy": "local_only", "formal_status": "unverified",
+            "review_candidates": review_candidates,
         }
         report_path = output / "agent-experiment.json"
         report_path.write_text(canonical_json(report) + "\n", encoding="utf-8", newline="\n")

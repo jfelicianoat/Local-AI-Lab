@@ -46,6 +46,8 @@ class DatasetFactory:
         name: str,
         benchmark_case_ids: Iterable[str],
         benchmark_fingerprints: Iterable[str],
+        benchmark_queries: Iterable[str] = (),
+        source_snapshot_id: str | None = None,
         split_seed: str,
     ) -> DatasetResult:
         if not name.strip() or not split_seed:
@@ -54,6 +56,7 @@ class DatasetFactory:
         if str(root).startswith(("\\\\", "//")):
             raise DatasetError("datasets must be built on local storage")
         blocked_cases = set(benchmark_case_ids)
+        blocked_queries = {self._query_key(value) for value in benchmark_queries}
         benchmark_hashes = sorted(set(benchmark_fingerprints))
         examples: list[dict[str, Any]] = []
         audit: list[dict[str, Any]] = []
@@ -62,7 +65,12 @@ class DatasetFactory:
         excluded: list[str] = []
         for candidate in repository.list_training_candidates(state="approved"):
             review_id = candidate["review_id"]
-            if candidate["case_id"] in blocked_cases:
+            context = candidate["context"]
+            if source_snapshot_id is not None and candidate["snapshot_id"] != source_snapshot_id:
+                excluded.append(review_id)
+                audit.append({"review_id": review_id, "decision": "excluded", "reason": "different_source_snapshot"})
+                continue
+            if candidate["case_id"] in blocked_cases or self._query_key(context["query"]) in blocked_queries:
                 excluded.append(review_id)
                 audit.append({"review_id": review_id, "decision": "excluded", "reason": "benchmark_case_contamination"})
                 continue
@@ -71,7 +79,6 @@ class DatasetFactory:
                 excluded.append(review_id)
                 audit.append({"review_id": review_id, "decision": "excluded", "reason": "missing_correction"})
                 continue
-            context = candidate["context"]
             example_content = {
                 "messages": [
                     {"role": "system", "content": context["prompt"]},
@@ -106,6 +113,9 @@ class DatasetFactory:
             audit.append({"review_id": review_id, "decision": "included", "reason": "approved_unique_non_benchmark", "example_id": content_hash, "split": split})
         if not examples:
             raise DatasetError("no eligible approved examples remain after contamination and dedup checks")
+        source_snapshot_ids = sorted({item["provenance"]["snapshot_id"] for item in examples})
+        if len(source_snapshot_ids) != 1:
+            raise DatasetError("training dataset must contain examples from exactly one snapshot")
         root.mkdir(parents=True, exist_ok=True)
         dataset_id = str(uuid.uuid4())
         staging = root / f".staging-dataset_{dataset_id}"
@@ -124,6 +134,7 @@ class DatasetFactory:
                 "examples": [item["example_id"] for item in examples],
                 "split_seed_sha256": _sha(split_seed.encode("utf-8")),
                 "benchmark_fingerprints": benchmark_hashes,
+                "source_snapshot_ids": source_snapshot_ids,
             }
         )
         manifest = {
@@ -136,6 +147,7 @@ class DatasetFactory:
             "split_seed_sha256": _sha(split_seed.encode("utf-8")),
             "benchmark_case_ids_excluded": sorted(blocked_cases),
             "benchmark_fingerprints": benchmark_hashes,
+            "source_snapshot_ids": source_snapshot_ids,
             "counts": {
                 "included": len(examples), "excluded": len(excluded),
                 **{split: sum(item["split"] == split for item in examples) for split in SPLITS},
@@ -148,6 +160,10 @@ class DatasetFactory:
         publish_directory(staging, final)
         DatasetVerifier().verify(final)
         return DatasetResult(final, dataset_id, fingerprint, tuple(exported), tuple(excluded))
+
+    @staticmethod
+    def _query_key(value: str) -> str:
+        return " ".join(value.casefold().split())
 
     @staticmethod
     def _split(content_hash: str, seed: str) -> str:
@@ -178,12 +194,25 @@ class DatasetVerifier:
         ids = [item["example_id"] for item in examples]
         if len(ids) != len(set(ids)) or len(ids) != manifest["counts"]["included"]:
             raise DatasetError("dataset deduplication or count invariant failed")
+        sources = [
+            item["provenance"].get("snapshot_id") for item in examples
+            if isinstance(item, dict) and isinstance(item.get("provenance"), dict)
+        ]
+        if (
+            len(sources) != len(examples)
+            or any(not isinstance(value, str) or not value for value in sources)
+        ):
+            raise DatasetError("dataset mixes or misstates source snapshots")
+        source_snapshot_ids = sorted(set(sources))
+        if len(source_snapshot_ids) != 1 or manifest.get("source_snapshot_ids") != source_snapshot_ids:
+            raise DatasetError("dataset mixes or misstates source snapshots")
         expected_fingerprint = sha256_json(
             {
                 "format": manifest["format"],
                 "examples": sorted(ids),
                 "split_seed_sha256": manifest["split_seed_sha256"],
                 "benchmark_fingerprints": manifest["benchmark_fingerprints"],
+                "source_snapshot_ids": source_snapshot_ids,
             }
         )
         if expected_fingerprint != manifest.get("fingerprint"):

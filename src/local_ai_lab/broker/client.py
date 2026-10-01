@@ -255,9 +255,13 @@ class BrokerTaskClient:
         if fallback:
             raise BrokerInvocationError("Broker used fallback despite fallback_allowed=false")
         model_used = summary.get("served_by") or result_payload.get("model_used") or {}
-        if isinstance(model_used, dict) and all(key in model_used for key in required_model):
-            if any(model_used[key] != target_model[key] for key in required_model):
-                raise BrokerInvocationError("Broker served a model other than the exact target")
+        if not isinstance(model_used, dict) or any(
+            not isinstance(model_used.get(key), str) or not model_used[key].strip()
+            for key in required_model
+        ):
+            raise BrokerInvocationError("Broker did not identify the exact served model")
+        if any(model_used[key] != target_model[key] for key in required_model):
+            raise BrokerInvocationError("Broker served a model other than the exact target")
         text = result_payload.get("assistant_content", result_payload.get("result_markdown"))
         if not isinstance(text, str):
             raise BrokerInvocationError("Broker succeeded without assistant_content")

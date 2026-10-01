@@ -59,24 +59,46 @@ class ResearchResponseVerifier:
     def verify(self, response: dict[str, Any]) -> VerificationReport:
         errors: list[str] = []
         schema_valid = self._shape(response, errors)
-        findings = response.get("findings", []) if isinstance(response, dict) else []
-        every_finding_has_evidence = all(
-            isinstance(item, dict) and bool(item.get("evidence")) for item in findings
+        document = response if isinstance(response, dict) else {}
+        findings = document.get("findings")
+        finding_items = findings if isinstance(findings, list) else []
+        contradictions = document.get("contradictions")
+        contradiction_items = contradictions if isinstance(contradictions, list) else []
+        missing = document.get("missing_information")
+        abstention = (
+            not finding_items and not contradiction_items
+            and isinstance(missing, list) and bool(missing)
+            and isinstance(document.get("answer"), str)
+            and document["answer"].strip().casefold().startswith((
+                "no hay evidencia", "no consta", "no se dispone de evidencia",
+                "no puedo responder con la evidencia",
+            ))
+        )
+        every_finding_has_evidence = isinstance(findings, list) and (
+            bool(finding_items) or abstention
+        ) and all(
+            isinstance(item, dict) and isinstance(item.get("evidence"), list)
+            and bool(item["evidence"]) for item in finding_items
         )
         if not every_finding_has_evidence:
-            errors.append("every factual finding must have at least one evidence reference")
+            errors.append("factual answers require findings with evidence; an empty finding list requires an explicit abstention")
         evidence_items: list[dict[str, Any]] = []
         claims: list[tuple[str, list[dict[str, Any]]]] = []
-        for item in findings if isinstance(findings, list) else []:
+        for item in finding_items:
             if not isinstance(item, dict):
                 continue
             evidence = item.get("evidence", [])
             if isinstance(evidence, list):
                 evidence_items.extend(ref for ref in evidence if isinstance(ref, dict))
                 claims.append((str(item.get("claim", "")), [ref for ref in evidence if isinstance(ref, dict)]))
-        for contradiction in response.get("contradictions", []) if isinstance(response, dict) else []:
+        for contradiction in contradiction_items:
             if isinstance(contradiction, dict) and isinstance(contradiction.get("evidence"), list):
                 evidence_items.extend(ref for ref in contradiction["evidence"] if isinstance(ref, dict))
+                claims.append((str(contradiction.get("claim", "")), [
+                    ref for ref in contradiction["evidence"] if isinstance(ref, dict)
+                ]))
+        if not abstention and isinstance(document.get("answer"), str):
+            claims.append((document["answer"], evidence_items))
 
         invented: list[str] = []
         note_valid = True
@@ -126,7 +148,7 @@ class ResearchResponseVerifier:
         return VerificationReport(
             schema_valid=schema_valid,
             every_finding_has_evidence=every_finding_has_evidence,
-            citation_existence=bool(evidence_items) or not findings,
+            citation_existence=bool(evidence_items) or abstention,
             note_existence=note_valid,
             chunk_existence=chunk_valid,
             source_reference_validity=source_valid,
@@ -149,6 +171,11 @@ class ResearchResponseVerifier:
         for finding in response["findings"] if isinstance(response["findings"], list) else []:
             if not isinstance(finding, dict) or set(finding) != {"claim", "evidence"}:
                 errors.append("finding must contain exactly claim and evidence")
+            elif not isinstance(finding["claim"], str) or not finding["claim"].strip() or not isinstance(finding["evidence"], list):
+                errors.append("finding claim must be nonempty and evidence must be a list")
+        for contradiction in response["contradictions"] if isinstance(response["contradictions"], list) else []:
+            if not isinstance(contradiction, dict) or not isinstance(contradiction.get("evidence"), list):
+                errors.append("contradiction evidence must be a list")
         return not errors
 
     @staticmethod

@@ -12,10 +12,10 @@ Partido por agregado, que era la recomendacion de la auditoria:
 from __future__ import annotations
 
 from local_ai_lab.coordinator.repository.base import CoordinatorConflict, LeaseRejected
-from local_ai_lab.coordinator.repository.producto import ProductoMixin
+from local_ai_lab.coordinator.repository.misiones import MisionesMixin
 
 __all__ = ["CoordinatorConflict", "CoordinatorRepository", "LeaseRejected"]
 
 
-class CoordinatorRepository(ProductoMixin):
+class CoordinatorRepository(MisionesMixin):
     """Persistencia completa del Coordinator."""

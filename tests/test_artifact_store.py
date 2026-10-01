@@ -28,6 +28,8 @@ def test_chunked_upload_is_verified_and_committed_to_cas(tmp_path: Path) -> None
     assert committed["sha256"] == digest
     assert store.verify(digest)
     assert store.blob_path(digest).read_bytes() == content
+    assert not list((store.uploads / upload.artifact_id).glob("*.chunk"))
+    assert store.commit(upload.artifact_id)["deduplicated"] is True
 
 
 def test_chunk_replay_is_idempotent_but_conflict_is_rejected(tmp_path: Path) -> None:
@@ -69,6 +71,41 @@ def test_incomplete_or_corrupt_upload_cannot_commit(tmp_path: Path) -> None:
 
     with pytest.raises(ArtifactIntegrityError, match="incomplete"):
         store.commit(upload.artifact_id)
+
+
+def test_upload_cannot_write_beyond_declared_artifact_size(tmp_path: Path) -> None:
+    store = ArtifactStore(tmp_path / "artifacts")
+    upload = store.initiate(expected_sha256="a" * 64, expected_size=3, chunk_size=3)
+    with pytest.raises(ArtifactIntegrityError, match="index exceeds"):
+        store.put_chunk(artifact_id=upload.artifact_id, index=1, content=b"abc",
+                        chunk_sha256=hashlib.sha256(b"abc").hexdigest())
+    with pytest.raises(ArtifactIntegrityError, match="length does not match"):
+        store.put_chunk(artifact_id=upload.artifact_id, index=0, content=b"ab",
+                        chunk_sha256=hashlib.sha256(b"ab").hexdigest())
+    assert not list((store.uploads / upload.artifact_id).glob("*.chunk"))
+
+
+def test_store_reserves_pending_bytes_and_enforces_quota(tmp_path: Path) -> None:
+    store = ArtifactStore(tmp_path / "artifacts", quota_bytes=5)
+    data = b"abcd"
+    upload = store.initiate(expected_sha256=hashlib.sha256(data).hexdigest(),
+                            expected_size=4, chunk_size=4)
+    assert store.usage()["pending_reserved_bytes"] == 4
+    with pytest.raises(ValueError, match="quota exceeded"):
+        store.initiate(expected_sha256="b" * 64, expected_size=2, chunk_size=2)
+    store.put_chunk(artifact_id=upload.artifact_id, index=0, content=data,
+                    chunk_sha256=hashlib.sha256(data).hexdigest())
+    store.commit(upload.artifact_id)
+    usage = store.usage()
+    assert usage["committed_bytes"] == 4
+    assert usage["pending_reserved_bytes"] == usage["temporary_chunk_bytes"] == 0
+    assert usage["available_quota_bytes"] == 1
+    replay = store.initiate(expected_sha256=hashlib.sha256(data).hexdigest(),
+                            expected_size=4, chunk_size=4)
+    assert store.put_chunk(artifact_id=replay.artifact_id, index=0, content=data,
+                           chunk_sha256=hashlib.sha256(data).hexdigest())["replayed"] is True
+    assert store.commit(replay.artifact_id)["deduplicated"] is True
+    assert store.usage()["temporary_chunk_bytes"] == 0
 
 
 def test_artifact_store_rejects_network_root_and_path_traversal(tmp_path: Path) -> None:

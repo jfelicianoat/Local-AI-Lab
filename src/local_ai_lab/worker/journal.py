@@ -46,6 +46,14 @@ class WorkerJournal(SQLiteStore):
                     delivered_at TEXT
                 );
                 CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox(delivered_at, created_at);
+                CREATE TABLE IF NOT EXISTS superseded_attempts (
+                    job_id TEXT NOT NULL,
+                    attempt_id TEXT NOT NULL,
+                    lease_generation INTEGER NOT NULL,
+                    state_json TEXT NOT NULL,
+                    superseded_at TEXT NOT NULL,
+                    PRIMARY KEY(job_id, attempt_id)
+                );
                 """
             )
 
@@ -54,14 +62,32 @@ class WorkerJournal(SQLiteStore):
         now = utc_timestamp()
         with self.transaction() as db:
             existing = db.execute(
-                "SELECT attempt_id, spec_hash FROM local_jobs WHERE job_id=?",
+                "SELECT * FROM local_jobs WHERE job_id=?",
                 (lease["job_id"],),
             ).fetchone()
             digest = sha256_json(spec)
             if existing:
-                if existing["attempt_id"] != lease["attempt_id"] or existing["spec_hash"] != digest:
+                if existing["attempt_id"] == lease["attempt_id"] and existing["spec_hash"] == digest:
+                    return {"job_id": lease["job_id"], "persisted": True, "replayed": True}
+                if digest != existing["spec_hash"] or int(lease["lease_generation"]) <= existing["lease_generation"]:
                     raise ValueError("local job identity conflicts with claimed lease")
-                return {"job_id": lease["job_id"], "persisted": True, "replayed": True}
+                db.execute(
+                    "INSERT OR IGNORE INTO superseded_attempts VALUES (?, ?, ?, ?, ?)",
+                    (lease["job_id"], existing["attempt_id"], existing["lease_generation"],
+                     canonical_json({key: existing[key] for key in existing.keys()
+                                     if key != "lease_token_protected"}), now),
+                )
+                db.execute("DELETE FROM outbox WHERE job_id=?", (lease["job_id"],))
+                db.execute(
+                    """UPDATE local_jobs SET attempt_id=?, lease_generation=?,
+                       lease_token_protected=?, expires_at=?, local_state='accepted',
+                       progress_sequence=0, outcome=NULL, result_json=NULL, result_hash=NULL,
+                       sync_state='pending_ack', accepted_at=?, updated_at=? WHERE job_id=?""",
+                    (lease["attempt_id"], lease["lease_generation"],
+                     self._secrets.protect(lease["lease_token"]), lease["expires_at"],
+                     now, now, lease["job_id"]),
+                )
+                return {"job_id": lease["job_id"], "persisted": True, "replayed": False}
             db.execute(
                 """INSERT INTO local_jobs(job_id, attempt_id, lease_generation, lease_token_protected,
                    expires_at, spec_json, spec_hash, local_state, sync_state, accepted_at, updated_at)
@@ -109,6 +135,19 @@ class WorkerJournal(SQLiteStore):
             self._enqueue(db, job_id, "progress", key, message)
         return message
 
+    def record_checkpoint(self, job_id: str, *, step: int, descriptor: dict[str, Any]) -> None:
+        if type(step) is not int or step < 1:
+            raise ValueError("checkpoint step must be positive")
+        with self.transaction() as db:
+            row = db.execute("SELECT attempt_id FROM local_jobs WHERE job_id=?", (job_id,)).fetchone()
+            if row is None:
+                raise KeyError(job_id)
+            self._enqueue(
+                db, job_id, "checkpoint",
+                f"checkpoint:{job_id}:{row['attempt_id']}:{step}",
+                {"step": step, "descriptor": descriptor},
+            )
+
     def finish(self, job_id: str, outcome: str, payload: dict[str, Any]) -> dict[str, Any]:
         if outcome not in ("succeeded", "failed", "cancelled"):
             raise ValueError("outcome must be succeeded, failed, or cancelled")
@@ -139,7 +178,7 @@ class WorkerJournal(SQLiteStore):
     def pending_messages(self) -> list[dict[str, Any]]:
         with self.connect() as db:
             rows = db.execute(
-                "SELECT * FROM outbox WHERE delivered_at IS NULL ORDER BY created_at"
+                "SELECT * FROM outbox WHERE delivered_at IS NULL ORDER BY created_at, rowid"
             ).fetchall()
         return [{**dict(row), "payload": json.loads(row["payload_json"])} for row in rows]
 
@@ -149,6 +188,16 @@ class WorkerJournal(SQLiteStore):
                 "SELECT DISTINCT job_id FROM outbox WHERE delivered_at IS NULL ORDER BY job_id"
             ).fetchall()
         return [row["job_id"] for row in rows]
+
+    def incomplete_jobs(self) -> list[dict[str, str]]:
+        """Jobs accepted locally but interrupted before a terminal outbox entry."""
+        with self.connect() as db:
+            rows = db.execute(
+                """SELECT job_id, local_state FROM local_jobs
+                   WHERE local_state IN ('accepted', 'acknowledged', 'running')
+                   ORDER BY accepted_at, job_id"""
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def mark_delivered(self, message_id: str) -> None:
         with self.transaction() as db:
@@ -164,6 +213,24 @@ class WorkerJournal(SQLiteStore):
                     "UPDATE local_jobs SET local_state=outcome, sync_state='synced', updated_at=? WHERE job_id=?",
                     (utc_timestamp(), row["job_id"]),
                 )
+
+    def mark_stale_attempt(self, job_id: str, attempt_id: str) -> None:
+        """Keep the rejected result for diagnosis without retrying a fenced attempt."""
+        with self.transaction() as db:
+            row = db.execute("SELECT * FROM local_jobs WHERE job_id=?", (job_id,)).fetchone()
+            if row is None or row["attempt_id"] != attempt_id:
+                return
+            db.execute(
+                "INSERT OR IGNORE INTO superseded_attempts VALUES (?, ?, ?, ?, ?)",
+                (job_id, attempt_id, row["lease_generation"],
+                 canonical_json({key: row[key] for key in row.keys()
+                                 if key != "lease_token_protected"}), utc_timestamp()),
+            )
+            db.execute("DELETE FROM outbox WHERE job_id=?", (job_id,))
+            db.execute(
+                "UPDATE local_jobs SET local_state='stale_attempt', sync_state='rejected', updated_at=? WHERE job_id=?",
+                (utc_timestamp(), job_id),
+            )
 
     def replace_outbox_payload(self, message_id: str, payload: dict[str, Any]) -> None:
         with self.transaction() as db:

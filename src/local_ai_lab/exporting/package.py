@@ -50,6 +50,7 @@ class ExportPackageBuilder:
         *,
         source_training_manifest_sha256: str,
         serving: dict[str, Any],
+        source_attempt: dict[str, Any] | None = None,
     ) -> ExportPackageResult:
         if not artifacts or any(item.kind not in ALLOWED_KINDS for item in artifacts):
             raise ValueError("export requires one or more supported artifact kinds")
@@ -90,19 +91,22 @@ class ExportPackageBuilder:
                 }
             )
         records.sort(key=lambda item: (item["kind"], item["filename"]))
-        fingerprint = sha256_json(
-            {
+        fingerprint_content = {
                 "format": EXPORT_FORMAT,
                 "training_manifest_sha256": source_training_manifest_sha256,
                 "artifacts": records,
                 "serving": serving,
-            }
-        )
+        }
+        if source_attempt is not None:
+            fingerprint_content["source_attempt"] = source_attempt
+        fingerprint = sha256_json(fingerprint_content)
         manifest = {
             "format": EXPORT_FORMAT, "package_id": package_id, "created_at": utc_timestamp(),
             "fingerprint": fingerprint, "training_manifest_sha256": source_training_manifest_sha256,
             "artifacts": records, "serving": serving,
         }
+        if source_attempt is not None:
+            manifest["source_attempt"] = source_attempt
         (staging / "manifest.json").write_text(canonical_json(manifest) + "\n", encoding="utf-8", newline="\n")
         publish_directory(staging, final)
         ExportPackageVerifier().verify(final)
@@ -129,14 +133,15 @@ class ExportPackageVerifier:
             raise ExportError("invalid export manifest") from error
         if manifest.get("format") != EXPORT_FORMAT:
             raise ExportError("unsupported export package format")
-        expected_fingerprint = sha256_json(
-            {
+        fingerprint_content = {
                 "format": manifest["format"],
                 "training_manifest_sha256": manifest["training_manifest_sha256"],
                 "artifacts": manifest["artifacts"],
                 "serving": manifest["serving"],
-            }
-        )
+        }
+        if "source_attempt" in manifest:
+            fingerprint_content["source_attempt"] = manifest["source_attempt"]
+        expected_fingerprint = sha256_json(fingerprint_content)
         if expected_fingerprint != manifest.get("fingerprint"):
             raise ExportError("export package fingerprint mismatch")
         for artifact in manifest["artifacts"]:

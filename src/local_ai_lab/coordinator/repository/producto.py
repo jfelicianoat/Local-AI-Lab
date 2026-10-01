@@ -12,6 +12,16 @@ from typing import Any
 from local_ai_lab.domain.common import canonical_json, utc_timestamp
 from local_ai_lab.coordinator.repository.capacidades import CapacidadesMixin
 
+WORKSPACE_GROUPS: dict[str, tuple[str, ...]] = {
+    "knowledge": ("snapshot", "index"),
+    "benchmarks": ("benchmark",),
+    "experiments": ("experiment", "comparison"),
+    "reviews": ("review",),
+    "datasets": ("dataset",),
+    "training": ("training",),
+    "exports": ("export",),
+}
+
 
 class ProductoMixin(CapacidadesMixin):
     """Registros de producto: evidencias de fase, artefactos y su ubicacion."""
@@ -64,6 +74,22 @@ class ProductoMixin(CapacidadesMixin):
             raise ValueError("product record artifact SHA-256 is invalid")
         now = utc_timestamp()
         with self.transaction() as db:
+            if status == "PREFLIGHT_PASSED":
+                # Check under the same write lock as publication: a heartbeat
+                # cannot race this write and restore a preflight for an old env.
+                job = db.execute("SELECT * FROM jobs WHERE job_id=?", (record_id,)).fetchone()
+                if job is not None:
+                    node = db.execute(
+                        "SELECT environment_generation, status FROM nodes WHERE node_id=?",
+                        (job["assigned_node_id"],),
+                    ).fetchone()
+                    valid_environment = bool(
+                        node and node["status"] != "revoked" and job["environment_generation"] is not None
+                        and job["environment_generation"] == node["environment_generation"]
+                    )
+                    if not valid_environment:
+                        status = "PREFLIGHT_ENVIRONMENT_CHANGED"
+                    summary = {**summary, "state": status, "capabilities_validated": valid_environment}
             db.execute(
                 """INSERT INTO product_records VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                    ON CONFLICT(record_id) DO UPDATE SET category=excluded.category,
@@ -106,6 +132,74 @@ class ProductoMixin(CapacidadesMixin):
             "datasets": categories["dataset"],
             "training": categories["training"],
             "exports": categories["export"],
+        }
+
+    def product_workspace_page(
+        self, *, limit: int = 50,
+        groups: list[str] | None = None,
+        cursors: dict[str, dict[str, str] | None] | None = None,
+    ) -> dict[str, Any]:
+        if not 1 <= limit <= 200:
+            raise ValueError("workspace page size must be between 1 and 200")
+        requested = list(WORKSPACE_GROUPS) if groups is None else groups
+        if not requested or len(requested) != len(set(requested)) or any(
+            group not in WORKSPACE_GROUPS for group in requested
+        ):
+            raise ValueError("workspace groups must be known and unique")
+        cursors = cursors or {}
+        if any(group not in requested for group in cursors):
+            raise ValueError("workspace cursor belongs to an unrequested group")
+        result: dict[str, Any] = {
+            "schema_version": "local-ai-lab.workspace.v1",
+            "observed_at": utc_timestamp(),
+            **{group: [] for group in WORKSPACE_GROUPS},
+            "pagination": {},
+        }
+        with self.connect() as db:
+            db.execute("BEGIN")
+            try:
+                for group in requested:
+                    categories = WORKSPACE_GROUPS[group]
+                    placeholders = ", ".join("?" for _ in categories)
+                    where = f"category IN ({placeholders})"
+                    params: list[Any] = list(categories)
+                    cursor = cursors.get(group)
+                    if cursor is not None:
+                        if (not isinstance(cursor, dict) or set(cursor) != {"updated_at", "record_id"}
+                                or any(not isinstance(value, str) or not value for value in cursor.values())):
+                            raise ValueError("invalid workspace cursor")
+                        where += " AND (updated_at < ? OR (updated_at = ? AND record_id > ?))"
+                        params.extend((cursor["updated_at"], cursor["updated_at"], cursor["record_id"]))
+                    rows = db.execute(
+                        f"SELECT * FROM product_records WHERE {where} "
+                        "ORDER BY updated_at DESC, record_id ASC LIMIT ?",
+                        (*params, limit + 1),
+                    ).fetchall()
+                    selected = rows[:limit]
+                    total = db.execute(
+                        f"SELECT COUNT(*) FROM product_records WHERE category IN ({placeholders})",
+                        categories,
+                    ).fetchone()[0]
+                    result[group] = [self._product_row(row) for row in selected]
+                    last = selected[-1] if selected else None
+                    result["pagination"][group] = {
+                        "total": total,
+                        "has_more": len(rows) > limit,
+                        "cursor": {"updated_at": last["updated_at"], "record_id": last["record_id"]}
+                        if last is not None else None,
+                    }
+            finally:
+                db.rollback()
+        return result
+
+    @staticmethod
+    def _product_row(row: Any) -> dict[str, Any]:
+        return {
+            "record_id": row["record_id"], "category": row["category"],
+            "title": row["title"], "status": row["status"],
+            "artifact_sha256": row["artifact_sha256"],
+            "summary": json.loads(row["summary_json"]),
+            "created_at": row["created_at"], "updated_at": row["updated_at"],
         }
 
     def product_record(self, record_id: str) -> dict[str, Any] | None:

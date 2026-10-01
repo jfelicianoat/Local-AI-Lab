@@ -8,6 +8,8 @@ from typing import Any, Callable, Sequence
 
 from local_ai_lab.dataset.factory import DatasetVerifier
 from local_ai_lab.domain.common import canonical_json, utc_timestamp
+from local_ai_lab.training.identity import model_weights_fingerprint
+from local_ai_lab.training.checkpoints import create_checkpoint_bundle
 
 
 class TrainingExecutionError(RuntimeError):
@@ -89,7 +91,7 @@ class TransformersLoraExecutor:
         try:
             import torch
             from peft import LoraConfig, PeftModel, get_peft_model
-            from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
+            from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainerCallback, TrainingArguments
         except ImportError as error:
             raise TrainingExecutionError(
                 "training extras are not installed on this worker; install the role-specific locked environment"
@@ -132,6 +134,10 @@ class TransformersLoraExecutor:
         model = AutoModelForCausalLM.from_pretrained(
             base_model, local_files_only=True, torch_dtype=torch_dtype,
         )
+        base_weights_sha256 = model_weights_fingerprint(model)
+        expected_base = payload.get("expected_base_weights_sha256")
+        if expected_base is not None and base_weights_sha256 != expected_base:
+            raise TrainingExecutionError("cached base model weights differ from the approved checkpoint")
         config = payload["lora_config"]
         lora = LoraConfig(
             r=int(config["rank"]), lora_alpha=int(config.get("alpha", config["rank"] * 2)),
@@ -155,9 +161,40 @@ class TransformersLoraExecutor:
             report_to=[],
             remove_unused_columns=False,
         )
+        callbacks: list[Any] = []
+        attempt = payload.get("_worker_attempt")
+        if attempt is not None:
+            checkpoint_metadata = {
+                **attempt,
+                "dataset_fingerprint": payload["dataset_fingerprint"],
+                "model_id": base_model,
+                "base_weights_sha256": base_weights_sha256,
+                "chat_template_fingerprint": template_fingerprint,
+            }
+
+            class PublishCheckpoint(TrainerCallback):
+                def on_save(self, args: Any, state: Any, control: Any, **kwargs: Any) -> Any:
+                    step = int(state.global_step)
+                    source = Path(args.output_dir) / f"checkpoint-{step}"
+                    destination = output.with_name(output.name + "-checkpoints") / f"checkpoint-{step}.zip"
+                    bundle, digest = create_checkpoint_bundle(
+                        source, destination, metadata=checkpoint_metadata, step=step,
+                    )
+                    progress({
+                        "stage": "checkpoint", "step": step,
+                        "_checkpoint_artifact": {
+                            "kind": "training_checkpoint", "local_path": str(bundle),
+                            "sha256": digest, "size": bundle.stat().st_size,
+                            "media_type": "application/zip",
+                        },
+                    })
+                    return control
+
+            callbacks.append(PublishCheckpoint())
         trainer = Trainer(
             model=model, args=arguments, train_dataset=tokenized,
             data_collator=AssistantOnlyCollator(pad_token_id=tokenizer.pad_token_id),
+            callbacks=callbacks,
         )
         progress({"stage": "training", "examples": len(tokenized)})
         result = trainer.train(resume_from_checkpoint=payload.get("resume_from_checkpoint"))
@@ -172,7 +209,10 @@ class TransformersLoraExecutor:
         files = [path for path in sorted(output.rglob("*")) if path.is_file()]
         manifest = {
             "schema_version": "training-result.v1",
+            "source_attempt": payload.get("_worker_attempt"),
+            "max_length": int(payload.get("max_length", 4096)), "lora_config": config,
             "base_model": base_model,
+            "base_weights_sha256": base_weights_sha256,
             "dataset_fingerprint": payload["dataset_fingerprint"],
             "chat_template_fingerprint": template_fingerprint,
             "seed": seed,
@@ -183,7 +223,7 @@ class TransformersLoraExecutor:
             "files": [
                 {
                     "relative_path": path.relative_to(output).as_posix(),
-                    "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                    "sha256": _hash_file(path),
                     "size": path.stat().st_size,
                 }
                 for path in files
@@ -202,3 +242,11 @@ class TransformersLoraExecutor:
             "adapter_path": str(adapter_path),
             "metrics": manifest["metrics"],
         }
+
+
+def _hash_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        while block := stream.read(1024 * 1024):
+            digest.update(block)
+    return digest.hexdigest()

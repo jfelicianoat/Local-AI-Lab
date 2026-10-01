@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import shutil
 import zipfile
 from pathlib import Path
 
@@ -24,7 +25,8 @@ def deterministic_zip(source_root: Path, target: Path) -> tuple[Path, str]:
             info = zipfile.ZipInfo(relative, date_time=(1980, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
-            archive.writestr(info, path.read_bytes())
+            with path.open("rb") as source_stream, archive.open(info, "w") as target_stream:
+                shutil.copyfileobj(source_stream, target_stream, length=1024 * 1024)
     return destination, _sha(destination)
 
 
@@ -33,24 +35,41 @@ def safe_extract_zip(source: Path, destination: Path) -> Path:
     target = destination.resolve()
     if target.exists() or str(target).startswith(("\\\\", "//")):
         raise ValueError("archive extraction requires a new local destination")
+    existing_parent = target.parent
+    while not existing_parent.exists():
+        existing_parent = existing_parent.parent
     staging = target.with_name(target.name + ".staging-" + os.urandom(6).hex())
-    staging.mkdir(parents=True, exist_ok=False)
     with zipfile.ZipFile(archive_path) as archive:
-        for member in archive.infolist():
-            member_path = (staging / member.filename).resolve()
-            try:
-                member_path.relative_to(staging)
-            except ValueError as error:
-                raise ValueError("archive member escapes extraction root") from error
-            if member.is_dir():
-                member_path.mkdir(parents=True, exist_ok=True)
-                continue
-            member_path.parent.mkdir(parents=True, exist_ok=True)
-            with archive.open(member) as source_stream, member_path.open("xb") as output:
-                while block := source_stream.read(1024 * 1024):
-                    output.write(block)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        publish_directory(staging, target)
+        members = archive.infolist()
+        names = [member.filename for member in members]
+        total = sum(member.file_size for member in members)
+        free = shutil.disk_usage(existing_parent).free
+        if (len(members) > 10000 or len(names) != len(set(names))
+                or total > 100 * 1024**3 or total * 2 > free):
+            raise ValueError("archive exceeds safe extraction limits")
+        staging.mkdir(parents=True, exist_ok=False)
+        try:
+            for member in members:
+                member_path = (staging / member.filename).resolve()
+                try:
+                    member_path.relative_to(staging)
+                except ValueError as error:
+                    raise ValueError("archive member escapes extraction root") from error
+                if (member.filename.startswith(("/", "\\")) or ":" in member.filename
+                        or (member.external_attr >> 16) & 0o170000 == 0o120000):
+                    raise ValueError("archive member is unsafe")
+                if member.is_dir():
+                    member_path.mkdir(parents=True, exist_ok=True)
+                    continue
+                member_path.parent.mkdir(parents=True, exist_ok=True)
+                with archive.open(member) as source_stream, member_path.open("xb") as output:
+                    while block := source_stream.read(1024 * 1024):
+                        output.write(block)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            publish_directory(staging, target)
+        finally:
+            if staging.exists():
+                shutil.rmtree(staging)
     return target
 
 

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from local_ai_lab.domain.common import sha256_json
+from local_ai_lab.knowledge_index.snapshot import SnapshotVerifier
 
 
 class RealBenchmarkValidationError(ValueError):
@@ -62,3 +63,34 @@ class RealBenchmarkSuite:
                 required = {"note_id", "note_path", "section", "chunk_id", "source_reference"}
                 if not isinstance(item, dict) or not required <= item.keys():
                     raise RealBenchmarkValidationError(f"case {case_id} has incomplete evidence")
+
+    @staticmethod
+    def validate_against_snapshot(definition: dict[str, Any], snapshot: Path) -> None:
+        """Resolve every human citation against the immutable snapshot it names."""
+        manifest = SnapshotVerifier().verify(snapshot)["manifest"]
+        snapshot_hash = manifest["global_hash"]
+        if definition["snapshot_hash"] != snapshot_hash:
+            raise RealBenchmarkValidationError("real benchmark snapshot hash does not match")
+        notes = {
+            item["note_id"]: item
+            for item in (json.loads(line) for line in (snapshot / "notes.jsonl").read_text(encoding="utf-8").splitlines())
+        }
+        chunks = {
+            item["chunk_id"]: item
+            for item in (json.loads(line) for line in (snapshot / "chunks.jsonl").read_text(encoding="utf-8").splitlines())
+        }
+        for case in definition["cases"]:
+            for ref in case["reference_answer"]["evidence"]:
+                note = notes.get(ref["note_id"])
+                chunk = chunks.get(ref["chunk_id"])
+                expected = f"snapshot:sha256:{snapshot_hash}#chunk:{ref['chunk_id']}"
+                if (
+                    note is None or chunk is None
+                    or note["relative_path"] != ref["note_path"]
+                    or chunk["note_id"] != ref["note_id"]
+                    or chunk["section"] != ref["section"]
+                    or ref["source_reference"] != expected
+                ):
+                    raise RealBenchmarkValidationError(
+                        f"case {case['case_id']} references evidence absent from the snapshot"
+                    )

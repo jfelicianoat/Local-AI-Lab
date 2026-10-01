@@ -1,0 +1,109 @@
+{
+  "temporary_directory": "D:\\Desarrollo\\Proyectos TFM\\Local AI Lab\\docs\\Auditoria 20260929\\audit-_m6bccen",
+  "findings": {
+    "cancel_after_start": {
+      "observed": [
+        "executor_continued_after_cancel"
+      ],
+      "outcome": "InvalidJobTransition: job cannot transition from cancelling to succeeded_pending_sync",
+      "coordinator_state": "cancelling"
+    },
+    "completion_replay": {
+      "replay_result": "IntegrityError: UNIQUE constraint failed: reviews.run_id, reviews.case_id, reviews.reviewer",
+      "reviews_before": 1,
+      "reviews_after": 1,
+      "status_without_artifact": "EXPERIMENT_SUCCEEDED"
+    },
+    "artifact_authorization": {
+      "jobs_for_node": 0,
+      "downloaded": "synthetic restricted payload"
+    },
+    "selection_without_measurements": {
+      "status": "RECOMMENDATION",
+      "summary": {
+        "configuration_fingerprint": "48f6d2081961ae66f6e388bdf209f748e08922a6cf2f5001b41e1c56fc6d1877",
+        "configuration_label": "B0 · sin embeddings · k=?",
+        "evidence_references": [
+          "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        "experiment_ids": [
+          "B0",
+          "B1"
+        ],
+        "explanation": [
+          "selected lexicographically by priorities: quality.fidelity, retrieval.recall_at_k, latency_ms"
+        ],
+        "status": "recommendation",
+        "strategy_id": "B0",
+        "uncertainty": "This is an evidence-bounded recommendation, not certainty; it must be revisited when the suite, snapshot, model or constraints change."
+      }
+    },
+    "f1_adapter_and_endpoint": {
+      "accepted": true,
+      "payload_keys": [
+        "broker_endpoint",
+        "collect_outputs",
+        "correlation_id",
+        "device",
+        "embedding_model",
+        "embedding_model_fingerprint",
+        "input_artifacts",
+        "k",
+        "output_mounts",
+        "strategy_id",
+        "target_model"
+      ],
+      "input_mounts": [
+        "resolved_snapshot",
+        "resolved_suite",
+        "resolved_index"
+      ],
+      "model": {
+        "deployment": "arbitrary",
+        "model": "unrelated-base",
+        "provider": "local"
+      },
+      "endpoint": "http://127.0.0.1:9999"
+    },
+    "benchmark_nonexistent_citations": {
+      "status": "HUMAN_APPROVED",
+      "referenced_note": "note-1",
+      "referenced_chunk": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "registered_benchmark_contamination": {
+      "included": 1,
+      "state": "exported",
+      "registry_benchmark_in_exclusions": false
+    },
+    "missing_served_model": {
+      "accepted": true,
+      "model_used": {},
+      "telemetry_items": 0
+    },
+    "unsupported_answer": {
+      "schema_valid": true,
+      "every_finding_has_evidence": true,
+      "citation_existence": true,
+      "note_existence": true,
+      "chunk_existence": true,
+      "source_reference_validity": true,
+      "unsupported_numbers": [],
+      "unsupported_names": [],
+      "invented_references": [],
+      "errors": [],
+      "deterministic_pass": true
+    },
+    "invalid_response_shape": {
+      "result": "TypeError: 'NoneType' object is not iterable"
+    },
+    "expired_lease_accepted": {
+      "job_id": "01a0eda8-0106-7490-a29c-8e9f561bbbd1",
+      "accepted": true,
+      "state": "succeeded"
+    },
+    "same_worker_reassignment": {
+      "new_generation": 2,
+      "result": "ValueError: local job identity conflicts with claimed lease"
+    }
+  }
+}

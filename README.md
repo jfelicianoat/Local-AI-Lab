@@ -10,22 +10,20 @@ estados, resolución de incidencias y listas de comprobación, está en
 
 ## Estado
 
-- Fases A–15: superficie de código y contratos implementada.
-- Verificación local: la cifra actual se registra en `docs/IMPLEMENTATION_STATUS.md`; Python,
-  TypeScript, React/Vite y Rust compilan correctamente.
-- Auditoría del 2026-08-24 contra Broker, vault y Model Drift reales, con seis defectos
-  corregidos: [`docs/AUDIT_20260824.md`](docs/AUDIT_20260824.md).
-- Informe actualizado de casos de uso y plan de pruebas, con el ciclo completo ejecutado sobre
-  GPU, Broker y vault reales, Observabilidad y el tratamiento correcto de R3/R4:
-  [`docs/AUDIT_20260825.md`](docs/AUDIT_20260825.md).
-- Binario Coordinator regenerado y probado con `--help`; ejecutable Tauri de producción
-  generado en `apps/desktop/src-tauri/target/release/local-ai-lab-desktop.exe`.
-- Puertas reales pendientes: dos nodos físicos con TLS entre ellos y el nodo AMD/WSL. La
-  ejecución profesor→alumno ya se hizo el 2026-08-25 sobre la RTX 4060 Ti real, con profesor
-  local y con profesor servido por AI Broker. AI Broker, el vault real y el puente formal de
-  Model Drift fueron comprobados sin modificar sus datos internos.
-- Los instaladores MSI/NSIS requieren que WiX/NSIS estén disponibles localmente. Tauri intentó
-  descargarlos, pero la red está deshabilitada en este entorno; el ejecutable portable sí está listo.
+- La revisión vigente de build, pruebas, artefactos y límites se mantiene en
+  [`docs/RELEASE_STATUS_20260929.md`](docs/RELEASE_STATUS_20260929.md). El árbol de
+  trabajo actual contiene correcciones de la auditoría del 29 de septiembre y
+  todavía no es una release distribuida.
+- El modelo de seguridad realmente implementado se describe en
+  [`docs/SECURITY_BOUNDARY_CURRENT.md`](docs/SECURITY_BOUNDARY_CURRENT.md).
+- Los informes del 24 y 25 de agosto son evidencia histórica; no certifican los
+  cambios ni los endpoints de este árbol de trabajo.
+- La auditoría que motiva estas correcciones está en
+  [`docs/Auditoria 20260929/INFORME_COMPLETO.md`](<docs/Auditoria 20260929/INFORME_COMPLETO.md>).
+- Las pruebas de Broker, vault, Model Drift y GPU del
+  [`informe del 25 de agosto`](docs/AUDIT_20260825.md) son reproducibles, pero deben
+  repetirse para validar una release nueva. Permanecen pendientes dos equipos
+  físicos con TLS y el perfil AMD/WSL.
 
 La comprobación real de Fase 8 puede repetirse sin guardar credenciales:
 
@@ -37,6 +35,23 @@ Remove-Item Env:\LOCAL_AI_LAB_BROKER_TOKEN
 
 El detalle que distingue código implementado de evidencia real está en
 [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md).
+
+## Construir el escritorio en local
+
+Use Node 20.19 o superior de la rama 20, o Node 22.12 o superior; el rango exacto
+está declarado en `apps/desktop/package.json`. Desde `apps/desktop`:
+
+```powershell
+npm ci
+npm run build
+npm test
+```
+
+El lock fija paquetes de registry con integridad y no depende de carpetas de otro
+proyecto. Para las comprobaciones del 1 de octubre se usó la caché local y un
+checkout independiente. El candidato actualizado está en `dist/candidate-20261001-r7`, junto a
+su carpeta `resources`. El estado de revisión documenta las comprobaciones que
+todavía faltan.
 
 ## Detector de capacidades
 

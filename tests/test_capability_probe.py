@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import hashlib
+import platform
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -123,3 +125,20 @@ def test_probe_command_set_is_read_only(tmp_path: Path) -> None:
 
     assert {command[0] for command in runner.commands} <= ReadOnlyCommandRunner.ALLOWED_EXECUTABLES
     assert all("AI_Broker" not in part for command in runner.commands for part in command)
+
+
+def test_probe_observes_actual_interpreter_and_ml_package_versions_without_importing_ml(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from importlib import metadata
+    def version(package: str) -> str:
+        if package == "torch":
+            return "2.test"
+        raise metadata.PackageNotFoundError(package)
+    monkeypatch.setattr(metadata, "version", version)
+    report = NodeProbe(runner=_runner(), clock=lambda: NOW).collect(data_root=tmp_path)
+    facts = {fact.key: fact.value for fact in report.facts}
+    assert facts["runtime.python.executable"] == sys.executable
+    assert facts["runtime.python.version"] == platform.python_version()
+    assert facts["runtime.package.torch"] == "2.test"
+    assert facts["runtime.package.peft"] is None

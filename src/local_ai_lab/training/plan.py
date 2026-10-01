@@ -19,6 +19,7 @@ class FineTuningProposal:
     baseline_evidence_sha256: str
     dataset_fingerprint: str
     contains_mutable_facts: bool
+    minimum_quality_gain: float
     approved_by: str | None
 
 
@@ -37,6 +38,8 @@ class TrainingPlanBuilder:
     ) -> JobSpec:
         if proposal.objective not in ALLOWED_OBJECTIVES or proposal.contains_mutable_facts:
             raise ValueError("fine-tuning objective is ineligible or attempts to memorize mutable facts")
+        if not 0 < proposal.minimum_quality_gain <= 1:
+            raise ValueError("fine-tuning requires a positive measurable quality gain")
         if not proposal.approved_by:
             raise ValueError("fine-tuning proposal requires explicit human approval")
         if any(len(value) != 64 for value in (proposal.baseline_evidence_sha256, proposal.dataset_fingerprint)):

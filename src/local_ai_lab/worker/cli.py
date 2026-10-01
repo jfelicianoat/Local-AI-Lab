@@ -9,7 +9,8 @@ import uuid
 from pathlib import Path
 
 from local_ai_lab.capabilities.model import verify_serialized_report
-from local_ai_lab.security.secrets import platform_secret_protector
+from local_ai_lab.capabilities.probe import NodeProbe
+from local_ai_lab.security.secrets import SecretProtectionUnavailable, platform_secret_protector
 from local_ai_lab.worker.executors import default_executors
 from local_ai_lab.worker.http_transport import CoordinatorTransportError, HttpCoordinatorTransport
 from local_ai_lab.worker.runtime import WorkerRuntime
@@ -32,7 +33,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    protector = platform_secret_protector()
+    try:
+        protector = platform_secret_protector()
+    except SecretProtectionUnavailable as error:
+        print(f"worker credential protection unavailable: {error}", file=sys.stderr)
+        return 2
     data_root = args.data_root.resolve()
     data_root.mkdir(parents=True, exist_ok=True)
     token_path = data_root / "device-token.protected"
@@ -46,7 +51,7 @@ def main(argv: list[str] | None = None) -> int:
                 node_id=args.node_id, hostname=socket.gethostname(),
             )
             token_path.write_bytes(protector.protect(token))
-        except (OSError, ValueError, CoordinatorTransportError) as error:
+        except (OSError, ValueError, CoordinatorTransportError, SecretProtectionUnavailable) as error:
             print(f"pairing failed: {error}", file=sys.stderr)
             return 2
         print(f"paired {args.node_id}; credential stored with platform protection")
@@ -68,14 +73,23 @@ def main(argv: list[str] | None = None) -> int:
             node_id=args.node_id, journal_path=data_root / "worker-journal.sqlite3",
             transport=transport, executors=default_executors(), secret_protector=protector,
         )
-    except (OSError, ValueError) as error:
+        probe = NodeProbe()
+        next_probe_at = 0.0
+    except (OSError, ValueError, SecretProtectionUnavailable) as error:
         print(f"worker configuration invalid: {error}", file=sys.stderr)
         return 2
     while True:
         try:
+            # Re-observe between jobs, instead of repeatedly advertising a file
+            # captured before a driver, virtual environment or dependency changed.
+            if time.monotonic() >= next_probe_at:
+                capabilities = probe.collect(data_root=data_root).payload()
+                next_probe_at = time.monotonic() + 30.0
             transport.heartbeat(capabilities)
             runtime.sync_all_pending()
-            outcome = runtime.run_once(f"claim:{args.node_id}:{uuid.uuid4().hex}")
+            outcome = runtime.recover_incomplete()
+            if outcome is None:
+                outcome = runtime.run_once(f"claim:{args.node_id}:{uuid.uuid4().hex}")
             if args.once:
                 return 0
             if outcome is None:

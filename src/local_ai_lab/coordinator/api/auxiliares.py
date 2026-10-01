@@ -18,6 +18,7 @@ from local_ai_lab.coordinator.service import (
 )
 from local_ai_lab.knowledge_index.snapshot import SnapshotError
 from local_ai_lab.knowledge_index.vault import VaultSecurityError
+from local_ai_lab.feedback.repository import FeedbackConflictError
 
 
 def _require_app_token(expected: str | None, supplied: str | None) -> None:
@@ -45,6 +46,8 @@ def _call(operation: Any, **kwargs: Any) -> Any:
     except LeaseRejected as error:
         raise HTTPException(409, str(error)) from error
     except CoordinatorConflict as error:
+        raise HTTPException(409, str(error)) from error
+    except FeedbackConflictError as error:
         raise HTTPException(409, str(error)) from error
     except ValueError as error:
         raise HTTPException(422, str(error)) from error

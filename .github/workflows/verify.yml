@@ -1,0 +1,47 @@
+name: Verify desktop release
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  windows-release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Python dependencies
+        run: |
+          python -m pip install -e ".[dev]"
+          python -m pip install "pyinstaller>=6,<7"
+      - name: Install desktop dependencies
+        working-directory: apps/desktop
+        run: npm ci
+      - name: Verify Python behavior and contracts
+        run: python -m pytest -q
+      - name: Build TypeScript interface
+        working-directory: apps/desktop
+        run: npm run build
+      - name: Verify workspace pagination in the desktop
+        working-directory: apps/desktop
+        run: npm test
+      - name: Verify Rust bridge
+        working-directory: apps/desktop/src-tauri
+        run: cargo test
+      - name: Build Coordinator sidecar
+        shell: pwsh
+        run: ./scripts/build_sidecar.ps1
+      - name: Build portable desktop
+        working-directory: apps/desktop
+        run: node node_modules/@tauri-apps/cli/tauri.js build --ci --no-sign --no-bundle
+      - name: Smoke test packaged startup
+        shell: pwsh
+        run: ./scripts/smoke_desktop.ps1

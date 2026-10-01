@@ -7,7 +7,9 @@ import platform
 import shutil
 import socket
 import subprocess
+import sys
 import uuid
+from importlib import metadata
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
@@ -228,6 +230,14 @@ class NodeProbe:
         report.probes.append(ProbeObservation("disk", "completed", now))
 
     def _collect_versions(self, report: NodeCapabilityReport, now: str) -> None:
+        self._fact(report, now, "runtime.python.executable", sys.executable, "sys")
+        self._fact(report, now, "runtime.python.version", platform.python_version(), "sys")
+        for package in ("torch", "transformers", "peft", "accelerate"):
+            try:
+                version = metadata.version(package)
+            except metadata.PackageNotFoundError:
+                version = None
+            self._fact(report, now, f"runtime.package.{package}", version, "importlib.metadata")
         for key, command in self.VERSION_COMMANDS:
             result = self._runner(command, 10.0)
             if result.returncode == 0:

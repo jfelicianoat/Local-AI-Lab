@@ -1,8 +1,13 @@
 # Manual de uso de Local AI Lab
 
-Versión del manual: 1.0  
-Aplicación documentada: Local AI Lab 0.1.0  
-Fecha de revisión: 24 de agosto de 2026
+Versión del manual: 1.9
+Aplicación documentada: Local AI Lab Desktop 0.1.1; Coordinator/Worker 0.1.0
+Fecha de revisión: 1 de octubre de 2026
+
+El estado de release y los límites verificados en esta revisión están en
+[RELEASE_STATUS_20260929.md](RELEASE_STATUS_20260929.md). Las secciones de integración
+avanzada conservan evidencia histórica del 24 de agosto; compruebe de nuevo cada
+dependencia antes de basar una decisión en ella.
 
 ## 1. Qué es Local AI Lab
 
@@ -37,7 +42,7 @@ Sus reglas principales son:
 
 1. Localice esta carpeta:
 
-   `D:\Desarrollo\Proyectos TFM\Local AI Lab\apps\desktop\src-tauri\target\release`
+   `D:\Desarrollo\Proyectos TFM\Local AI Lab\dist\candidate-20261001-r7`
 
 2. Compruebe que están presentes:
 
@@ -46,6 +51,11 @@ Sus reglas principales son:
    - dentro de `resources`, `local-ai-lab-coordinator.exe`
 
 3. No separe el ejecutable de la carpeta `resources`. El Coordinator empaquetado es necesario para arrancar.
+
+Este es el candidato local construido tras corregir la instalación de dependencias
+del escritorio. Su construcción está comprobada; el recorrido visual y el cierre
+completo de la aplicación siguen pendientes por las restricciones del entorno de
+prueba. Consulte el estado de revisión antes de tratarlo como una release validada.
 
 Para explorar la interfaz, crear snapshots y ejecutar R1 no hacen falta AI Broker, Model Drift ni un Worker. Las operaciones distribuidas sí necesitan sus dependencias correspondientes.
 
@@ -56,12 +66,13 @@ Para explorar la interfaz, crear snapshots y ejecutar R1 no hacen falta AI Broke
 | Snapshot e índice | Acceso de lectura a la raíz de vaults. |
 | R1 controlado | Ninguno. Es local y sintético. |
 | R2, R3 y R4 | Worker conectado con `embeddings.semantic` probado y modelo de embeddings ya cacheado. |
-| B0–F2 | Worker, AI Broker compatible y modelo exacto disponible. |
+| B0–L1 | Worker, AI Broker compatible y modelo exacto disponible. |
+| F1/F2 | Entrenamiento completado, adaptador y modelo base locales, Worker compatible. No usa el token del Broker durante la inferencia. |
 | A1/M1 | AI Broker 2.9 compatible con agentes/client tools o mixture of agents. |
 | Ejecución demostrable | AI Broker **2.10**: separa el trabajo del Broker del suyo (`invocation_contract`), acusa recibo de la compresión del prompt (`prompt_compression_echo`) y marca el entregable (`canonical_artifacts`). |
 | Comparación formal | R3 y R4 comparables y Model Drift con `evaluar-tratamientos`. |
 | Entrenamiento | Dataset aprobado, Worker preparado, modelo base local y preflight superado. |
-| Exportación | Entrenamiento completado y formato probado por el Worker. |
+| Exportación | Entrenamiento validado, Worker conectado y formato probado; si falta la prueba, use la comprobación inicial. |
 
 ### 3.3 Datos y privacidad
 
@@ -75,7 +86,8 @@ Los elementos más importantes son:
 - `coordinator.log`: registro de arranque y errores del Coordinator.
 - artefactos, snapshots e índices bajo las carpetas administradas por el Coordinator.
 
-No edite `state.db` manualmente. Para una copia de seguridad, cierre Local AI Lab y copie la carpeta completa `lab.localai.desktop` a un destino seguro.
+No edite `state.db` manualmente. Con la app cerrada, use el procedimiento de
+[copia y restauración verificable](#copia-y-restauración-verificable).
 
 ## 4. Abrir, actualizar y cerrar
 
@@ -83,15 +95,15 @@ No edite `state.db` manualmente. Para una copia de seguridad, cierre Local AI La
 
 1. Ejecute `local-ai-lab-desktop.exe`.
 2. Espere a que desaparezca **Iniciando el Coordinator local…**.
-3. Confirme que aparece la página **Resumen**.
-4. Si se muestran datos anteriores, pulse **Actualizar evidencia**.
+3. Confirme que aparece **Misiones**.
+4. Si se muestran datos anteriores, pulse **Actualizar**.
 
 El escritorio elige un puerto local libre y crea un token interno nuevo. No es necesario configurar ninguno de los dos.
 
 ### Cerrar
 
 1. Espere a que termine cualquier operación local corta.
-2. Para un job distribuido, revise antes su estado en **Operaciones > Jobs distribuidos**.
+2. Para un job distribuido, revise antes su estado en **Entrenamientos > Jobs distribuidos**.
 3. Cierre la ventana. El escritorio detiene el Coordinator que inició.
 
 Un Worker puede conservar progreso pendiente en su propio journal si pierde la conexión. El estado debe revisarse al volver a abrir la aplicación.
@@ -106,17 +118,62 @@ Un Worker puede conservar progreso pendiente en su propio journal si pierde la c
 
 ## 5. Cómo leer la interfaz
 
-La navegación izquierda agrupa nueve áreas:
+La navegación izquierda comienza en **Misiones**. **Planes y borradores** permite
+reanudar varios planes guardados en el Coordinator. **Evidencia** muestra la puerta,
+dependencias y Workers; **Recursos**, los vaults, snapshots e índices;
+**Experimentos**, los benchmarks y comparaciones; **Revisiones** y **Datasets**, el
+control de ejemplos; **Entrenamientos**, el preflight, los jobs y las exportaciones.
+**Registros**, **Métricas** y **Configuración** ofrecen seguimiento y diagnóstico.
 
-1. **Resumen**: puerta actual, evidencia y dependencias externas.
-2. **Nodos**: Workers registrados, estado y capacidades probadas.
-3. **Conocimiento**: descubrimiento de vaults, snapshots e índices.
-4. **Experimentos**: benchmarks, estrategias, Broker, Model Drift y selector.
-5. **Revisiones**: corrección y aprobación humana.
-6. **Datasets**: creación de versiones inmutables a partir de candidatos aprobados.
-7. **Operaciones**: preflight, entrenamiento, exportación, progreso y cancelación.
-8. **Registros**: historial de trabajos, estado, Worker, etapa y correlación para diagnóstico.
-9. **Métricas**: comparación de resultados por configuración experimental completa.
+El historial de productos, revisiones y jobs se abre por páginas de hasta 50
+elementos por grupo. Si un resultado antiguo no aparece en un selector, pulse
+**Cargar historial** en la barra superior. El contador muestra los registros
+cargados y el total; la actualización automática conserva las páginas que haya
+abierto. La búsqueda de **Registros** examina las ejecuciones cargadas; para
+buscar entre las anteriores, cargue más historial.
+
+En **Configuración**, el apartado de almacenamiento muestra los artefactos
+guardados, el espacio reservado por transferencias pendientes, los fragmentos
+temporales, el límite disponible y el espacio libre del disco. El límite de
+artefactos es de 100 GiB por defecto; se puede ajustar antes de abrir la app
+con `LOCAL_AI_LAB_ARTIFACT_QUOTA_BYTES` (número entero de bytes). Una transferencia
+nueva se rechaza si supera ese límite o no queda espacio para montarla. Este
+límite se aplica al almacén de artefactos y no incluye la base de datos,
+snapshots ni índices externos.
+
+Para liberar espacio, abra **Configuración → Liberar espacio**, elija 30, 60 o
+90 días sin actividad y pulse **Revisar limpieza**. La propuesta muestra cada
+archivo o transferencia, su tamaño y última actividad. Revise la lista y marque
+la autorización antes de **Eliminar elementos revisados**: el borrado es
+permanente. No se borran productos, datasets, evidencia, entradas de trabajos ni
+checkpoints registrados; tampoco transferencias de trabajos pendientes o que
+necesitan revisión. Los registros de transferencias completadas pueden retirarse
+sin borrar el archivo que sigue referenciado por un resultado.
+
+La app vuelve a comprobar las referencias al ejecutar la propuesta; si han
+cambiado, pide revisar otra. Cada propuesta incluye como máximo 200 elementos
+y caduca a las 24 horas. Una limpieza interrumpida aparece al volver a abrir
+Configuración con **Completar limpieza pendiente**. El apartado **Limpieza
+pendiente** cuenta los archivos que todavía ocupan disco durante esa recuperación.
+Los historiales y las copias de seguridad no se purgan con esta acción.
+
+Las misiones se guardan en el Coordinator: abrir una etapa no demuestra que
+se haya ejecutado o validado. Compruebe los registros de evidencia correspondientes.
+
+Para vincular un resultado, vuelva a su etapa y pulse **Vincular evidencia**.
+La app comprueba su procedencia: el experimento debe usar el benchmark de la
+misión, la revisión debe pertenecer a ese experimento y la comparación debe
+incluir los experimentos vinculados. En entrenamiento, dataset, preflight,
+modelo evaluado y exportación deben corresponder entre sí. La destilación
+comprueba además el profesor y el alumno definidos en el plan.
+
+Si falta un requisito, el resultado permanece **Configurado** y muestra qué
+debe vincular o completar. Un resultado de otro recorrido se rechaza con una
+explicación. Retirar evidencia o cambiar los modelos del plan vuelve a calcular
+el avance; se conservan los vínculos para poder revisarlos o retirarlos. Tener
+una evaluación terminada no completa **Comparar**: vincule también su comparación.
+Estas comprobaciones de procedencia requieren revisar personalmente que la tarea,
+el criterio de éxito y el contenido de las respuestas tengan sentido entre sí.
 
 La columna derecha muestra la **puerta actual**:
 
@@ -127,7 +184,9 @@ La columna derecha muestra la **puerta actual**:
 - **PENDIENTE**: aún no hay prueba.
 - **BLOQUEADO**: el sistema conoce la condición que impide continuar.
 
-Después de que termine un Worker o una herramienta externa, pulse **Actualizar evidencia**. La pantalla no se refresca continuamente por sí sola.
+La aplicación consulta el Coordinator periódicamente. Pulse **Actualizar** si quiere
+comprobar el estado de inmediato; si aparece el aviso de datos desactualizados,
+revise la conexión y vuelva a intentarlo.
 
 ## 6. Preparación inicial
 
@@ -177,7 +236,7 @@ Este caso es de administración y se realiza una vez en cada equipo Worker.
 
 ### Caso 3. Emparejar un Worker
 
-La pantalla **Nodos** es de consulta; el alta se realiza desde administración. El Coordinator
+La tabla de Workers en **Evidencia** es de consulta y revocación; el alta se realiza desde administración. El Coordinator
 que arranca automáticamente con el escritorio escucha solo en este equipo. Para Workers en
 otros ordenadores debe desplegarse un Coordinator accesible por TLS y abrir el escritorio
 contra ese servicio administrado.
@@ -217,16 +276,38 @@ contra ese servicio administrado.
      run --capability-report "artifacts\phase0\node-report.json"
    ```
 
-5. En el escritorio, abra **Nodos** y pulse **Actualizar evidencia**.
+5. En el escritorio, abra **Evidencia** y pulse **Actualizar**.
 6. Compruebe el nombre, el estado, las capacidades y el heartbeat.
 
-El Worker protege su credencial con DPAPI en Windows y no la imprime. El emparejamiento remoto por HTTP sin TLS se rechaza.
+El informe inicial se comprueba al arrancar. El Worker vuelve a observar hardware,
+driver, intérprete y versiones de paquetes ML al inicio y cada 30 segundos entre
+trabajos; no ejecuta entrenamiento durante esa observación. Un job largo puede
+retrasar la siguiente observación hasta que termine.
+
+Si cambia el entorno, **Evidencia** avisa de las capacidades que necesitan otra
+prueba. Repetir un heartbeat no las convierte en probadas. Ejecute un preflight
+nuevo antes de entrenar: el anterior deja de ser seleccionable y aparece como
+`PREFLIGHT_ENVIRONMENT_CHANGED`. Un resultado antiguo conserva su salida histórica,
+pero no valida el entorno nuevo. Al abrir una base de una versión anterior, las
+pruebas sin identidad de entorno también deben repetirse.
+
+El Worker protege su credencial con DPAPI en Windows. En Linux/WSL exige la variable
+`LOCAL_AI_LAB_WORKER_PASSPHRASE` para cifrarla con Scrypt y AES-GCM. Guarde la
+frase fuera del directorio del Worker y vuelva a proporcionarla al reiniciar. El
+emparejamiento remoto por HTTP sin TLS se rechaza. El perfil WSL aún necesita una
+prueba de extremo a extremo en un equipo con acceso autorizado a WSL.
+
+La recuperación de una confirmación también comprueba el Worker, el intento y
+la credencial del lease. Un Worker revocado o un lease reasignado no puede usar
+una respuesta guardada para obtener autorización. El Worker original puede recuperar
+su confirmación de finalización aceptada tras una desconexión, aunque haya vencido
+el tiempo del lease; eso no permite iniciar operaciones nuevas con un lease vencido.
 
 ## 7. Conocimiento privado
 
 ### Caso 4. Descubrir vaults
 
-1. Abra **Conocimiento**.
+1. Abra **Recursos**.
 2. En **Raíz permitida de vaults**, deje o escriba `Y:\Mi unidad\Vaults`.
 3. Pulse **Buscar vaults**.
 4. Compruebe el número encontrado.
@@ -247,7 +328,7 @@ Si los archivos cambian mientras se leen, el snapshot queda `INCOMPLETE`. No lo 
 
 ### Caso 6. Construir o actualizar el índice
 
-1. En **Conocimiento**, seleccione un **Snapshot completo**.
+1. En **Recursos**, seleccione un **Snapshot completo**.
 2. Pulse **Construir índice**.
 3. Espere un registro `READY`.
 4. Si ya existía un índice, la aplicación crea una nueva generación incremental; no sobrescribe la anterior como si fuera el mismo artefacto.
@@ -283,11 +364,12 @@ Repita snapshot e índice cuando cambie el conocimiento que desea evaluar. No co
    - `LOCAL_VERIFIED`: el ground truth usado estaba aprobado.
    - `PENDING_HUMAN_REVIEW`: la ejecución terminó, pero falta aprobar el ground truth.
 
-R1 usa un corpus sintético local. No usa el vault real ni AI Broker.
+R1 usa un corpus sintético local cuando no se ha elegido un benchmark aprobado;
+con una suite real seleccionada, usa su snapshot e índice. No usa AI Broker.
 
 ### Caso 8. Ejecutar R2, R3 o R4 de retrieval
 
-1. Confirme en **Nodos** que el Worker anuncia `embeddings.semantic` como **probado**.
+1. Confirme en **Evidencia** que el Worker anuncia `embeddings.semantic` como **probado**.
 2. Confirme que el modelo de embeddings ya está en su caché local. La aplicación no lo descargará.
 3. Abra **Experimentos > R2–R4 · retrieval con embeddings**.
 4. Seleccione R2, R3 o R4.
@@ -297,7 +379,7 @@ R1 usa un corpus sintético local. No usa el vault real ni AI Broker.
 8. Escriba el dispositivo probado: `cpu`, `cuda` o `mps` según corresponda.
 9. Ajuste `k` en el bloque R1; ese valor también se utiliza aquí.
 10. Pulse **Enviar benchmark**.
-11. Abra **Operaciones**, siga el job y pulse **Actualizar evidencia** cuando termine.
+11. Abra **Entrenamientos**, siga el job; la vista se actualiza automáticamente.
 12. Confirme `EXPERIMENT_SUCCEEDED` antes de usar el resultado en otra comparación.
 
 Si el botón está desactivado, revise Worker, modelo, hash de 64 caracteres y dispositivo.
@@ -306,35 +388,31 @@ Si el botón está desactivado, revise Worker, modelo, hash de 64 caracteres y d
 
 1. Cree primero un snapshot `COMPLETE`.
 2. Abra **Experimentos > Benchmark A · vault real**.
-3. Pulse **Preparar plantilla del snapshot**.
-4. En **Definición revisada**, complete el JSON sin eliminar estos principios:
+3. Seleccione el snapshot completo y su índice.
+4. Escriba una pregunta de evaluación y pulse **Buscar fuentes**.
+5. Lea los fragmentos encontrados y marque los que respaldan la respuesta.
+6. Escriba la respuesta de referencia y el nombre de su autor; pulse **Añadir caso**.
+7. Repita para las demás preguntas. Puede quitar un caso antes de registrar la suite.
+8. Escriba la persona que revisó y aprobó el benchmark y pulse
+   **Registrar benchmark aprobado**.
+9. Confirme el estado `HUMAN_APPROVED`.
 
-   - `training_eligible` debe permanecer en `false`.
-   - `snapshot_hash` debe ser el hash del snapshot elegido.
-   - `human_review.status` debe ser `approved`.
-   - cada caso necesita `case_id`, consulta y respuesta de referencia humana.
-   - cada evidencia debe identificar nota, ruta, sección, chunk y referencia al snapshot.
-
-5. Escriba el nombre del revisor humano.
-6. Compruebe cada referencia contra el snapshot.
-7. Pulse **Validar y registrar benchmark real**.
-8. Confirme el estado `HUMAN_APPROVED`.
-
-La aplicación rechaza JSON inválido, referencias inexistentes, hashes incorrectos y referencias de otro snapshot.
+La aplicación construye los IDs y referencias al snapshot. Rechaza fuentes
+inexistentes, hashes incorrectos y referencias de otro snapshot.
 
 ### Caso 10. Ejecutar B0–F2 con contrato común
 
-1. Compruebe AI Broker para **Generación RAG** y conserve un informe satisfecho.
+1. Para B0–L1, compruebe AI Broker para **Generación RAG** y conserve un informe satisfecho.
 2. Confirme que el Worker está conectado y tiene probada la carga necesaria.
 3. Abra **Experimentos > B0–F2 · contrato común de estrategia**.
 4. Seleccione la estrategia.
-5. Seleccione el informe Broker satisfecho.
-6. Seleccione el Worker y escriba el endpoint del Broker.
-7. Complete proveedor, deployment y modelo exactos.
-8. Para R2, R3, R4, L1 o F2, complete también modelo de embeddings, SHA-256 y dispositivo.
-9. Para F1 o F2, seleccione un entrenamiento Local AI Lab con estado `TRAINING_SUCCEEDED`.
+5. Para B0–L1, seleccione el informe Broker satisfecho y escriba el endpoint.
+6. Seleccione el Worker. Para B0–L1, complete proveedor, deployment y modelo exactos.
+7. Para R2, R3, R4 o L1, complete el modelo de embeddings y su SHA-256 local.
+8. Para F1 o F2, seleccione un entrenamiento o destilación completados. La aplicación fija la suite, el snapshot, el índice, k y, en F2, el modelo de embeddings a partir del baseline.
+9. Para R2–L1 y F1/F2, elija el dispositivo de inferencia compatible con el Worker y el modelo.
 10. Pulse **Ejecutar estrategia**.
-11. Siga el job en **Operaciones**.
+11. Siga el job en **Entrenamientos**.
 12. Revise sus métricas y respuestas solo cuando aparezca `EXPERIMENT_SUCCEEDED`.
 
 El Worker obtiene el token del Broker desde su almacén local o la variable `LOCAL_AI_LAB_BROKER_TOKEN`; el job no lo transporta.
@@ -409,18 +487,43 @@ No compare filas de configuraciones distintas como si aislaran únicamente R3 fr
 
 ## 9. Revisión humana y datasets
 
+### Consulta independiente para entrenamiento
+
+En **Revisiones > Nueva consulta para entrenamiento**, elija un snapshot completo y
+su índice, escriba una pregunta distinta de las preguntas del benchmark y pulse
+**Buscar fuentes**. Lea los fragmentos, marque los que respaldan la respuesta,
+escriba la respuesta propuesta y pulse **Crear borrador de revisión**. El sistema
+rechaza una pregunta que duplique una consulta aprobada de benchmark para ese
+snapshot. El borrador necesita revisión humana y aprobación separada para
+entrenamiento antes de entrar en un dataset.
+
 ### Caso 16. Corregir y aceptar una respuesta
 
 1. Abra **Revisiones**.
 2. Seleccione un caso en la cola izquierda.
 3. Compare **Respuesta original** con las evidencias y el snapshot indicados.
-4. Edite **Corrección** como un objeto JSON válido.
+4. Edite **Respuesta final** y las afirmaciones en **Corrección**. Use **Edición avanzada de JSON y citas** si necesita cambiar la estructura o las referencias.
 5. Pulse **Guardar y verificar**.
-6. Confirme **Evidencia verificada** y que el diff quedó registrado.
+6. Compruebe **Estructura y referencias verificadas** y abra **Ver cambios frente al original**. Esta comprobación no valida por sí sola la fidelidad de la respuesta.
 7. Pulse **Enviar revisión**. El estado pasa de `draft` a `submitted`.
 8. Una persona autorizada revisa el resultado y pulsa **Aceptar revisión**. Pasa a `accepted`.
 
 Una revisión aceptada queda cerrada para edición. Si la verificación determinista falla, corrija los errores antes de enviarla.
+
+Si sale a otra pantalla o cambia de revisión con una corrección o un motivo de rechazo
+pendiente, se pide confirmar su descarte. Durante una operación hay que esperar a
+que termine. Si la versión guardada cambia mientras edita, su texto se conserva y
+aparece un aviso: revise el cambio antes de usar **Cargar la versión guardada**;
+esa acción descarta la corrección local solo tras confirmación. No se puede guardar
+por encima de un conflicto pendiente. La lógica se comprobó con pruebas; falta
+verificar este recorrido visualmente y comprobar el aviso al cerrar la ventana nativa.
+
+Si otra sesión guarda o cambia el estado justo antes de su decisión, el Coordinator
+rechaza el guardado o la aprobación antigua y la app solicita los datos actuales.
+Su corrección local permanece disponible; revise el conflicto antes de recargar.
+La aceptación y la aprobación para entrenamiento también se vinculan a la versión
+que se mostró. Use el escritorio y la carpeta `resources` del mismo candidato;
+la migración conserva las revisiones existentes.
 
 ### Caso 17. Aprobar un candidato para entrenamiento
 
@@ -434,7 +537,7 @@ Corregir, aceptar y aprobar para entrenamiento son tres decisiones distintas. No
 ### Caso 18. Construir un dataset aprobado
 
 1. Confirme que existe al menos un candidato de training `approved`.
-2. Abra **Datasets**.
+2. Abra **Datasets** y seleccione el snapshot del que proceden esos ejemplos.
 3. Escriba un nombre de versión descriptivo, por ejemplo `feedback-privado-v1`.
 4. Escriba una semilla de split estable de al menos 8 caracteres.
 5. Pulse **Construir dataset aprobado**.
@@ -447,37 +550,51 @@ El constructor deduplica ejemplos y excluye automáticamente IDs y fingerprints 
 
 ### Caso 19. Ejecutar el preflight obligatorio
 
-1. Abra **Operaciones > 1 · Prueba corta obligatoria**.
+1. Abra **Entrenamientos > 1 · Prueba corta obligatoria**.
 2. Seleccione un dataset `READY_FOR_TRAINING`.
 3. Seleccione el Worker.
 4. Escriba la ruta o ID exacto del modelo base ya presente en el Worker.
 5. Seleccione `bf16` o `fp16` según la capacidad probada.
 6. Pulse **Ejecutar C1–C6 + 8 ejemplos + resume**.
 7. Siga el job en la tabla.
-8. Pulse **Actualizar evidencia** al terminar.
+8. Espere la actualización automática o pulse **Actualizar**.
 9. Continúe únicamente si aparece `PREFLIGHT_PASSED`.
 
-El preflight comprueba compatibilidad, memoria, carga corta, checkpoint, reanudación y recarga. No sustituya esta evidencia por una casilla o una estimación manual.
+El preflight entrena 20 pasos con 8 ejemplos y comprueba guardado, recarga,
+reanudación, contratos C1–C6 y separación del benchmark. El Coordinator verifica
+el paquete, su manifiesto, hashes, configuración e identidad del intento antes de
+dar la prueba por superada. La memoria libre declarada no calcula el margen para
+un entrenamiento largo.
+
+Al actualizar desde una versión anterior, los resultados que carecían de estas
+comprobaciones aparecen como **Resultado anterior pendiente de validación**. Sus
+archivos se conservan y los informes y exportaciones siguen pudiéndose guardar.
+Repita las pruebas afectadas; un resultado antiguo no autoriza nuevos trabajos.
+Debe corresponder al entorno actual del Worker. Los cambios de temperatura,
+memoria disponible o espacio libre no obligan a repetirlo; cambiar driver,
+hardware, intérprete o dependencias sí invalida las capacidades anteriores.
 
 ### Caso 20. Autorizar un entrenamiento LoRA
 
-1. Abra **Operaciones > 2 · Entrenamiento largo autorizado**.
+1. Abra **Entrenamientos > 2 · Entrenamiento largo autorizado**.
 2. Seleccione el preflight aprobado.
-3. Seleccione un baseline comparable.
+3. Seleccione un baseline B1 o R4 completado que evalúe el mismo snapshot del dataset.
 4. Elija el objetivo: formato, comportamiento, clasificación, selección de tools o argumentos estructurados.
 5. Escriba una hipótesis falsable: qué espera mejorar y cómo decidirá si ocurrió.
-6. Escriba quién lo aprueba.
-7. Pulse **Autorizar entrenamiento**.
-8. Siga estados, progreso y checkpoints en **Jobs distribuidos**.
-9. Use el resultado solo con `TRAINING_SUCCEEDED`.
+6. Confirme que el objetivo no memoriza hechos cambiantes del vault e indique una mejora mínima de verificación de formato y citas entre 0 y 1 frente al baseline. Este número no mide por sí solo la fidelidad de la respuesta.
+7. Escriba quién lo aprueba.
+8. Pulse **Autorizar entrenamiento**.
+9. Siga estados, progreso y checkpoints en **Jobs distribuidos**.
+10. Tras `TRAINING_SUCCEEDED`, ejecute F1 si el baseline era B1, o F2 si era R4, sobre la misma suite, casos, snapshot e índice. El Coordinator rechaza otra configuración y registra si la mejora de verificación alcanza la meta. La calidad de respuesta necesita revisión humana antes de promocionar el modelo; un export sigue siendo experimental.
+11. Use el resultado solo con `TRAINING_SUCCEEDED`.
 
 La aplicación fija una época desde esta interfaz. El Worker debe conservar checkpoints y validar la recarga del resultado.
 
 ### Caso 21. Exportar un modelo o adaptador
 
-1. Abra **Operaciones > 3 · Exportación verificable**.
-2. Seleccione un entrenamiento `TRAINING_SUCCEEDED`.
-3. Seleccione un Worker que tenga probada la conversión requerida.
+1. Abra **Entrenamientos > 3 · Exportación experimental verificable**.
+2. Seleccione un entrenamiento o destilación completados con resultado validado.
+3. Seleccione un Worker conectado que haya enviado su información de entorno.
 4. Marque uno o más formatos:
 
    - `adapter`
@@ -486,21 +603,36 @@ La aplicación fija una época desde esta interfaz. El Worker debe conservar che
    - `gguf`
 
 5. Escriba la licencia aplicable.
-6. Escriba el runtime de serving, por ejemplo `transformers`.
-7. Si eligió GGUF, indique el conversor local de llama.cpp.
-8. Pulse **Crear paquete exportable**.
+6. Escriba el motor para usar el modelo, por ejemplo `transformers`.
+7. Si eligió GGUF, indique la ruta del conversor llama.cpp en el Worker seleccionado.
+8. Si algún formato aparece pendiente, pulse **Comprobar y crear primer paquete**.
+   Para conversiones, el Worker necesita torch, transformers y PEFT instalados.
+   La comprobación hace la conversión completa; reserve tiempo, memoria y disco.
+   Si todos los formatos están probados, pulse **Crear paquete exportable**.
 9. Espere `EXPORT_SUCCEEDED`.
-10. Verifique el manifiesto y los SHA-256 antes de mover o publicar el paquete.
+10. Pulse **Guardar paquete** en la tarjeta de exportación. Se guarda en
+    **Descargas/Local AI Lab**; la aplicación verifica el SHA-256 durante la descarga.
+11. Verifique el manifiesto y los SHA-256 antes de mover o publicar el paquete.
 
-La existencia de un conversor no basta: su formato debe aparecer como probado en el heartbeat del Worker.
+La existencia de un conversor no basta: el Coordinator exige evidencia de una
+carga completada para ese formato. Un entrenamiento completado verifica
+`export.adapter`; declarar un formato como probado en un heartbeat no lo autoriza.
+La comprobación inicial valida el resultado antes de registrar la capacidad.
+Un fallo conserva el formato pendiente. Cada paquete incluye el tokenizer guardado
+y su plantilla; la metadata de pesos fusionados incluye la configuración del modelo.
+La conversión fusionada debe poder recargarse sin discrepancias de pesos y conservar
+la misma plantilla. La salida GGUF debe tener una cabecera compatible y no estar vacía.
+Estas comprobaciones no sustituyen una prueba de inferencia real en el motor de destino.
+En **Experimentos**, **Guardar informe** permite conservar un informe completado
+con la misma comprobación de integridad.
 
 ### Caso 22. Seguir o cancelar un job
 
-1. Abra **Operaciones > Jobs distribuidos**.
+1. Abra **Entrenamientos > Jobs distribuidos**.
 2. Identifique el job por tipo, ID y correlation ID.
 3. Revise estado, nodo asignado y progreso.
 4. Para detener uno cancelable, pulse **Cancelar**.
-5. Espere `cancelling` y después `cancelled`; pulse **Actualizar evidencia**.
+5. Espere `cancelling` y después `cancelled`; pulse **Actualizar** si necesita confirmarlo de inmediato.
 
 Estados habituales:
 
@@ -509,15 +641,29 @@ Estados habituales:
 | `ready` | Espera un Worker compatible. |
 | `leased` / `acknowledged` | El Worker lo recibió. |
 | `running` | Está ejecutándose. |
-| `paused` | Existe checkpoint; puede reanudarse. |
+| `paused` | Pausa registrada; compruebe el estado del Worker antes de tomar otra decisión. |
 | `cancelling` | La cancelación fue solicitada. |
 | `succeeded_pending_sync` | Terminó en el Worker y falta sincronizar. |
 | `succeeded` | Terminado y sincronizado. |
 | `failed_pending_sync` / `failed` | Falló; revise progreso, resultado y logs. |
 | `orphaned` | Se perdió el lease o la conexión; no lo duplique manualmente. |
-| `needs_review` | Hace falta decisión humana antes de reanudar o reemplazar. |
+| `needs_review` | Hace falta una decisión humana: reanudar, reiniciar o descartar el entrenamiento. |
 
 La cancelación es cooperativa: no apague el equipo salvo emergencia, porque podría impedir el checkpoint y la sincronización final.
+Si el Worker se reinicia, recupera trabajos repetibles con lease vigente y
+reenvía resultados pendientes. Un entrenamiento interrumpido durante la
+ejecución no se repite automáticamente.
+
+Para recuperar un entrenamiento LoRA o de destilación, abra **Registros**, seleccione
+el trabajo `failed` o `needs_review` y revise **Recuperación del entrenamiento**.
+Seleccione un Worker en línea. Si hay un checkpoint publicado, **Reanudar desde
+paso…** crea un trabajo nuevo con el estado exacto del entrenador. En destilación
+también conserva las respuestas del profesor y evita repetir su generación. Si no
+hay checkpoint, **Reiniciar desde cero** vuelve a ejecutar todo el trabajo; con
+profesor servido por Broker puede ocasionar nuevas llamadas y coste. En
+`needs_review`, **Descartar trabajo** lo cancela. Una recuperación conserva el
+historial anterior y la app muestra el ID del trabajo nuevo. Solo se autoriza una
+decisión de recuperación para cada trabajo interrumpido.
 
 ## 11. Verificación real de Fase 8
 
@@ -561,7 +707,7 @@ No pase el token como argumento ni lo copie al manual, a un informe o a una capt
 ### Primera prueba segura, sin datos privados
 
 1. Abra la aplicación.
-2. Revise **Resumen**.
+2. Revise **Evidencia**.
 3. Ejecute R1 controlado.
 4. Revise el registro y su hash.
 5. Si dispone de Worker y embeddings, ejecute R2, R3 y R4 sobre el corpus controlado.
@@ -610,26 +756,30 @@ No pase el token como argumento ni lo copie al manual, a un informe o a una capt
 | No se puede enviar una revisión | Corrección inválida o evidencia no verificada | Guarde un objeto JSON válido y resuelva los errores de verificación. |
 | No se puede crear dataset | No hay candidatos `approved` | Complete revisión, aceptación, propuesta y aprobación. |
 | No se puede entrenar | Dataset, preflight, baseline, hipótesis o aprobador ausentes | Complete la cadena de autorización; no fuerce la base de datos. |
+| El entorno del Worker cambió | Las pruebas anteriores corresponden a otro entorno | Ejecute un preflight nuevo y vuelva a probar las cargas afectadas. |
 | Job permanece `ready` | Ningún Worker satisface sus requisitos | Revise capacidades probadas, modelo local y conexión. |
 | Job `orphaned` | Se perdió conexión o lease | Recupere el Worker y espere la reconciliación; no lance un duplicado. |
 | GGUF desactivado o rechazado | Falta conversor o capacidad probada | Configure el conversor local y pruebe esa carga en el Worker. |
 
 ## 14. Misiones guiadas y destilación
 
-### Cómo iniciar cualquier entrenamiento
+### Cómo iniciar una misión
 
 1. Abra **Misiones**.
-2. En **Quiero entrenar un modelo**, elija una estrategia:
-   **LoRA / SFT local**, **Fine-tuning + RAG**, **Destilación de otro LLM** o
-   **Que la app recomiende**.
-3. Pulse **Crear plan guiado**. La aplicación mostrará el recorrido completo, sus entradas,
-   salidas y bloqueos.
-4. Escriba la tarea que debe aprender el modelo, un criterio de éxito verificable y las
-   restricciones de privacidad, licencia y ejecución.
-5. Pulse **Continuar**. El borrador se guarda localmente y puede retomarse desde
-   **Planes y borradores**.
-6. En cada etapa use el botón principal para abrir la herramienta necesaria. No avance por
-   una marca visual: compruebe que la evidencia de la etapa anterior existe realmente.
+2. En **Quiero resolver una tarea**, elija **Comparar y elegir**, **Prompting sin
+   entrenamiento**, **RAG sin entrenamiento**, **LoRA / SFT local** o **Destilación
+   de otro LLM**.
+3. Escriba la tarea, un criterio de éxito verificable y las restricciones.
+4. Pulse **Crear plan guiado**. El plan se guarda en el Coordinator y aparece en
+   **Planes y borradores**; puede reabrirlo desde otro escritorio conectado al
+   mismo Coordinator.
+5. Abra la herramienta de cada etapa. Cuando tenga un resultado, vuelva a la
+   misión, selecciónelo en **Evidencia de esta etapa** y pulse **Vincular evidencia**.
+   También puede retirar una asociación equivocada.
+6. Lea el estado de cada etapa: **Configurado**, **Ejecutado**, **Validado** o
+   **Requiere atención**. El estado se calcula con los registros y jobs actuales;
+   visitar una etapa no la da por terminada. Al reabrir la misión se muestra el
+   primer paso pendiente de evidencia.
 
 ### Caso 23. Entrenar por destilación de otro LLM
 
@@ -660,6 +810,8 @@ logits internos ni descarga modelos silenciosamente.
    los del alumno permiten fine-tuning y el uso previsto del adapter resultante. Local AI Lab
    exige confirmación humana porque no puede tomar por sí sola una decisión jurídica.
 10. Seleccione el objetivo, describa la hipótesis y registre quién autoriza la ejecución.
+    Confirme que el objetivo no memoriza hechos cambiantes y fije la mejora mínima
+    de verificación de formato y citas frente al baseline; la meta debe ser positiva y alcanzable.
 11. Ajuste la temperatura del profesor y el máximo de tokens. Con temperatura `0` la generación
     es determinista salvo las limitaciones del runtime registradas en el manifest.
 12. Pulse **Autorizar destilación**.
@@ -669,8 +821,8 @@ logits internos ni descarga modelos silenciosamente.
     siempre se carga localmente.
 14. Al completarse, Local AI Lab conserva el adapter del alumno, las respuestas destiladas,
     hashes de procedencia, configuración de generación, métricas y manifest verificable.
-15. Ejecute el alumno contra el baseline desde **Experimentos** antes de exportarlo.
-16. Si supera el criterio de éxito, vuelva a **Entrenamientos** y cree el paquete exportable.
+15. Ejecute F1 contra B1 o F2 contra R4 desde **Experimentos** con la misma suite y configuración. Compruebe la comparación registrada; distingue verificación determinista de calidad de respuesta.
+16. Vuelva a **Entrenamientos** para crear un paquete experimental verificable. Requiera revisión humana de calidad antes de promoverlo para uso de producción.
 
 La disponibilidad del formulario demuestra que el flujo está implementado; no demuestra que
 los modelos concretos que usted elija quepan en la memoria o sean compatibles con su hardware.
@@ -684,6 +836,31 @@ el usuario normal no tiene que manejarla durante cada ejecución. La prueba cort
 que PEFT puede crear, guardar, reanudar y volver a cargar el adapter antes del entrenamiento largo.
 
 ## 15. Reglas de operación segura
+
+### Copia y restauración verificable
+
+Cierre el escritorio y detenga cualquier Coordinator independiente antes de crear
+la copia. Desde la carpeta del proyecto, use el Python donde está instalado Local
+AI Lab y coloque el archivo fuera de la carpeta de datos:
+
+```powershell
+python -m local_ai_lab.maintenance.backup backup `
+  "$env:LOCALAPPDATA\lab.localai.desktop\coordinator\state.db" `
+  "D:\Copias\local-ai-lab.zip"
+python -m local_ai_lab.maintenance.backup verify "D:\Copias\local-ai-lab.zip"
+```
+
+Para ensayar la restauración, indique **una carpeta nueva que no exista**:
+
+```powershell
+python -m local_ai_lab.maintenance.backup restore `
+  "D:\Copias\local-ai-lab.zip" "D:\Pruebas\coordinator-restaurado"
+```
+
+La restauración comprueba cada archivo y la integridad SQLite antes de publicar
+la carpeta. Incluye datos privados y hashes de credenciales: almacene y transfiera
+el ZIP en un destino protegido. Para volver a usar los datos restaurados, configure
+el Coordinator para esa carpeta; no sustituya una instalación abierta.
 
 Antes de aceptar un resultado como evidencia:
 

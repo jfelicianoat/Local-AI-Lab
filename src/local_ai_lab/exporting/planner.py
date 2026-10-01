@@ -17,6 +17,8 @@ class ExportJobPlanner:
         formats: Sequence[str],
         node_id: str,
         tested_capabilities: set[str],
+        verification_only: bool = False,
+        detected_dependencies: set[str] | None = None,
     ) -> JobSpec:
         requested = tuple(dict.fromkeys(formats))
         allowed = {"adapter", "merged_model", "safetensors", "gguf"}
@@ -24,7 +26,13 @@ class ExportJobPlanner:
             raise ValueError("unsupported or empty export format list")
         required = {f"export.{kind}" for kind in requested}
         missing = required - tested_capabilities
-        if missing:
+        if type(verification_only) is not bool:
+            raise ValueError("export verification mode must be a boolean")
+        if verification_only and set(requested) - {"adapter"}:
+            dependencies = {"torch", "transformers", "peft"} - (detected_dependencies or set())
+            if dependencies:
+                raise ValueError(f"Instala estos paquetes en el Worker seleccionado antes de comprobar la exportación: {', '.join(sorted(dependencies))}")
+        if missing and not verification_only:
             raise ValueError(f"node lacks tested export capabilities: {sorted(missing)}")
         if len(source_manifest_sha256) != 64:
             raise ValueError("source training manifest requires SHA-256")
@@ -35,8 +43,9 @@ class ExportJobPlanner:
                 "source_artifact_reference": source_artifact_reference,
                 "formats": list(requested),
                 "verify_after_each_conversion": True,
+                "verification_only": verification_only,
             },
-            requirements={"node_ids": [node_id], "required_workloads": sorted(required)},
+            requirements={"node_ids": [node_id], "required_workloads": [] if verification_only else sorted(required)},
             idempotency_class=IdempotencyClass.CHECKPOINTABLE,
             disconnect_policy=DisconnectPolicy.CHECKPOINT_THEN_STOP,
             reassignment_policy=ReassignmentPolicy.HUMAN_ONLY,

@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import random
+import shutil
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Callable, Sequence
@@ -19,6 +20,8 @@ from local_ai_lab.domain.jobs import (
 )
 from local_ai_lab.training.contracts import TrainingContractReport
 from local_ai_lab.training.executor import AssistantOnlyCollator, prepare_supervised_example
+from local_ai_lab.training.identity import model_weights_fingerprint
+from local_ai_lab.training.checkpoints import create_checkpoint_bundle
 from local_ai_lab.training.plan import ALLOWED_OBJECTIVES
 from local_ai_lab.training.resolver import HardwareResolution
 
@@ -42,6 +45,8 @@ class DistillationProposal:
     student_license: str
     teacher_outputs_training_allowed: bool
     student_finetuning_allowed: bool
+    contains_mutable_facts: bool
+    minimum_quality_gain: float
     teacher_source: str
     teacher_broker_endpoint: str | None
     teacher_target_model: dict[str, str] | None
@@ -64,8 +69,10 @@ class DistillationPlanBuilder:
         lora_config: dict[str, Any],
         generation_config: dict[str, Any],
     ) -> JobSpec:
-        if proposal.objective not in ALLOWED_OBJECTIVES:
+        if proposal.objective not in ALLOWED_OBJECTIVES or proposal.contains_mutable_facts:
             raise ValueError("distillation objective is not eligible for supervised training")
+        if not 0 < proposal.minimum_quality_gain <= 1:
+            raise ValueError("distillation requires a positive measurable quality gain")
         if not proposal.approved_by:
             raise ValueError("distillation requires explicit human approval")
         if proposal.teacher_model.strip() == proposal.student_model.strip():
@@ -226,7 +233,7 @@ class TransformersSequenceDistillationExecutor:
         try:
             import torch
             from peft import LoraConfig, PeftModel, get_peft_model
-            from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
+            from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainerCallback, TrainingArguments
         except ImportError as error:
             raise DistillationExecutionError(
                 "distillation extras are not installed on this worker; install the locked training environment"
@@ -257,7 +264,26 @@ class TransformersSequenceDistillationExecutor:
         generation_config = payload["generation_config"]
         teacher_source = payload.get("teacher_source", "local")
         broker_invocations: list[dict[str, Any]] = []
-        if teacher_source == "broker":
+        resume_dir = (Path(payload["resume_from_checkpoint"]).resolve(strict=True)
+                      if payload.get("resume_from_checkpoint") else None)
+        if resume_dir is not None:
+            saved_data = resume_dir / "distilled-train.jsonl"
+            saved_evidence = resume_dir / "teacher-evidence.json"
+            if not saved_data.is_file() or not saved_evidence.is_file():
+                raise DistillationExecutionError("checkpoint lacks the exact teacher supervision")
+            distilled = [json.loads(line) for line in saved_data.read_text(encoding="utf-8").splitlines()
+                         if line.strip()]
+            evidence = json.loads(saved_evidence.read_text(encoding="utf-8"))
+            if (not isinstance(evidence, dict)
+                    or evidence.get("teacher_model_fingerprint") != payload["teacher_model_fingerprint"]
+                    or evidence.get("source_dataset_fingerprint") != payload["dataset_fingerprint"]
+                    or evidence.get("teacher_source") != teacher_source
+                    or not isinstance(evidence.get("broker_invocations"), list)
+                    or len(distilled) != len(source_records)):
+                raise DistillationExecutionError("checkpoint teacher evidence differs from this job")
+            broker_invocations = evidence["broker_invocations"]
+            progress({"stage": "restoring_teacher_supervision", "examples": len(distilled)})
+        elif teacher_source == "broker":
             progress({"stage": "connecting_teacher_broker", "model": teacher_model_id})
             broker = BrokerTaskClient(
                 endpoint=payload["teacher_broker_endpoint"],
@@ -329,28 +355,41 @@ class TransformersSequenceDistillationExecutor:
                     generated[0][encoded.shape[-1]:], skip_special_tokens=True
                 )
 
-        progress({"stage": "teacher_generation", "examples": len(source_records)})
-        distilled = sequence_distill_records(
-            source_records,
-            generate,
-            teacher_model=teacher_model_id,
-            teacher_model_fingerprint=payload["teacher_model_fingerprint"],
-        )
-        if teacher_source == "broker":
-            for record, invocation in zip(distilled, broker_invocations, strict=True):
-                record["distillation"]["broker_invocation"] = invocation
-        else:
-            teacher.to("cpu")
-            del teacher
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
+        if resume_dir is None:
+            progress({"stage": "teacher_generation", "examples": len(source_records)})
+            distilled = sequence_distill_records(
+                source_records,
+                generate,
+                teacher_model=teacher_model_id,
+                teacher_model_fingerprint=payload["teacher_model_fingerprint"],
+            )
+            if teacher_source == "broker":
+                for record, invocation in zip(distilled, broker_invocations, strict=True):
+                    record["distillation"]["broker_invocation"] = invocation
+            else:
+                teacher.to("cpu")
+                del teacher
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
 
         distilled_path = output / "distilled-train.jsonl"
-        distilled_path.write_text(
-            "".join(canonical_json(record) + "\n" for record in distilled),
-            encoding="utf-8",
-            newline="\n",
-        )
+        if resume_dir is not None:
+            shutil.copyfile(saved_data, distilled_path)
+        else:
+            distilled_path.write_text(
+                "".join(canonical_json(record) + "\n" for record in distilled),
+                encoding="utf-8", newline="\n",
+            )
+        teacher_evidence_path = output / "teacher-evidence.json"
+        if resume_dir is not None:
+            shutil.copyfile(saved_evidence, teacher_evidence_path)
+        else:
+            teacher_evidence_path.write_text(canonical_json({
+                "teacher_model_fingerprint": payload["teacher_model_fingerprint"],
+                "source_dataset_fingerprint": payload["dataset_fingerprint"],
+                "teacher_source": teacher_source,
+                "broker_invocations": broker_invocations,
+            }) + "\n", encoding="utf-8", newline="\n")
 
         progress({"stage": "loading_student", "model": student_model_id})
         student_tokenizer = AutoTokenizer.from_pretrained(student_model_id, local_files_only=True)
@@ -372,6 +411,10 @@ class TransformersSequenceDistillationExecutor:
         student = AutoModelForCausalLM.from_pretrained(
             student_model_id, local_files_only=True, torch_dtype=torch_dtype
         )
+        student_base_weights_sha256 = model_weights_fingerprint(student)
+        expected_base = payload.get("expected_base_weights_sha256")
+        if expected_base is not None and student_base_weights_sha256 != expected_base:
+            raise DistillationExecutionError("cached student weights differ from the approved checkpoint")
         config = payload["lora_config"]
         student = get_peft_model(
             student,
@@ -399,11 +442,44 @@ class TransformersSequenceDistillationExecutor:
             report_to=[],
             remove_unused_columns=False,
         )
+        callbacks: list[Any] = []
+        attempt = payload.get("_worker_attempt")
+        if attempt is not None:
+            checkpoint_metadata = {
+                **attempt,
+                "dataset_fingerprint": payload["dataset_fingerprint"],
+                "model_id": student_model_id,
+                "base_weights_sha256": student_base_weights_sha256,
+                "chat_template_fingerprint": template_fingerprint,
+            }
+
+            class PublishCheckpoint(TrainerCallback):
+                def on_save(self, args: Any, state: Any, control: Any, **kwargs: Any) -> Any:
+                    step = int(state.global_step)
+                    source = Path(args.output_dir) / f"checkpoint-{step}"
+                    shutil.copyfile(distilled_path, source / "distilled-train.jsonl")
+                    shutil.copyfile(teacher_evidence_path, source / "teacher-evidence.json")
+                    destination = output.with_name(output.name + "-checkpoints") / f"checkpoint-{step}.zip"
+                    bundle, digest = create_checkpoint_bundle(
+                        source, destination, metadata=checkpoint_metadata, step=step,
+                    )
+                    progress({
+                        "stage": "checkpoint", "step": step,
+                        "_checkpoint_artifact": {
+                            "kind": "training_checkpoint", "local_path": str(bundle),
+                            "sha256": digest, "size": bundle.stat().st_size,
+                            "media_type": "application/zip",
+                        },
+                    })
+                    return control
+
+            callbacks.append(PublishCheckpoint())
         trainer = Trainer(
             model=student,
             args=arguments,
             train_dataset=tokenized,
             data_collator=AssistantOnlyCollator(pad_token_id=student_tokenizer.pad_token_id),
+            callbacks=callbacks,
         )
         progress({"stage": "student_training", "examples": len(tokenized)})
         result = trainer.train(resume_from_checkpoint=payload.get("resume_from_checkpoint"))
@@ -418,6 +494,8 @@ class TransformersSequenceDistillationExecutor:
         files = [path for path in sorted(output.rglob("*")) if path.is_file()]
         manifest = {
             "schema_version": "distillation-result.v1",
+            "source_attempt": payload.get("_worker_attempt"),
+            "max_length": int(payload.get("max_length", 4096)), "lora_config": config,
             "method": "sequence_level_supervision.v1",
             "teacher_model": teacher_model_id,
             "teacher_model_fingerprint": payload["teacher_model_fingerprint"],
@@ -426,6 +504,7 @@ class TransformersSequenceDistillationExecutor:
             "broker_capability_fingerprint": payload.get("broker_capability_fingerprint"),
             "broker_invocations": broker_invocations,
             "student_model": student_model_id,
+            "base_weights_sha256": student_base_weights_sha256,
             "student_model_fingerprint": payload["student_model_fingerprint"],
             "source_dataset_fingerprint": payload["dataset_fingerprint"],
             "distilled_examples": len(distilled),

@@ -9,6 +9,7 @@ from typing import Any, Callable
 from local_ai_lab.dataset.factory import DatasetVerifier
 from local_ai_lab.domain.common import canonical_json, utc_timestamp
 from local_ai_lab.training.contracts import TrainingContractValidator
+from local_ai_lab.training.results import result_file_inventory
 from local_ai_lab.training.executor import (
     AssistantOnlyCollator,
     TrainingExecutionError,
@@ -144,11 +145,16 @@ class TrainingPreflightExecutor:
         }
         manifest = {
             "schema_version": "training-preflight.v1", "created_at": utc_timestamp(),
+            "source_attempt": payload.get("_worker_attempt"),
             "dataset_fingerprint": dataset_manifest["fingerprint"],
             "base_model": base_model, "chat_template_fingerprint": template_fingerprint,
             "seed": seed, "nondeterminism_notes": nondeterminism, "dtype": dtype,
             "backend": backend, "contract": contract.as_dict(), "checks": checks,
             "metrics": dict(first_result.metrics), "losses": losses,
+            "max_length": int(payload.get("max_length", 4096)), "lora_config": config,
+            "overfit_examples": 8, "overfit_steps": 20,
+            "resume_global_step": int(resumed.state.global_step),
+            "files": result_file_inventory(output),
         }
         manifest["content_sha256"] = hashlib.sha256(
             canonical_json(manifest).encode("utf-8")

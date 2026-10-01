@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import http.client
 import json
+import re
+import ssl
 import urllib.error
 import urllib.request
 import uuid
+from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import urlsplit, urlunsplit
 
@@ -15,6 +19,27 @@ class CoordinatorTransportError(RuntimeError):
         super().__init__(message)
         self.transient = transient
         self.status = status
+
+
+class _RejectRedirects(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        # The configured origin is the authorization boundary. Never forward a
+        # bearer credential (or pairing code) to an HTTP redirect target.
+        raise urllib.error.HTTPError(req.full_url, code, "Coordinator redirects are forbidden", headers, fp)
+
+
+def _open_protocol_request(request, *, timeout):
+    return urllib.request.build_opener(_RejectRedirects()).open(request, timeout=timeout)
+
+
+def _network_error(error: Exception) -> CoordinatorTransportError:
+    reason = error.reason if isinstance(error, urllib.error.URLError) else error
+    if isinstance(reason, ssl.SSLCertVerificationError):
+        return CoordinatorTransportError(
+            "No se pudo verificar el certificado TLS del Coordinator. "
+            "Comprueba su nombre, vigencia y CA de confianza.", transient=False,
+        )
+    return CoordinatorTransportError(str(error), transient=True)
 
 
 class HttpCoordinatorTransport:
@@ -33,7 +58,7 @@ class HttpCoordinatorTransport:
         self.node_id = node_id
         self._token = device_token
         self.timeout = timeout
-        self._open = opener or urllib.request.urlopen
+        self._open = opener or _open_protocol_request
 
     def claim(self, *, idempotency_key: str) -> dict[str, Any] | None:
         return self._post("/node/v1/jobs/claim", {}, idempotency_key)["lease"]
@@ -105,8 +130,9 @@ class HttpCoordinatorTransport:
                 status, content = response.status, response.read()
         except urllib.error.HTTPError as error:
             status, content = error.code, b""
-        except (urllib.error.URLError, TimeoutError, OSError) as error:
-            raise CoordinatorTransportError(str(error), transient=True) from error
+            error.close()
+        except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException) as error:
+            raise _network_error(error) from error
         if status < 200 or status >= 300:
             raise CoordinatorTransportError(
                 f"Coordinator artifact download returned HTTP {status}",
@@ -117,6 +143,79 @@ class HttpCoordinatorTransport:
                 "downloaded artifact SHA-256 mismatch", transient=False, status=status
             )
         return content
+
+    def download_artifact_to(self, sha256: str, destination: Path) -> None:
+        """Stream a CAS blob to disk and resume an interrupted transfer when possible."""
+        if len(sha256) != 64 or any(character not in "0123456789abcdef" for character in sha256):
+            raise ValueError("artifact SHA-256 is invalid")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        partial = destination.with_name(destination.name + ".part")
+        offset = partial.stat().st_size if partial.exists() else 0
+        headers = {
+            "Accept": "application/octet-stream",
+            "Authorization": f"Bearer {self._token}",
+            "X-Node-ID": self.node_id,
+        }
+        if offset:
+            headers["Range"] = f"bytes={offset}-"
+        request = urllib.request.Request(
+            self.endpoint + f"/node/v1/artifacts/sha256/{sha256}",
+            method="GET", headers=headers,
+        )
+        try:
+            with self._open(request, timeout=self.timeout) as response:
+                status = response.status
+                if status not in {200, 206}:
+                    raise CoordinatorTransportError(
+                        f"Coordinator artifact download returned HTTP {status}",
+                        transient=status == 429 or status >= 500, status=status,
+                    )
+                resumed = status == 206 and offset > 0
+                if status == 206:
+                    content_range = re.fullmatch(r"bytes (\d+)-(\d+)/(\d+)",
+                        str(response.headers.get("Content-Range", "")))
+                    if (not resumed or content_range is None
+                        or int(content_range[1]) != offset
+                        or int(content_range[2]) < offset
+                        or int(content_range[3]) <= int(content_range[2])):
+                        raise CoordinatorTransportError("artifact resume range does not match the partial file", transient=False)
+                declared = response.headers.get("Content-Length")
+                if declared is not None and not str(declared).isdigit():
+                    raise CoordinatorTransportError("artifact response has an invalid length", transient=False)
+                expected_length = int(declared) if declared is not None else None
+                if status == 206:
+                    range_length = int(content_range[2]) - offset + 1
+                    if expected_length is not None and expected_length != range_length:
+                        raise CoordinatorTransportError("artifact response length differs from its range", transient=False)
+                    expected_length = range_length
+                received = 0
+                with partial.open("ab" if resumed else "wb") as output:
+                    while chunk := response.read(1024 * 1024):
+                        output.write(chunk)
+                        received += len(chunk)
+                if expected_length is not None and received < expected_length:
+                    raise CoordinatorTransportError("artifact transfer was interrupted; partial file retained", transient=True)
+                if expected_length is not None and received > expected_length:
+                    partial.unlink(missing_ok=True)
+                    raise CoordinatorTransportError("artifact response exceeds its declared length", transient=False)
+                if status == 206 and int(content_range[2]) + 1 < int(content_range[3]):
+                    raise CoordinatorTransportError("artifact transfer is incomplete; partial file retained", transient=True)
+        except urllib.error.HTTPError as error:
+            error.close()
+            raise CoordinatorTransportError(
+                f"Coordinator artifact download returned HTTP {error.code}",
+                transient=error.code == 429 or error.code >= 500, status=error.code,
+            ) from error
+        except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException) as error:
+            raise _network_error(error) from error
+        digest = hashlib.sha256()
+        with partial.open("rb") as source:
+            while chunk := source.read(1024 * 1024):
+                digest.update(chunk)
+        if digest.hexdigest() != sha256:
+            partial.unlink(missing_ok=True)
+            raise CoordinatorTransportError("downloaded artifact SHA-256 mismatch", transient=False)
+        partial.replace(destination)
 
     @classmethod
     def pair(
@@ -142,16 +241,17 @@ class HttpCoordinatorTransport:
             headers={"Accept": "application/json", "Content-Type": "application/json"},
         )
         try:
-            response = (opener or urllib.request.urlopen)(request, timeout=timeout)
+            response = (opener or _open_protocol_request)(request, timeout=timeout)
             with response:
                 status, encoded = response.status, response.read()
         except urllib.error.HTTPError as error:
-            status, encoded = error.code, error.read()
-        except (urllib.error.URLError, TimeoutError, OSError) as error:
-            raise CoordinatorTransportError(str(error), transient=True) from error
+            with error:
+                status, encoded = error.code, error.read()
+        except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException) as error:
+            raise _network_error(error) from error
         if status < 200 or status >= 300:
             raise CoordinatorTransportError(
-                f"Coordinator pairing returned HTTP {status}", transient=status >= 500,
+                f"Coordinator pairing returned HTTP {status}", transient=status == 429 or status >= 500,
                 status=status,
             )
         try:
@@ -183,6 +283,17 @@ class HttpCoordinatorTransport:
             f"/node/v1/jobs/{_safe_id(lease['job_id'])}/progress",
             {**_lease_body(lease), "sequence": message["sequence"], "payload": message["payload"]},
             idempotency_key,
+        )
+
+    def publish_checkpoint(
+        self, lease: dict[str, Any], *, step: int, artifact_id: str,
+        artifact_sha256: str, idempotency_key: str,
+    ) -> dict[str, Any]:
+        return self._post(
+            f"/node/v1/jobs/{_safe_id(lease['job_id'])}/checkpoints",
+            {**_lease_body(lease), "attempt_id": lease["attempt_id"],
+             "step": step, "artifact_id": artifact_id,
+             "artifact_sha256": artifact_sha256}, idempotency_key,
         )
 
     def complete(
@@ -227,10 +338,11 @@ class HttpCoordinatorTransport:
                 status = response.status
                 encoded = response.read()
         except urllib.error.HTTPError as error:
-            status = error.code
-            encoded = error.read()
-        except (urllib.error.URLError, TimeoutError, OSError) as error:
-            raise CoordinatorTransportError(str(error), transient=True) from error
+            with error:
+                status = error.code
+                encoded = error.read()
+        except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException) as error:
+            raise _network_error(error) from error
         if status < 200 or status >= 300:
             transient = status == 429 or status >= 500
             raise CoordinatorTransportError(

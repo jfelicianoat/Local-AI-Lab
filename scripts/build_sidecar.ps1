@@ -19,7 +19,7 @@ New-Item -ItemType Directory -Force $Destination | Out-Null
     --distpath $Destination `
     --workpath $Work `
     --specpath $Spec `
-    (Join-Path $ProjectRoot "src\local_ai_lab\coordinator\api.py")
+    (Join-Path $ProjectRoot "src\local_ai_lab\coordinator\api\__main__.py")
 
 if ($LASTEXITCODE -ne 0) {
     throw "PyInstaller could not build the Coordinator sidecar."

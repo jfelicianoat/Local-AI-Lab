@@ -32,7 +32,7 @@ def _run(
         retrieval={"recall_at_k": recall}, latency_ms=latency, peak_memory_gib=8.0,
         cost_amount=cost, cost_currency="USD", cost_source="measured" if cost else "not_available",
         cost_verification_status="verified" if cost else "unknown", privacy="local_only",
-        complexity={"manual_steps": 2.0 if strategy == "F2" else 1.0}, formal_status=formal,
+        complexity={"components": {"R3": 3.0, "R4": 4.0, "F1": 5.0, "F2": 6.0}.get(strategy, 9.0)}, formal_status=formal,
         evidence_references=(f"artifact:sha256:{strategy}",),
     )
 
@@ -76,6 +76,7 @@ def test_selector_uses_declared_metrics_and_explains_uncertainty() -> None:
     constraints = SelectionConstraints(
         privacy="local_only", max_latency_ms=200, max_cost=Decimal("0.10"),
         priorities=("quality.fidelity", "retrieval.recall_at_k", "latency_ms"),
+        minimum_quality=0.8,
     )
     decision = StrategySelector().select(runs, constraints)
 
@@ -84,3 +85,14 @@ def test_selector_uses_declared_metrics_and_explains_uncertainty() -> None:
     assert decision.configuration_label == "R4 · model-a · k=5"
     assert "not certainty" in decision.uncertainty
     assert decision.evidence_references
+
+
+def test_default_selector_prefers_simpler_strategy_after_quality_gate() -> None:
+    runs = [
+        _run("R3", fidelity=0.82, recall=0.81, latency=150),
+        _run("R4", fidelity=0.95, recall=0.95, latency=100),
+    ]
+    decision = StrategySelector().select(runs, SelectionConstraints(minimum_quality=0.8))
+    assert decision.status == "recommendation"
+    assert decision.strategy_id == "R3"
+    assert StrategySelector().select(runs, SelectionConstraints()).status == "no_eligible_strategy"

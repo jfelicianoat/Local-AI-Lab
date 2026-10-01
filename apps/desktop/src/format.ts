@@ -99,5 +99,11 @@ export function formatDuration(value: unknown): string {
 }
 
 export function humanize(value: string) { return value.replaceAll("_", " "); }
+export function productStatusLabel(value: string): string {
+  if (value === "EXPORT_VERIFICATION_QUEUED") return "Comprobación de exportación en cola";
+  if (value === "RESULT_REQUIRES_VALIDATION") return "Resultado anterior pendiente de validación";
+  if (value === "PREFLIGHT_ENVIRONMENT_CHANGED") return "Repetir prueba: el entorno cambió";
+  return humanize(value);
+}
 export function formatMetric(value: unknown) { return typeof value === "number" && Number.isFinite(value) ? value.toFixed(3) : "—"; }
 export function recordStatus(value: string): EvidenceStatus { const folded = value.toLowerCase(); return folded.includes("block") || folded.includes("reject") || folded.includes("incomplete") ? "blocked" : folded.includes("complete") || folded.includes("approved") || folded.includes("verified") ? "tested" : folded.includes("pending") || folded.includes("draft") ? "pending" : "detected"; }

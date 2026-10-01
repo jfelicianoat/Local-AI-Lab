@@ -13,9 +13,11 @@ class SelectionConstraints:
     max_latency_ms: float | None = None
     max_cost: Decimal | None = None
     cost_currency: str = "USD"
-    priorities: tuple[str, ...] = ("quality.fidelity", "retrieval.recall_at_k", "latency_ms")
+    priorities: tuple[str, ...] = ("complexity.components", "latency_ms")
     minimum_cases: int = 20
     require_formal_verdict: bool = True
+    quality_metric: str = "quality.fidelity"
+    minimum_quality: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,6 +49,18 @@ class StrategySelector:
         for run in runs:
             run.validate()
             reasons: list[str] = []
+            if constraints.quality_metric not in {"quality.fidelity", "retrieval.recall_at_k"}:
+                raise ValueError("quality criterion must measure fidelity or retrieval recall")
+            measured = (
+                run.quality.get("fidelity") if constraints.quality_metric == "quality.fidelity"
+                else run.retrieval.get("recall_at_k")
+            )
+            if constraints.minimum_quality is None or not 0 <= constraints.minimum_quality <= 1:
+                reasons.append("no valid minimum quality threshold declared")
+            elif measured is None or not 0 <= measured <= 1:
+                reasons.append("selected quality criterion was not measured")
+            elif measured < constraints.minimum_quality:
+                reasons.append("quality below the declared threshold")
             if constraints.require_formal_verdict and run.formal_status != "model_drift_verified":
                 reasons.append("no formal Model Drift verdict")
             if constraints.privacy and run.privacy != constraints.privacy:

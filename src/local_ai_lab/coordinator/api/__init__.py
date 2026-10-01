@@ -12,7 +12,10 @@ Partida como pedia la auditoria, por quien la llama:
 from __future__ import annotations
 
 import argparse
+import asyncio
+import logging
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -24,12 +27,38 @@ from local_ai_lab.coordinator.api.rutas_nodo import registrar_rutas_nodo
 
 __all__ = ["create_app", "main"]
 
+LEASE_RECOVERY_INTERVAL_SECONDS = 15
+_logger = logging.getLogger(__name__)
+
+
+async def _recover_leases_periodically(service: CoordinatorService, stop: asyncio.Event) -> None:
+    while not stop.is_set():
+        try:
+            await asyncio.wait_for(stop.wait(), timeout=LEASE_RECOVERY_INTERVAL_SECONDS)
+        except TimeoutError:
+            try:
+                await asyncio.to_thread(service._recover_expired_jobs)
+            except Exception:
+                _logger.exception("Coordinator lease recovery failed")
+
 
 def create_app(service: CoordinatorService, *, app_token: str | None = None) -> FastAPI:
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        await asyncio.to_thread(service._recover_expired_jobs)
+        stop = asyncio.Event()
+        watcher = asyncio.create_task(_recover_leases_periodically(service, stop))
+        try:
+            yield
+        finally:
+            stop.set()
+            await watcher
+
     app = FastAPI(
         title="Local AI Lab Coordinator",
         version="0.1.0",
         description="Authenticated Coordinator/Worker protocol v1",
+        lifespan=lifespan,
     )
     app.add_middleware(
         CORSMiddleware,

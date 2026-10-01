@@ -2,13 +2,19 @@
 .venv-*/
 .local/
 .pytest_cache/
+.pytest-*/
 .ruff_cache/
 .phase0-test-tmp-*/
 .phase1-test-tmp-*/
 .*-test-tmp-*/
 .test-tmp/
 .test-run-*/
+.audit-fix-tests/
+.audit-20260929-tests/
+docs/Auditoria 20260929/audit-*/
 .target-test-tmp-*/
+graphify-out/cache/ast/
+graphify-out/20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/
 __pycache__/
 *.py[cod]
 node_modules/

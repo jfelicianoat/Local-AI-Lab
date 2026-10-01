@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import hashlib
 from pathlib import Path
+import pytest
 
 from fastapi.testclient import TestClient
 
@@ -11,6 +12,7 @@ from local_ai_lab.coordinator.service import CoordinatorService
 from local_ai_lab.artifacts.archive import deterministic_zip
 from local_ai_lab.domain.common import canonical_json
 from local_ai_lab.domain.jobs import JobSpec, JobState
+from result_fixtures import preflight_package, training_inputs, training_package
 
 
 def test_controlled_r1_benchmark_runs_and_is_persisted_as_product_evidence(
@@ -28,6 +30,13 @@ def test_controlled_r1_benchmark_runs_and_is_persisted_as_product_evidence(
     )
     assert artifact.is_file()
     assert service.product_workspace()["experiments"][0]["record_id"] == record["record_id"]
+    client = TestClient(create_app(service, app_token="desktop-token"))
+    route = f"/app/v1/records/{record['record_id']}/artifact"
+    assert client.get(route).status_code == 401
+    response = client.get(route, headers={"X-App-Token": "desktop-token"})
+    assert response.status_code == 200
+    assert response.content == artifact.read_bytes()
+    assert response.headers["x-artifact-sha256"] == record["artifact_sha256"]
 
 
 def test_controlled_benchmark_desktop_route_requires_session_and_returns_record(
@@ -138,18 +147,115 @@ def test_dataset_workflow_consumes_only_explicitly_approved_feedback(tmp_path: P
         node_id="worker-nvidia", token=token, job_id=lease["job_id"],
         attempt_id=lease["attempt_id"], lease_token=lease["lease_token"],
         lease_generation=lease["lease_generation"], outcome="succeeded",
-        payload={
-            "preflight_sha256": "1" * 64, "dataset_fingerprint": record["artifact_sha256"],
-            "chat_template_fingerprint": "2" * 64, "dtype": "bf16", "backend": "cuda",
-            "contract": contract, "checks": checks,
-        },
+        payload=preflight_package(service, lease, tmp_path / "preflight-result"),
         idempotency_key="complete-preflight",
     )
-    baseline = service.run_controlled_retrieval_benchmark(k=5)
+    retrieval_only = service.run_controlled_retrieval_benchmark(k=5)
+    with pytest.raises(ValueError, match="completed prompting or RAG baseline"):
+        service.create_training_job(
+            dataset_id=record["record_id"], preflight_job_id=preflight["record_id"],
+            baseline_experiment_id=retrieval_only["record_id"], objective="format",
+            hypothesis="Reducir errores de formato", contains_mutable_facts=False,
+            minimum_quality_gain=0.05, approved_by="lead-reviewer",
+            epochs=1.0, idempotency_key="invalid-retrieval-baseline",
+        )
+    service.record_product_item(
+        record_id="baseline-broker-check", category="experiment", title="Broker retrieval",
+        status="CAPABILITIES_SATISFIED", artifact_sha256="9" * 64,
+        summary={"phase": "retrieval", "endpoint": "http://127.0.0.1:8765", "observed_contract": "2.9"},
+    )
+
+    def complete_baseline(item: dict, label: str) -> None:
+        report_dir = tmp_path / label
+        report_dir.mkdir()
+        summary = item["summary"]
+        passed_count = len(summary["case_ids"]) // 2
+        (report_dir / "strategy-report.json").write_text(canonical_json({
+            "schema_version": "strategy-suite-report.v1",
+            "strategy_id": summary["strategy_id"], "suite_fingerprint": summary["suite_fingerprint"],
+            "snapshot_hash": summary["snapshot_hash"],
+            "case_ids": summary["case_ids"], "target_model": summary["target_model"],
+            "quality": {"deterministic_pass_rate": passed_count / len(summary["case_ids"])}, "latency_ms": 120.0,
+            "results": [{"case_id": case_id, "verification": {"deterministic_pass": index < passed_count}}
+                        for index, case_id in enumerate(summary["case_ids"])],
+        }), encoding="utf-8")
+        report_zip, _ = deterministic_zip(report_dir, tmp_path / f"{label}.zip")
+        artifact = service.artifacts.ingest_file(report_zip)
+        with service.repository.transaction() as db:
+            db.execute("UPDATE jobs SET state='succeeded' WHERE job_id=?", (item["record_id"],))
+        service.record_product_item(
+            record_id=item["record_id"], category="experiment", title=item["title"],
+            status="EXPERIMENT_SUCCEEDED", artifact_sha256=artifact["sha256"],
+            summary=summary,
+        )
+
+    wrong_baseline = service.create_strategy_suite_job(
+        strategy_id="B1", broker_check_id="baseline-broker-check",
+        broker_endpoint="http://127.0.0.1:8765", node_id="worker-nvidia",
+        target_model={"provider": "local", "deployment": "test", "model": "local/model-cache"},
+        embedding_model=None, embedding_model_fingerprint=None, device="cpu",
+        training_job_id=None, k=5, idempotency_key="baseline-other-snapshot",
+    )
+    complete_baseline(wrong_baseline, "wrong-baseline-report")
+    with pytest.raises(ValueError, match="source snapshot"):
+        service._validated_training_baseline(wrong_baseline["record_id"], record)
+
+    index_record = service.create_knowledge_index(snapshot_id=snapshot_record["record_id"])
+    benchmark = service.register_real_benchmark(definition={
+        "schema_version": "real-benchmark.v1", "purpose": "external_validity",
+        "training_eligible": False, "snapshot_hash": snapshot_record["artifact_sha256"],
+        "human_review": {"status": "approved", "reviewer_kind": "human", "reviewer": "lead-reviewer"},
+        "cases": [{
+            "case_id": "baseline-atlas-1", "query": "¿Qué proyecto dirige Ana Torres?",
+            "reference_answer": {
+                "author_kind": "human", "author": "human-reviewer", "answer": "Ana Torres dirige Atlas.",
+                "evidence": [{key: evidence[key] for key in (
+                    "note_id", "note_path", "section", "chunk_id", "source_reference"
+                )}],
+            },
+        }, {
+            "case_id": "baseline-atlas-2", "query": "¿Cuál es el proyecto de Ana Torres?",
+            "reference_answer": {
+                "author_kind": "human", "author": "human-reviewer", "answer": "Ana Torres dirige Atlas.",
+                "evidence": [{key: evidence[key] for key in (
+                    "note_id", "note_path", "section", "chunk_id", "source_reference"
+                )}],
+            },
+        }],
+    })
+    baseline = service.create_strategy_suite_job(
+        strategy_id="B1", broker_check_id="baseline-broker-check",
+        broker_endpoint="http://127.0.0.1:8765", node_id="worker-nvidia",
+        target_model={"provider": "local", "deployment": "test", "model": "local/model-cache"},
+        embedding_model=None, embedding_model_fingerprint=None, device="cpu",
+        training_job_id=None, k=5, idempotency_key="baseline-b0",
+        benchmark_id=benchmark["record_id"], snapshot_id=snapshot_record["record_id"],
+        index_id=index_record["record_id"],
+    )
+    complete_baseline(baseline, "baseline-report")
+    with pytest.raises(ValueError, match="memorize mutable facts"):
+        service.create_training_job(
+            dataset_id=record["record_id"], preflight_job_id=preflight["record_id"],
+            baseline_experiment_id=baseline["record_id"], objective="format",
+            hypothesis="Memorizar el estado actual del vault",
+            contains_mutable_facts=True, minimum_quality_gain=0.05,
+            approved_by="lead-reviewer", epochs=1.0,
+            idempotency_key="mutable-training-rejected",
+        )
+    with pytest.raises(ValueError, match="positive and achievable"):
+        service.create_training_job(
+            dataset_id=record["record_id"], preflight_job_id=preflight["record_id"],
+            baseline_experiment_id=baseline["record_id"], objective="format",
+            hypothesis="Mejorar más allá del máximo posible",
+            contains_mutable_facts=False, minimum_quality_gain=0.6,
+            approved_by="lead-reviewer", epochs=1.0,
+            idempotency_key="impossible-gain-rejected",
+        )
     training = service.create_training_job(
         dataset_id=record["record_id"], preflight_job_id=preflight["record_id"],
         baseline_experiment_id=baseline["record_id"], objective="format",
         hypothesis="El adapter reducirá errores de esquema sin memorizar hechos.",
+        contains_mutable_facts=False, minimum_quality_gain=0.05,
         approved_by="lead-reviewer", epochs=1.0, idempotency_key="training-submit",
     )
     training_spec = json.loads(service.repository.job(training["record_id"])["spec_json"])
@@ -170,6 +276,8 @@ def test_dataset_workflow_consumes_only_explicitly_approved_feedback(tmp_path: P
         student_finetuning_allowed=True,
         objective="behavior",
         hypothesis="El alumno conservará la calidad del profesor con menor coste.",
+        contains_mutable_facts=False,
+        minimum_quality_gain=0.05,
         approved_by="lead-reviewer",
         epochs=1.0,
         generation_config={"temperature": 0.0, "max_new_tokens": 256},
@@ -219,6 +327,8 @@ def test_dataset_workflow_consumes_only_explicitly_approved_feedback(tmp_path: P
         student_finetuning_allowed=True,
         objective="behavior",
         hypothesis="El profesor del Broker mejorará al alumno local.",
+        contains_mutable_facts=False,
+        minimum_quality_gain=0.05,
         approved_by="lead-reviewer",
         epochs=1.0,
         generation_config={"temperature": 0.0, "max_new_tokens": 256},
@@ -234,6 +344,12 @@ def test_dataset_workflow_consumes_only_explicitly_approved_feedback(tmp_path: P
     assert "broker_token" not in broker_spec["payload"]
 
     client = TestClient(create_app(service, app_token="desktop-token"))
+    incomplete = client.post(
+        "/app/v1/training/distillation",
+        headers={"X-App-Token": "desktop-token"},
+        json={"dataset_id": record["record_id"]},
+    )
+    assert incomplete.status_code == 422
     response = client.post(
         "/app/v1/training/distillation",
         headers={"X-App-Token": "desktop-token"},
@@ -251,6 +367,8 @@ def test_dataset_workflow_consumes_only_explicitly_approved_feedback(tmp_path: P
             "student_finetuning_allowed": True,
             "objective": "behavior",
             "hypothesis": "La segunda pareja también debe superar el baseline.",
+            "contains_mutable_facts": False,
+            "minimum_quality_gain": 0.05,
             "approved_by": "lead-reviewer",
             "epochs": 1.0,
             "generation_config": {"temperature": 0.2, "max_new_tokens": 128},
@@ -274,35 +392,27 @@ def test_export_job_uses_portable_training_artifact_and_tested_worker_capability
         token=registration["device_token"],
         capabilities={
             "facts": [],
-            "workloads": [{"kind": "export.adapter", "status": "tested"}],
+            "workloads": [{"kind": "export.adapter", "status": "untested"}],
         },
     )
-    training_root = tmp_path / "training-output"
-    (training_root / "adapter").mkdir(parents=True)
-    (training_root / "adapter" / "adapter.safetensors").write_bytes(b"adapter")
-    manifest_path = training_root / "training-manifest.json"
-    manifest_path.write_text('{"content_sha256":"' + "a" * 64 + '"}\n', encoding="utf-8")
-    archive_path, _ = deterministic_zip(training_root, tmp_path / "training.zip")
-    stored = service.artifacts.ingest_file(archive_path)
-    training = JobSpec(kind="training.lora.v1", payload={"base_model": "local/model"})
+    service.repository.record_workload_evidence(
+        "worker-export", kind="export.adapter", status="tested", evidence_sha256="a" * 64,
+    )
+    training = JobSpec(kind="training.lora.v1", payload=training_inputs(base_model="local/model"))
     service.submit_job(training, "training-result-fixture")
-    result = {
-        "manifest_sha256": "a" * 64,
-        "manifest_file_sha256": hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
-        "artifacts": [{
-            "kind": "training_result", "sha256": stored["sha256"], "size": stored["size"]
-        }],
-    }
-    with service.repository.transaction() as db:
-        db.execute(
-            "UPDATE jobs SET state=?, result_json=? WHERE job_id=?",
-            (JobState.SUCCEEDED, canonical_json(result), training.job_id),
-        )
     service.record_product_item(
         record_id=training.job_id, category="training", title="Training fixture",
-        status="TRAINING_SUCCEEDED", artifact_sha256=stored["sha256"],
+        status="TRAINING_QUEUED", artifact_sha256=training.fingerprint(),
         summary={"job_id": training.job_id},
     )
+    lease = service.claim_job(node_id="worker-export", token=registration["device_token"], idempotency_key="training-claim")
+    service.ack_job(node_id="worker-export", token=registration["device_token"], job_id=training.job_id,
+                    lease_token=lease["lease_token"], lease_generation=lease["lease_generation"], idempotency_key="training-ack")
+    result = training_package(service, lease, tmp_path / "training-result")
+    stored = result["artifacts"][0]
+    service.complete_job(node_id="worker-export", token=registration["device_token"], job_id=training.job_id,
+                         attempt_id=lease["attempt_id"], lease_token=lease["lease_token"], lease_generation=lease["lease_generation"],
+                         outcome="succeeded", payload=result, idempotency_key="training-complete")
 
     created = service.create_export_job(
         training_job_id=training.job_id, node_id="worker-export", formats=["adapter"],
@@ -345,7 +455,7 @@ def test_strategy_and_agent_jobs_use_capability_evidence_without_persisting_brok
         service.record_product_item(
             record_id=record_id, category="experiment", title="Broker check",
             status="CAPABILITIES_SATISFIED", artifact_sha256=("b" if phase == "retrieval" else "c") * 64,
-            summary={"phase": phase, "observed_contract": "2.9"},
+            summary={"phase": phase, "observed_contract": "2.9", "endpoint": "http://127.0.0.1:8765"},
         )
     target = {"provider": "local", "deployment": "desktop", "model": "exact-model"}
     baseline = service.create_strategy_suite_job(

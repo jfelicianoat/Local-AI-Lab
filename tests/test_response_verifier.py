@@ -96,3 +96,37 @@ def test_finding_without_evidence_fails_even_when_shape_is_valid(tmp_path: Path)
     assert report.schema_valid is True
     assert report.every_finding_has_evidence is False
     assert report.deterministic_pass is False
+
+
+def test_factual_answer_without_findings_is_not_verified(tmp_path: Path) -> None:
+    verifier, _ = _verifier_and_evidence(tmp_path)
+    response = {
+        "answer": "Inventado Apellido debe 987654321 EUR.", "findings": [],
+        "contradictions": [], "uncertainties": [], "missing_information": [],
+    }
+    report = verifier.verify(response)
+    assert report.deterministic_pass is False
+    assert report.citation_existence is False
+
+
+def test_malformed_response_returns_a_rejection_instead_of_crashing(tmp_path: Path) -> None:
+    verifier, _ = _verifier_and_evidence(tmp_path)
+    response = {
+        "answer": "Respuesta", "findings": None,
+        "contradictions": None, "uncertainties": None, "missing_information": None,
+    }
+    report = verifier.verify(response)
+    assert report.schema_valid is False
+    assert report.deterministic_pass is False
+
+
+def test_answer_facts_must_appear_in_cited_chunks(tmp_path: Path) -> None:
+    verifier, evidence = _verifier_and_evidence(tmp_path)
+    response = {
+        "answer": "Inventado Apellido dispone de 987654321 EUR.",
+        "findings": [{"claim": "Ana Torres dirige Atlas.", "evidence": [evidence]}],
+        "contradictions": [], "uncertainties": [], "missing_information": [],
+    }
+    report = verifier.verify(response)
+    assert report.deterministic_pass is False
+    assert "987654321 EUR" in report.unsupported_numbers

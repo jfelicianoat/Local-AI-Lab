@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import json
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+import pytest
 
 from local_ai_lab.coordinator.api import create_app
 from local_ai_lab.coordinator.service import CoordinatorService
@@ -75,24 +77,24 @@ def test_review_ui_api_verifies_diff_and_explicit_states(tmp_path: Path) -> None
     saved = client.put(
         f"/app/v1/reviews/{review['review_id']}/correction",
         headers=headers,
-        json={"actor": "ana", "corrected_response": corrected},
+        json={"actor": "ana", "corrected_response": corrected, "expected_revision": review["revision"]},
     )
     assert saved.status_code == 200
     assert saved.json()["verification"]["deterministic_pass"] is True
     assert saved.json()["diff_text"]
     submitted = client.post(
         f"/app/v1/reviews/{review['review_id']}/state",
-        headers=headers, json={"actor": "ana", "to_state": "submitted"},
+        headers=headers, json={"actor": "ana", "to_state": "submitted", "expected_revision": saved.json()["revision"]},
     )
     assert submitted.json()["status"] == "submitted"
     accepted = client.post(
         f"/app/v1/reviews/{review['review_id']}/state",
-        headers=headers, json={"actor": "lead", "to_state": "accepted"},
+        headers=headers, json={"actor": "lead", "to_state": "accepted", "expected_revision": submitted.json()["revision"]},
     )
     assert accepted.json()["status"] == "accepted"
     proposed = client.post(
         f"/app/v1/reviews/{review['review_id']}/training-state",
-        headers=headers, json={"actor": "ana", "to_state": "proposed"},
+        headers=headers, json={"actor": "ana", "to_state": "proposed", "expected_revision": accepted.json()["revision"]},
     )
     assert proposed.json()["training_state"] == "proposed"
 
@@ -142,3 +144,70 @@ def test_knowledge_ui_rejects_nested_or_traversal_vault_names(tmp_path: Path) ->
         json={"allowed_root": str(allowed), "vault_name": "../Research"},
     )
     assert response.status_code == 422
+
+
+def test_two_review_sessions_cannot_overwrite_the_same_revision(tmp_path: Path) -> None:
+    service, review, corrected = _review_fixture(tmp_path)
+    client = TestClient(create_app(service, app_token="desktop-token"))
+    headers = {"X-App-Token": "desktop-token"}
+    path = f"/app/v1/reviews/{review['review_id']}/correction"
+
+    def save(answer: str):
+        return client.put(path, headers=headers, json={
+            "actor": answer, "corrected_response": {**corrected, "answer": answer},
+            "expected_revision": 1,
+        })
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(save, ["Corrección A", "Corrección B"]))
+    assert sorted(result.status_code for result in results) == [200, 409]
+    winner = next(result.json() for result in results if result.status_code == 200)
+    stored = service.feedback.get(review["review_id"])
+    assert stored["corrected"] == winner["corrected"]
+    assert stored["revision"] == 2
+    assert [event["event_type"] for event in stored["events"]] == [
+        "review_created", "correction_saved",
+    ]
+
+
+def test_review_acceptance_and_training_approval_require_the_seen_revision(tmp_path: Path) -> None:
+    service, review, corrected = _review_fixture(tmp_path)
+    client = TestClient(create_app(service, app_token="desktop-token"))
+    headers = {"X-App-Token": "desktop-token"}
+    review_id = review["review_id"]
+    service.save_review_correction(review_id=review_id, actor="ana", corrected_response=corrected)
+    submitted = service.transition_review(review_id=review_id, to_state="submitted", actor="ana")
+    other = service.save_review_correction(
+        review_id=review_id, actor="other", corrected_response={**corrected, "answer": "Otra respuesta"},
+    )
+    stale = client.post(f"/app/v1/reviews/{review_id}/state", headers=headers, json={
+        "actor": "lead", "to_state": "accepted", "expected_revision": submitted["revision"],
+    })
+    assert stale.status_code == 409
+    assert service.feedback.get(review_id) == other
+    accepted = client.post(f"/app/v1/reviews/{review_id}/state", headers=headers, json={
+        "actor": "lead", "to_state": "accepted", "expected_revision": other["revision"],
+    })
+    assert accepted.status_code == 200
+    proposed = service.transition_training_candidate(review_id=review_id, to_state="proposed", actor="ana")
+    service.transition_training_candidate(review_id=review_id, to_state="rejected", actor="other")
+    reproposed = service.transition_training_candidate(review_id=review_id, to_state="proposed", actor="other")
+    rejected = client.post(f"/app/v1/reviews/{review_id}/training-state", headers=headers, json={
+        "actor": "lead", "to_state": "approved", "expected_revision": proposed["revision"],
+    })
+    assert rejected.status_code == 409
+    assert service.feedback.get(review_id) == reproposed
+
+
+@pytest.mark.parametrize("suffix,method,body", [
+    ("correction", "put", {"corrected_response": {}}),
+    ("state", "post", {"to_state": "submitted"}),
+    ("training-state", "post", {"to_state": "proposed"}),
+])
+def test_review_api_requires_a_revision_without_mutating(tmp_path: Path, suffix, method, body) -> None:
+    service, review, _ = _review_fixture(tmp_path)
+    client = TestClient(create_app(service, app_token="desktop-token"))
+    response = getattr(client, method)(f"/app/v1/reviews/{review['review_id']}/{suffix}",
+        headers={"X-App-Token": "desktop-token"}, json={"actor": "ana", **body})
+    assert response.status_code == 422
+    assert service.feedback.get(review["review_id"]) == review

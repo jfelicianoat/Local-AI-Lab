@@ -53,6 +53,7 @@ pub(crate) fn start_coordinator(
         .into());
     }
     let log_path = data_dir.join("coordinator.log");
+    rotate_log_at_startup(&log_path)?;
     let log = OpenOptions::new()
         .create(true)
         .append(true)
@@ -77,6 +78,24 @@ pub(crate) fn start_coordinator(
         },
         Some(child),
     ))
+}
+
+fn rotate_log_at_startup(path: &Path) -> std::io::Result<()> {
+    const MAX_BYTES: u64 = 10 * 1024 * 1024;
+    if !path.is_file() || path.metadata()?.len() < MAX_BYTES {
+        return Ok(());
+    }
+    let oldest = path.with_extension("log.3");
+    if oldest.exists() {
+        std::fs::remove_file(oldest)?;
+    }
+    for generation in (1..3).rev() {
+        let previous = path.with_extension(format!("log.{generation}"));
+        if previous.exists() {
+            std::fs::rename(previous, path.with_extension(format!("log.{}", generation + 1)))?;
+        }
+    }
+    std::fs::rename(path, path.with_extension("log.1"))
 }
 
 pub(crate) fn resolve_coordinator_executable(

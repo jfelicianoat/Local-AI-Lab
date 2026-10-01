@@ -20,6 +20,7 @@ from local_ai_lab.coordinator.api.modelos import (
     ArtifactChunkRequest,
     ArtifactInitiateRequest,
     ClaimRequest,
+    CheckpointPublishRequest,
     CompleteRequest,
     HeartbeatRequest,
     LeaseMutation,
@@ -179,6 +180,23 @@ def registrar_rutas_nodo(app: FastAPI, service: CoordinatorService) -> None:
             lease_generation=body.lease_generation,
             sequence=body.sequence,
             payload=body.payload,
+            idempotency_key=idempotency_key,
+        )
+
+    @app.post("/node/v1/jobs/{job_id}/checkpoints")
+    def publish_checkpoint(
+        job_id: str,
+        body: CheckpointPublishRequest,
+        credentials: Annotated[tuple[str, str], Depends(_node_credentials)],
+        idempotency_key: Annotated[str, Header(alias="Idempotency-Key")],
+    ) -> dict[str, Any]:
+        node_id, token = credentials
+        return _call(
+            service.publish_training_checkpoint,
+            node_id=node_id, token=token, job_id=job_id,
+            attempt_id=body.attempt_id, lease_token=body.lease_token,
+            lease_generation=body.lease_generation, step=body.step,
+            artifact_id=body.artifact_id, artifact_sha256=body.artifact_sha256,
             idempotency_key=idempotency_key,
         )
 

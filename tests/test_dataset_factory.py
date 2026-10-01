@@ -20,21 +20,22 @@ class PassingVerifier:
         return PassingReport()
 
 
-def _approved(repository: FeedbackRepository, *, run: str, case: str, reviewer: str):
+def _approved(repository: FeedbackRepository, *, run: str, case: str, reviewer: str,
+              snapshot: str = "snapshot-real", query: str = "Consulta real"):
     response = {
         "answer": "Respuesta corregida.", "findings": [], "contradictions": [],
         "uncertainties": [], "missing_information": ["No consta."],
     }
     context = {
-        "query": "Consulta real", "strategy_id": "R3.hybrid-rrf.v1",
+        "query": query, "strategy_id": "R3.hybrid-rrf.v1",
         "model": "local/model", "prompt": "Responde con evidencia.",
-        "retrieval_config": {"k": 5}, "snapshot_id": "snapshot-real",
+        "retrieval_config": {"k": 5}, "snapshot_id": snapshot,
         "retrieved_context": [],
         "estimated_tokens": None,
         "cost": {"amount": None, "currency": "USD", "source": "not_available", "verification_status": "unknown"},
     }
     review = repository.create_review(
-        run_id=run, case_id=case, snapshot_id="snapshot-real", reviewer=reviewer,
+        run_id=run, case_id=case, snapshot_id=snapshot, reviewer=reviewer,
         run_context=context, original_response=response,
     )
     repository.save_correction(
@@ -61,6 +62,7 @@ def test_dataset_excludes_benchmarks_deduplicates_and_keeps_provenance(tmp_path:
     manifest = DatasetVerifier().verify(result.path)
 
     assert manifest["counts"]["included"] == 1
+    assert manifest["source_snapshot_ids"] == ["snapshot-real"]
     assert manifest["counts"]["excluded"] == 2
     assert real["review_id"] in result.exported_review_ids
     assert benchmark["review_id"] in result.excluded_review_ids
@@ -98,4 +100,17 @@ def test_dataset_cannot_be_built_only_from_benchmark_cases(tmp_path: Path) -> No
             repository, tmp_path / "datasets", name="dataset",
             benchmark_case_ids={"atlas-owner"}, benchmark_fingerprints={"a" * 64},
             split_seed="seed",
+        )
+
+
+def test_dataset_rejects_mixed_source_snapshots(tmp_path: Path) -> None:
+    repository = FeedbackRepository(tmp_path / "feedback.sqlite3")
+    _approved(repository, run="run-a", case="case-a", reviewer="ana", query="Consulta A")
+    _approved(repository, run="run-b", case="case-b", reviewer="bea",
+              snapshot="another-snapshot", query="Consulta B")
+
+    with pytest.raises(DatasetError, match="exactly one snapshot"):
+        DatasetFactory().build(
+            repository, tmp_path / "datasets", name="mixed",
+            benchmark_case_ids=set(), benchmark_fingerprints=set(), split_seed="seed",
         )

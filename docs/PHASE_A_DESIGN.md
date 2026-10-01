@@ -1,5 +1,8 @@
 # Local AI Lab — Diseño de Fase A
 
+> Diseño histórico aspiracional. La frontera de seguridad implementada y sus
+> pruebas actuales se describen en [SECURITY_BOUNDARY_CURRENT.md](SECURITY_BOUNDARY_CURRENT.md).
+
 **Estado:** propuesta arquitectónica pendiente de aprobación humana  
 **Fecha de revisión:** 23 de agosto de 2026  
 **Alcance:** Fase A exclusivamente; no se ha creado todavía código de producto  

@@ -6,7 +6,7 @@ mando una opcion que el Coordinator nunca leyo.
 """
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -14,6 +14,57 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+class StorageCleanupPlanRequest(StrictModel):
+    older_than_days: int = Field(default=30, ge=7, le=365, strict=True)
+
+
+class StorageCleanupApplyRequest(StrictModel):
+    plan_id: str = Field(min_length=1, max_length=128)
+    confirmed: Literal[True]
+
+
+class MissionSaveRequest(StrictModel):
+    strategy: str = Field(min_length=1, max_length=32)
+    task: str = Field(min_length=1, max_length=4000)
+    success: str = Field(min_length=1, max_length=4000)
+    constraints: str = Field(default="", max_length=4000)
+    teacher_source: str | None = Field(default=None, max_length=32)
+    teacher_model: str | None = Field(default=None, max_length=1024)
+    student_model: str | None = Field(default=None, max_length=1024)
+
+
+class MissionLinkRequest(StrictModel):
+    stage_index: int = Field(ge=0, le=20)
+    reference_kind: str = Field(min_length=1, max_length=32)
+    reference_id: str = Field(min_length=1, max_length=128)
+
+
+WorkspaceGroupName = Literal[
+    "knowledge", "benchmarks", "experiments", "reviews", "datasets", "training", "exports"
+]
+
+
+class WorkspaceCursor(StrictModel):
+    updated_at: str = Field(min_length=1, max_length=64)
+    record_id: str = Field(min_length=1, max_length=128)
+
+
+class WorkspacePageRequest(StrictModel):
+    limit: int = Field(default=50, ge=1, le=200)
+    groups: list[WorkspaceGroupName] = Field(min_length=1, max_length=7)
+    cursors: dict[WorkspaceGroupName, WorkspaceCursor | None] = Field(default_factory=dict)
+
+
+class HistoryCursor(StrictModel):
+    updated_at: str = Field(min_length=1, max_length=64)
+    id: str = Field(min_length=1, max_length=128)
+
+
+class HistoryPageRequest(StrictModel):
+    limit: int = Field(default=50, ge=1, le=200)
+    cursor: HistoryCursor | None = None
 
 
 class PairRequest(StrictModel):
@@ -46,6 +97,13 @@ class ProgressRequest(LeaseMutation):
     payload: dict[str, Any]
 
 
+class CheckpointPublishRequest(LeaseMutation):
+    attempt_id: str = Field(min_length=1, max_length=128)
+    step: int = Field(ge=1)
+    artifact_id: str = Field(min_length=1, max_length=128)
+    artifact_sha256: str = Field(min_length=64, max_length=64)
+
+
 class CompleteRequest(LeaseMutation):
     attempt_id: str = Field(min_length=1, max_length=128)
     outcome: str
@@ -55,11 +113,29 @@ class CompleteRequest(LeaseMutation):
 class ReviewCorrectionRequest(StrictModel):
     actor: str = Field(min_length=1, max_length=255)
     corrected_response: dict[str, Any]
+    expected_revision: int = Field(strict=True, ge=1)
+
+
+class ManualExamplePreviewRequest(StrictModel):
+    snapshot_id: str = Field(min_length=1, max_length=128)
+    index_id: str = Field(min_length=1, max_length=128)
+    query: str = Field(min_length=1, max_length=4000)
+
+
+class ManualExampleCreateRequest(ManualExamplePreviewRequest):
+    answer: str = Field(min_length=1, max_length=20000)
+    chunk_ids: list[str] = Field(min_length=1, max_length=20)
+    reviewer: str = Field(min_length=1, max_length=255)
 
 
 class StateTransitionRequest(StrictModel):
     actor: str = Field(min_length=1, max_length=255)
     to_state: str = Field(min_length=1, max_length=64)
+    reason: str | None = Field(default=None, max_length=2000)
+
+
+class ReviewStateTransitionRequest(StateTransitionRequest):
+    expected_revision: int = Field(strict=True, ge=1)
 
 
 class VaultRootRequest(StrictModel):
@@ -79,6 +155,17 @@ class CancelRequest(StrictModel):
     idempotency_key: str = Field(min_length=1, max_length=200)
 
 
+class CheckpointResumeRequest(StrictModel):
+    checkpoint_id: str = Field(min_length=1, max_length=128)
+    idempotency_key: str = Field(min_length=1, max_length=200)
+    node_id: str | None = Field(default=None, min_length=1, max_length=128)
+
+
+class TrainingRestartRequest(StrictModel):
+    node_id: str = Field(min_length=1, max_length=128)
+    idempotency_key: str = Field(min_length=1, max_length=200)
+
+
 class ArtifactInitiateRequest(StrictModel):
     expected_sha256: str = Field(min_length=64, max_length=64)
     expected_size: int = Field(ge=0)
@@ -92,6 +179,9 @@ class ArtifactChunkRequest(StrictModel):
 
 class ControlledBenchmarkRequest(StrictModel):
     k: int = Field(default=5, ge=1, le=100)
+    benchmark_id: str | None = Field(default=None, max_length=128)
+    snapshot_id: str | None = Field(default=None, max_length=128)
+    index_id: str | None = Field(default=None, max_length=128)
 
 
 class SemanticBenchmarkRequest(StrictModel):
@@ -102,6 +192,9 @@ class SemanticBenchmarkRequest(StrictModel):
     device: str = Field(default="cpu", min_length=1, max_length=64)
     k: int = Field(default=5, ge=1, le=100)
     idempotency_key: str = Field(min_length=1, max_length=200)
+    benchmark_id: str | None = Field(default=None, max_length=128)
+    snapshot_id: str | None = Field(default=None, max_length=128)
+    index_id: str | None = Field(default=None, max_length=128)
 
 
 class RealBenchmarkRegisterRequest(StrictModel):
@@ -129,6 +222,8 @@ class StrategySelectionRequest(StrictModel):
     max_cost: str | None = Field(default=None, max_length=64)
     minimum_cases: int = Field(default=20, ge=1, le=100000)
     require_formal_verdict: bool = True
+    quality_metric: str = Field(pattern="^(quality\\.fidelity|retrieval\\.recall_at_k)$")
+    minimum_quality: float = Field(ge=0, le=1)
 
 
 class BrokerAgentExperimentRequest(StrictModel):
@@ -142,12 +237,15 @@ class BrokerAgentExperimentRequest(StrictModel):
     device: str = Field(default="cpu", min_length=1, max_length=64)
     k: int = Field(default=5, ge=1, le=100)
     idempotency_key: str = Field(min_length=1, max_length=200)
+    benchmark_id: str | None = Field(default=None, max_length=128)
+    snapshot_id: str | None = Field(default=None, max_length=128)
+    index_id: str | None = Field(default=None, max_length=128)
 
 
 class StrategySuiteRequest(StrictModel):
     strategy_id: str
-    broker_check_id: str = Field(min_length=1, max_length=128)
-    broker_endpoint: str = Field(min_length=1, max_length=2048)
+    broker_check_id: str = Field(max_length=128)
+    broker_endpoint: str = Field(max_length=2048)
     node_id: str = Field(min_length=1, max_length=128)
     target_model: dict[str, str]
     embedding_model: str | None = Field(default=None, max_length=2048)
@@ -156,12 +254,16 @@ class StrategySuiteRequest(StrictModel):
     training_job_id: str | None = Field(default=None, max_length=128)
     k: int = Field(default=5, ge=1, le=100)
     idempotency_key: str = Field(min_length=1, max_length=200)
+    benchmark_id: str | None = Field(default=None, max_length=128)
+    snapshot_id: str | None = Field(default=None, max_length=128)
+    index_id: str | None = Field(default=None, max_length=128)
 
 
 class DatasetBuildRequest(StrictModel):
     name: str = Field(min_length=1, max_length=255)
     split_seed: str = Field(min_length=8, max_length=255)
     actor: str = Field(min_length=1, max_length=255)
+    source_snapshot_id: str = Field(min_length=1, max_length=128)
 
 
 class TrainingPreflightRequest(StrictModel):
@@ -181,6 +283,8 @@ class TrainingCreateRequest(StrictModel):
     baseline_experiment_id: str = Field(min_length=1, max_length=128)
     objective: str = Field(min_length=1, max_length=128)
     hypothesis: str = Field(min_length=1, max_length=2000)
+    contains_mutable_facts: bool
+    minimum_quality_gain: float = Field(gt=0, le=1, allow_inf_nan=False)
     approved_by: str = Field(min_length=1, max_length=255)
     epochs: float = Field(default=1.0, gt=0, le=100)
     idempotency_key: str = Field(min_length=1, max_length=200)
@@ -204,6 +308,8 @@ class DistillationCreateRequest(StrictModel):
     student_finetuning_allowed: bool
     objective: str = Field(min_length=1, max_length=128)
     hypothesis: str = Field(min_length=1, max_length=2000)
+    contains_mutable_facts: bool
+    minimum_quality_gain: float = Field(gt=0, le=1, allow_inf_nan=False)
     approved_by: str = Field(min_length=1, max_length=255)
     epochs: float = Field(default=1.0, gt=0, le=100)
     generation_config: dict[str, Any]
@@ -217,4 +323,5 @@ class ExportCreateRequest(StrictModel):
     license_id: str = Field(min_length=1, max_length=255)
     serving: dict[str, Any]
     llama_cpp_converter: str | None = Field(default=None, max_length=2048)
+    verification_only: bool = Field(default=False, strict=True)
     idempotency_key: str = Field(min_length=1, max_length=200)

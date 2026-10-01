@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ctypes
 import os
+import secrets
 from ctypes import wintypes
 from typing import Protocol
 
@@ -60,9 +61,46 @@ class WindowsDpapiProtector:
             del keepalive
 
 
+class PassphraseProtector:
+    """Encrypt Linux/WSL credentials with a caller supplied, non-persisted passphrase."""
+
+    _PREFIX = b"LAL1"
+
+    def __init__(self, passphrase: str) -> None:
+        if len(passphrase) < 16:
+            raise SecretProtectionUnavailable("LOCAL_AI_LAB_WORKER_PASSPHRASE must contain at least 16 characters")
+        self._passphrase = passphrase.encode("utf-8")
+
+    def _key(self, salt: bytes) -> bytes:
+        from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+
+        return Scrypt(salt=salt, length=32, n=2**15, r=8, p=1).derive(self._passphrase)
+
+    def protect(self, value: str) -> bytes:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+        salt, nonce = secrets.token_bytes(16), secrets.token_bytes(12)
+        return self._PREFIX + salt + nonce + AESGCM(self._key(salt)).encrypt(
+            nonce, value.encode("utf-8"), self._PREFIX
+        )
+
+    def unprotect(self, value: bytes) -> str:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+        if len(value) < 48 or not value.startswith(self._PREFIX):
+            raise ValueError("protected Worker credential has an invalid format")
+        salt, nonce, encrypted = value[4:20], value[20:32], value[32:]
+        try:
+            return AESGCM(self._key(salt)).decrypt(nonce, encrypted, self._PREFIX).decode("utf-8")
+        except Exception as error:
+            raise SecretProtectionUnavailable("Worker passphrase is wrong or credential is corrupt") from error
+
 def platform_secret_protector() -> SecretProtector:
     if os.name == "nt":
         return WindowsDpapiProtector()
-    raise SecretProtectionUnavailable(
-        "configure a platform secret protector before running a worker"
-    )
+    passphrase = os.environ.get("LOCAL_AI_LAB_WORKER_PASSPHRASE", "")
+    if not passphrase:
+        raise SecretProtectionUnavailable(
+            "set LOCAL_AI_LAB_WORKER_PASSPHRASE before pairing or running the Linux/WSL Worker"
+        )
+    return PassphraseProtector(passphrase)
