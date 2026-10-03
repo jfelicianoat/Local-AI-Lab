@@ -10,7 +10,7 @@ Versiones declaradas: Desktop/Tauri/Rust 0.1.1; paquete Python Coordinator/Worke
 
 | Comprobación | Resultado observado |
 |---|---|
-| Python | Suite completa de la revisión 7 en el checkout independiente: 371 pasadas y 2 omitidas por permiso de symlink. Las 62 pruebas de contratos de resultados pasan también en el proyecto principal. |
+| Python | Suite completa de la revisión 8 en el checkout independiente: 382 pasadas y 2 omitidas por permiso de symlink. Incluye 11 pruebas nuevas de aislamiento/cancelación, 15 de autorización de respuestas guardadas y 62 de contratos de resultados. |
 | Frontend | Fuentes sin cambios desde R6 (16 pruebas y build comprobados entonces). Instalación inicial desde caché con `npm ci --offline`. Pasan 16 pruebas, incluidas cuatro de renderizado estático para estados pendientes y conservación de descarga; cinco comprueban borradores de revisión. La construcción principal pasa. La del candidato se ejecuta en el checkout independiente. |
 | Rust | Fuentes sin cambios desde R6: `cargo test --offline`, 3 pruebas pasan en esa revisión. |
 | Escritorio portable | Sidecar y portable construidos desde el checkout independiente. El smoke de la construcción anterior arrancó con base nueva; su repetición posterior no pudo cerrar el árbol de procesos. El candidato nuevo no tiene un smoke completo ni prueba visual. |
@@ -19,6 +19,7 @@ Versiones declaradas: Desktop/Tauri/Rust 0.1.1; paquete Python Coordinator/Worke
 | WSL | El sistema devuelve `E_ACCESSDENIED` al consultar WSL; el flujo real AMD/WSL no está probado. |
 | Agora, 2026-10-01 | HTTPS con la CA local instalada y bearer: health, profiles, contracts y board devuelven 200. Publica 5 perfiles y 4 contratos; lectura del tablero sin errores. No se crearon trabajos. |
 | AI Broker, 2026-09-30 | El endpoint documentado de red no se pudo consultar: Windows rechazó la conexión con `WinError 10013`. En loopback no hay servicio en el puerto documentado. No es una comprobación de incompatibilidad ni de token inválido. |
+| Conexión, 2026-10-02 | Agora acepta TCP en 127.0.0.1:8741. Broker documentado en 192.168.1.52:8765 sigue bloqueado por `WinError 10013`; loopback 8765 agota el tiempo. Esta consulta no envió credenciales ni verificó contratos HTTP. |
 | GPU local, 2026-10-01 | NVIDIA RTX 4060 Ti, 16.380 MiB, driver 616.56. No se hallaron torch/transformers/peft/accelerate en los entornos revisados. Se creó un entorno de prueba aislado; la descarga de PyTorch desde su índice oficial fue bloqueada por `WinError 10013`. No se ejecutó entrenamiento real. |
 
 Se han corregido rutas reproducidas de build, selección de suite real, evaluación
@@ -216,6 +217,9 @@ su prueba visual y de arranque/cierre sigue pendiente.
   misma limitación de representación de relaciones paralelas.
   R7 actualiza cuatro archivos de código y los tres documentos vigentes; el fragmento
   original se conserva en `graphify-out/EXTRACTION_R7.json`, con esa misma limitación.
+  R8 actualiza otros cuatro archivos de código y los tres documentos vigentes para
+  reflejar el aislamiento/cancelación; conserva `EXTRACTION_R8.json` y la limitación
+  de relaciones paralelas del grafo simple. El coste semántico no está disponible.
 
 ## Corrección adicional de capacidades del Worker (H23)
 
@@ -360,7 +364,7 @@ que necesitan validación visual, equipos o modelos reales.
 
 | Hallazgo | Cobertura disponible | Verificación aún necesaria |
 |---|---|---|
-| H01 · Construcción | Frontend, Rust y portable R6; Coordinator actualizado R7, fuentes y hashes locales | Arranque/cierre nativos completos |
+| H01 · Construcción | Frontend, Rust y portable R6; Coordinator actualizado R8, fuentes y hashes locales | Arranque/cierre nativos completos |
 | H02 · Conocimiento privado | Snapshot, benchmark real, experimentos y dataset cubiertos con datos sintéticos | Recorrido visual con integraciones reales |
 | H03 · Pesos entrenados F1/F2 | Identidad del adaptador, carga local y rechazos cubiertos | Inferencia con los pesos entrenados reales |
 | H04 · Alumno destilado | Destilación aceptada como origen F1/F2 y exportación; contratos cubiertos | Destilación y evaluación reales |
@@ -369,7 +373,7 @@ que necesitan validación visual, equipos o modelos reales.
 | H07 · Verificador | Forma JSON, evidencia y errores deterministas cubiertos; límites de fidelidad explícitos | Verificación humana de soporte semántico |
 | H08 · Citas del benchmark | Rechazo de referencias inexistentes, ajenas o discordantes cubierto | Uso visual del editor |
 | H09 · Contaminación | Benchmarks controlados y reales, IDs y consultas excluidos en pruebas | Inspección del dataset real aprobado |
-| H10 · Cancelación | Controles renovados, cancelación y estado final cubiertos con ejecutores simulados | Latencia durante carga ML y espera Broker reales |
+| H10 · Cancelación | Ejecución aislada con procesos Windows reales; control cada segundo, cierre de ejecutor/conversores, journal y checkpoint preservados; 11 pruebas | Latencia con GPU y Broker reales; Windows/WSL entre equipos; cancelación remota de una tarea ya enviada a Broker |
 | H11 · Reenvío | Confirmación, interrupción de publicación, una revisión por caso y permisos cubiertos | Desconexión real prolongada |
 | H12 · Recuperación | Fencing, journal, checkpoint, reinicio y decisiones cubiertos | Recuperación real de entrenamiento y uso visual |
 | H13 · Autorización | Artefactos por job/intento, lease, revocación y respuestas guardadas cubiertos | Prueba distribuida entre equipos físicos |
@@ -385,26 +389,56 @@ que necesitan validación visual, equipos o modelos reales.
 | H23 · Estado y entorno | Dependencias, disponibilidad e invalidación de pruebas cubiertas | Cambio de entorno real y comprensión del aviso |
 | H24 · Escala | Streaming local, reanudación, paginación, cuota, limpieza y restauración cubiertos | Transferencias de tamaño de modelo y operación prolongada entre PCs |
 | H25 · Seguridad distribuida | TLS, revocación, contratos y autorización cubiertos en pruebas locales | Instalación y certificados entre equipos físicos |
-| H26 · Manual y verificación | Manual 1.9, copia independiente, parche, inventario y Graphify actualizados | Recorrido mínimo nativo completo; GitHub excluido por decisión del usuario |
+| H26 · Manual y verificación | Manual 2.0, copia independiente, parche, inventario y Graphify actualizados | Recorrido mínimo nativo completo; GitHub excluido por decisión del usuario |
 
 No se declara cerrada la auditoría con esta tabla: distingue cobertura local de
 los criterios que todavía requieren evidencia real o visual.
+
+## Cancelación durante operaciones bloqueantes, revisión 8
+
+Una prueba controlada confirmó que el Worker recibía la cancelación en unos 29 ms,
+pero esperaba 1,57 s a que terminara una carga simulada de 1,5 s sin callbacks.
+La confirmación final tardaba unos 34 ms. La espera estaba dentro del ejecutor.
+
+Los siete ejecutores de producción ahora se ejecutan mediante `spawn` en un proceso
+separado. El proceso padre mantiene el journal, la comunicación con el Coordinator,
+los artefactos y los checkpoints. Cada mensaje de progreso recibe confirmación del
+padre antes de que el ejecutor continúe. La consulta de cancelación ocurre cada
+segundo sin renovar el lease en cada consulta; la renovación conserva su intervalo.
+
+En Windows, un Job Object propio agrupa el nuevo ejecutor y sus conversores antes
+de empezar el trabajo; se cierran juntos al cancelar, fallar o morir el padre. En
+POSIX se prepara un grupo de procesos y un canal que detecta la muerte del padre;
+esa ruta no se ha ejecutado en WSL. No se terminan procesos anteriores o ajenos.
+Una prueba directa del proceso aislado canceló en 67 ms. La medida corresponde a
+una operación controlada y una señal local, no a una carga GPU ni a latencia de red.
+
+Pasan 11 pruebas nuevas con procesos reales de Windows: carga sin progreso, progreso
+persistido, cancelación antes del arranque, error/crash, cierre de conversor hijo,
+cierre inesperado del padre, consulta separada de renovación y checkpoint recuperado
+una sola vez después de perder la confirmación. Los bytes del checkpoint son fixtures
+de protocolo. La suite independiente final pasa 382 pruebas y omite 2 por symlink.
+
+Se detiene el trabajo local; una tarea ya enviada a Broker puede seguir en ese
+servicio. No se ha verificado ni implementado una cancelación remota sin contrato
+confirmado. La conexión TCP documentada sigue bloqueada el 2 de octubre. Continúan
+pendientes GPU, inferencia/conversión real, uso visual nativo y las pruebas entre equipos.
 
 ## Antes de cerrar una release
 
 Las comprobaciones locales de Python, TypeScript, Rust, sidecar y portable pasan
 desde el checkout independiente. El candidato actualizado está en
-`dist/candidate-20261001-r7`, con su carpeta `resources`; no se reemplazó el portable
-antiguo que sigue abierto. El escritorio reutiliza el binario R6 sin cambios de interfaz/Rust; el sidecar
-se reconstruyó desde los fuentes R7. Hashes SHA-256 del candidato: sidecar
-`8911f9cf8f886dc71f280bb0fede9355f614ddbafb27526574b776362d03c429`;
-portable `7a9345dc0b83874daeff18a6928de051947e4c61ebbaef831d6cd00bd19fde23`.
-El smoke anterior no certifica este candidato. La instancia de prueba anterior
-tiene PID de escritorio `89584` y Coordinators `76116` y `77452`; Windows rechazó
-su cierre. El script ahora limita el cierre a su árbol de procesos, restaura la
+`dist/candidate-20261002-r8`, con su carpeta `resources`. El escritorio reutiliza el binario R6 sin cambios de interfaz/Rust; el sidecar
+se reconstruyó desde los fuentes R8. El manifiesto de esa carpeta recoge los hashes
+del candidato; R7 permanece conservado como corte anterior.
+El smoke anterior no certifica este candidato. Windows rechazó el cierre de la
+instancia de prueba anterior. La consulta de procesos del 2 de octubre ya no encuentra
+instancias de Desktop ni Coordinator; no demuestra cómo terminaron ni valida el cierre
+del candidato actual. El script ahora limita el cierre a su árbol de procesos, restaura la
 configuración temporal y falla si no puede limpiarlo. Esas garantías se verificaron
 con procesos simulados, pero el cierre real sigue pendiente.
-El árbol sigue sin commit final. Probar
+La referencia local actual es `de8916e`; la documentación sigue en revisión. No se ha
+publicado en GitHub. Probar
 desde la app los recorridos de benchmark, revisión, descarga y reanudación en un
 Windows autorizado; ejecutar pair/run y una carga mínima en WSL y entre dos
 equipos TLS. No convertir una prueba antigua de un servicio externo en evidencia

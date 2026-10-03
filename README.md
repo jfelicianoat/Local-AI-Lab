@@ -49,7 +49,7 @@ npm test
 
 El lock fija paquetes de registry con integridad y no depende de carpetas de otro
 proyecto. Para las comprobaciones del 1 de octubre se usó la caché local y un
-checkout independiente. El candidato actualizado está en `dist/candidate-20261001-r7`, junto a
+checkout independiente. El candidato actualizado está en `dist/candidate-20261002-r8`, junto a
 su carpeta `resources`. El estado de revisión documenta las comprobaciones que
 todavía faltan.
 

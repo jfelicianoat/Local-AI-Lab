@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import threading
+import time
 import uuid
 from pathlib import Path
 from typing import Any, Callable, Protocol
@@ -10,6 +11,7 @@ from local_ai_lab.security.secrets import SecretProtector, platform_secret_prote
 from local_ai_lab.domain.common import sha256_json
 from local_ai_lab.training.checkpoints import verify_checkpoint_bundle
 from local_ai_lab.worker.journal import WorkerJournal
+from local_ai_lab.worker.execution_isolation import IsolatedExecutor, WorkerJobCancelled
 
 
 class CoordinatorTransport(Protocol):
@@ -18,10 +20,6 @@ class CoordinatorTransport(Protocol):
     def progress(self, lease: dict[str, Any], message: dict[str, Any], *, idempotency_key: str) -> dict[str, Any]: ...
     def complete(self, lease: dict[str, Any], message: dict[str, Any], *, idempotency_key: str) -> dict[str, Any]: ...
     def publish_checkpoint(self, lease: dict[str, Any], *, step: int, artifact_id: str, artifact_sha256: str, idempotency_key: str) -> dict[str, Any]: ...
-
-
-class WorkerJobCancelled(RuntimeError):
-    pass
 
 
 class WorkerRuntime:
@@ -36,12 +34,14 @@ class WorkerRuntime:
         executors: dict[str, Callable[[dict[str, Any], Callable[[dict[str, Any]], None]], dict[str, Any]]],
         secret_protector: SecretProtector | None = None,
         lease_keepalive_seconds: float = 15.0,
+        control_poll_seconds: float = 1.0,
     ) -> None:
         self.node_id = node_id
         self.journal = WorkerJournal(journal_path, secret_protector or platform_secret_protector())
         self.transport = transport
         self.executors = executors
         self.lease_keepalive_seconds = max(0.01, lease_keepalive_seconds)
+        self.control_poll_seconds = max(0.01, control_poll_seconds)
 
     def run_once(self, claim_key: str) -> str | None:
         lease = self.transport.claim(idempotency_key=claim_key)
@@ -106,10 +106,11 @@ class WorkerRuntime:
                 payload = self._materialize_payload(lease)
                 if cancelled.is_set():
                     raise WorkerJobCancelled(lease["job_id"])
-                result = executor(
-                    payload,
-                    lambda progress: self._progress_with_cancel_check(lease, progress, cancelled),
-                )
+                progress = lambda message: self._progress_with_cancel_check(lease, message, cancelled)
+                if isinstance(executor, IsolatedExecutor):
+                    result = executor.run_cancellable(payload, progress, cancelled)
+                else:
+                    result = executor(payload, progress)
                 if cancelled.is_set():
                     raise WorkerJobCancelled(lease["job_id"])
                 try:
@@ -143,12 +144,15 @@ class WorkerRuntime:
         self, lease: dict[str, Any], stop: threading.Event, cancelled: threading.Event,
     ) -> None:
         tick = 0
-        while not stop.wait(self.lease_keepalive_seconds):
+        last_renewal = time.monotonic()
+        poll_seconds = min(self.control_poll_seconds, self.lease_keepalive_seconds)
+        while not stop.wait(poll_seconds):
             tick += 1
             try:
                 renew = getattr(self.transport, "renew", None)
-                if renew is not None:
+                if renew is not None and time.monotonic() - last_renewal >= self.lease_keepalive_seconds:
                     renew(lease, idempotency_key=f"renew:{lease['job_id']}:{lease['attempt_id']}:periodic:{tick}")
+                    last_renewal = time.monotonic()
                 control = getattr(self.transport, "control", None)
                 if control is not None:
                     response = control(

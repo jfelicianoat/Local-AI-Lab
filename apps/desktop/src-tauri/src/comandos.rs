@@ -553,6 +553,7 @@ pub(crate) async fn create_strategy_run(
     benchmark_id: Option<String>,
     snapshot_id: Option<String>,
     index_id: Option<String>,
+    evaluation: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, String> {
     mutate_app_json(
         state,
@@ -566,6 +567,7 @@ pub(crate) async fn create_strategy_run(
             "embedding_model_fingerprint": embedding_model_fingerprint,
             "device": device, "training_job_id": training_job_id, "k": k,
             "benchmark_id": benchmark_id, "snapshot_id": snapshot_id, "index_id": index_id,
+            "evaluation": evaluation,
             "idempotency_key": format!("desktop-strategy-{}", uuid::Uuid::new_v4())
         }),
     )

@@ -1,8 +1,8 @@
 # Manual de uso de Local AI Lab
 
-Versión del manual: 1.9
+Versión del manual: 2.0
 Aplicación documentada: Local AI Lab Desktop 0.1.1; Coordinator/Worker 0.1.0
-Fecha de revisión: 1 de octubre de 2026
+Fecha de revisión: 2 de octubre de 2026
 
 El estado de release y los límites verificados en esta revisión están en
 [RELEASE_STATUS_20260929.md](RELEASE_STATUS_20260929.md). Las secciones de integración
@@ -42,7 +42,7 @@ Sus reglas principales son:
 
 1. Localice esta carpeta:
 
-   `D:\Desarrollo\Proyectos TFM\Local AI Lab\dist\candidate-20261001-r7`
+   `D:\Desarrollo\Proyectos TFM\Local AI Lab\dist\candidate-20261002-r8`
 
 2. Compruebe que están presentes:
 
@@ -649,7 +649,14 @@ Estados habituales:
 | `orphaned` | Se perdió el lease o la conexión; no lo duplique manualmente. |
 | `needs_review` | Hace falta una decisión humana: reanudar, reiniciar o descartar el entrenamiento. |
 
-La cancelación es cooperativa: no apague el equipo salvo emergencia, porque podría impedir el checkpoint y la sincronización final.
+Los trabajos del Worker se pueden detener también durante una carga de modelo o
+una espera sin progreso. Con conexión disponible, el Worker consulta la cancelación
+cada segundo y detiene el proceso del trabajo y sus conversores hijos. El tiempo
+real depende de la conexión con el Coordinator. El resultado parcial no se publica
+como correcto; los checkpoints ya confirmados quedan disponibles para recuperar.
+Una tarea ya enviada a AI Broker puede continuar en ese servicio: compruebe allí
+su estado antes de volver a lanzarla. No apague el equipo mientras espera la
+sincronización final de la cancelación.
 Si el Worker se reinicia, recupera trabajos repetibles con lease vigente y
 reenvía resultados pendientes. Un entrenamiento interrumpido durante la
 ejecución no se repite automáticamente.

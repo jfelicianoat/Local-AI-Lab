@@ -168,6 +168,28 @@ class BrokerTaskClient:
     def _supports(self, capability: str) -> bool:
         return self.capabilities().get(capability) is True
 
+    def judge(
+        self, *, use_case: str, input: dict[str, Any], options: list[str],
+        criteria: dict[str, str], instructions: str, timeout: float = 75.0,
+    ) -> dict[str, Any]:
+        """A synchronous choice judgment (Client_API.md, 15), without task polling.
+
+        Provider order and thresholds belong to the operator. Local AI Lab never
+        authorizes egress for private benchmarks and never retries this POST.
+        Missing capability flags on older brokers mean unavailable.
+        """
+        if not self._supports("system1_judgments"):
+            return {"accepted": False, "decision": None, "confidence": None,
+                    "fallback_used": True, "reason_code": "SYSTEM1_UNAVAILABLE", "attempts": []}
+        judgment = self._json("POST", "/api/v1/system1/judge", {
+            "use_case": use_case, "input": input, "decision_type": "choice",
+            "options": options, "criteria": criteria, "instructions": instructions,
+            "cloud_allowed": False,
+        }, timeout=timeout)
+        if type(judgment.get("accepted")) is not bool:
+            raise BrokerInvocationError("System-1 response lacks a boolean accepted flag")
+        return judgment
+
     def invoke(
         self,
         *,
@@ -329,9 +351,12 @@ class BrokerTaskClient:
         if payload is not None:
             headers["Content-Type"] = "application/json"
             body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-        response = self.transport.request(
-            method, self.endpoint + path, headers=headers, body=body, timeout=timeout
-        )
+        try:
+            response = self.transport.request(
+                method, self.endpoint + path, headers=headers, body=body, timeout=timeout
+            )
+        except (OSError, TimeoutError) as error:
+            raise BrokerInvocationError(f"Broker {method} {path} transport failed") from error
         if response.status < 200 or response.status >= 300:
             # Sin el cuerpo, un 403 ADMIN_AUTH_REQUIRED y un 422 de contrato son
             # indistinguibles para quien depura la integración.

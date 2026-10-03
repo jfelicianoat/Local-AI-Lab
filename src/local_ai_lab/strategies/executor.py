@@ -15,6 +15,9 @@ from local_ai_lab.benchmark.retrieval_runner import RetrievalBenchmarkRunner
 from local_ai_lab.broker.client import BrokerTaskClient
 from local_ai_lab.domain.common import canonical_json
 from local_ai_lab.evaluation.response_verifier import ResearchResponseVerifier
+from local_ai_lab.evaluation.cascade import (
+    SemanticEvaluationConfig, SemanticEvaluator, evaluation_metrics, validate_case_evaluator,
+)
 from local_ai_lab.knowledge_index.projection import KnowledgeIndex
 from local_ai_lab.retrieval.engine import HybridRetriever, LexicalRetriever, SemanticRetriever
 from local_ai_lab.retrieval.executor import LocalTransformersEmbeddingProvider
@@ -35,6 +38,16 @@ class StrategySuiteExecutor:
             raise ValueError("unsupported strategy suite id")
         snapshot = Path(payload["resolved_snapshot"]).resolve(strict=True)
         suite = load_execution_suite(Path(payload["resolved_suite"]), snapshot)
+        evaluation_config = SemanticEvaluationConfig.model_validate(payload.get("evaluation") or {})
+        evaluator = None
+        if evaluation_config.enabled:
+            for case in suite.cases:
+                validate_case_evaluator(case)
+            evaluator = SemanticEvaluator(BrokerTaskClient(
+                endpoint=payload["broker_endpoint"], token=os.environ.get("LOCAL_AI_LAB_BROKER_TOKEN"),
+                poll_interval=float(payload.get("poll_interval", 2.0)),
+                max_wait=evaluation_config.strong_judge_timeout,
+            ), evaluation_config)
         lexical = LexicalRetriever(KnowledgeIndex(Path(payload["resolved_index"])))
         retriever = None
         if strategy_id in {"R1"}:
@@ -96,6 +109,21 @@ class StrategySuiteExecutor:
                     }
                     for item in retriever.retrieve(case["query"], limit=int(payload.get("k", 5)))
                 ]
+            semantic_evaluation = None
+            if evaluator is not None:
+                # Only relevant frozen reference/cited chunks are sent to judges.
+                chunk_ids = {item["chunk_id"] for item in retrieved_context}
+                if isinstance(parsed, dict):
+                    for finding in parsed.get("findings", []) if isinstance(parsed.get("findings"), list) else []:
+                        if isinstance(finding, dict) and isinstance(finding.get("evidence"), list):
+                            chunk_ids.update(ref.get("chunk_id") for ref in finding["evidence"] if isinstance(ref, dict) and isinstance(ref.get("chunk_id"), str))
+                chunk_ids.update(ref["chunk_id"] for ref in case.get("reference_answer", {}).get("evidence", []))
+                evidence = [{"chunk_id": cid, "content": verifier.chunks[cid]["content"]}
+                            for cid in sorted(chunk_ids) if cid in verifier.chunks]
+                semantic_evaluation = evaluator.evaluate(
+                    case=case, response=parsed if parsed is not None else execution.raw_response,
+                    verification=verification, evidence=evidence, correlation_id=correlation,
+                )
             case_latency_ms = (time.monotonic() - case_started) * 1000.0
             results.append({
                 "case_id": case["case_id"], "response": parsed,
@@ -114,6 +142,7 @@ class StrategySuiteExecutor:
                     "auxiliary_roles": list(execution.broker.auxiliary_roles),
                     "contractual_invocations": len(execution.broker.contractual_telemetry),
                 },
+                **({"evaluation": semantic_evaluation} if semantic_evaluation is not None else {}),
             })
             review_candidates.append({
                 "case_id": case["case_id"], "query": case["query"],
@@ -150,6 +179,18 @@ class StrategySuiteExecutor:
         cost_verification_status = "verified" if complete_cost and all(
             item["cost"]["verification_status"] == "verified" for item in results
         ) else "unknown"
+        evaluation_summary = {}
+        if evaluator is not None:
+            evaluation_summary = {
+                "evaluation": evaluation_config.model_dump(),
+                "evaluation_configuration_fingerprint": evaluator.configuration_fingerprint,
+                "evaluation_metrics": evaluation_metrics(results),
+                "generation_cost_amount": cost_amount,
+                "cost_scope": "generation_and_evaluation",
+            }
+            # Contract 2.11 reports tokens/latency for System 1, not monetary cost.
+            # Generation cost alone cannot be claimed as the whole run's cost.
+            cost_amount, cost_source, cost_verification_status = None, "not_available", "unknown"
         retrieval_metrics = {}
         if retriever is not None:
             retrieval_metrics = RetrievalBenchmarkRunner().run(
@@ -171,6 +212,7 @@ class StrategySuiteExecutor:
             "embedding_model_fingerprint": payload.get("embedding_model_fingerprint"),
             "trained_model_identity": payload.get("trained_model_identity"),
             "review_candidates": review_candidates,
+            **evaluation_summary,
         }
         output = Path(payload["report_dir"]).resolve()
         if str(output).startswith(("\\\\", "//")) or output.exists():
@@ -193,4 +235,5 @@ class StrategySuiteExecutor:
             "trained_model_identity": payload.get("trained_model_identity"),
             "review_candidates": review_candidates,
             "report_sha256": hashlib.sha256(report_path.read_bytes()).hexdigest(),
+            **evaluation_summary,
         }

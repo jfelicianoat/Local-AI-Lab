@@ -457,6 +457,7 @@ def registrar_rutas_app(
             k=body.k, idempotency_key=body.idempotency_key,
             benchmark_id=body.benchmark_id, snapshot_id=body.snapshot_id,
             index_id=body.index_id,
+            evaluation=body.evaluation,
         )
 
     @app.post("/app/v1/datasets")

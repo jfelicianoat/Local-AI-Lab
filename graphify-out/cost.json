@@ -67,10 +67,28 @@
       "changed_files": 17,
       "corpus_files": 283,
       "reason": "revision 6: initial export verification, metadata preservation and manual 1.8"
+    },
+    {
+      "date": "2026-10-02T04:14:39.155348+00:00",
+      "input_tokens": null,
+      "output_tokens": null,
+      "token_usage_known": false,
+      "changed_files": 7,
+      "corpus_files": 284,
+      "reason": "revision 7: cached receipt authorization, baseline audit verification and manual 1.9"
+    },
+    {
+      "date": "2026-10-02T04:31:31.175868+00:00",
+      "input_tokens": null,
+      "output_tokens": null,
+      "token_usage_known": false,
+      "changed_files": 7,
+      "corpus_files": 286,
+      "reason": "revision 8: executor process isolation, blocking cancellation and manual 2.0"
     }
   ],
   "total_input_tokens": 0,
   "total_output_tokens": 0,
   "totals_complete": false,
-  "unmeasured_runs": 7
+  "unmeasured_runs": 9
 }

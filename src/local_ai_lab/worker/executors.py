@@ -9,10 +9,11 @@ from local_ai_lab.training.preflight import TrainingPreflightExecutor
 from local_ai_lab.retrieval.executor import ControlledRetrievalExecutor
 from local_ai_lab.agents.executor import BrokerAgentExperimentExecutor
 from local_ai_lab.strategies.executor import StrategySuiteExecutor
+from local_ai_lab.worker.execution_isolation import IsolatedExecutor
 
 
 def default_executors() -> dict[str, Callable[..., dict[str, Any]]]:
-    return {
+    executors = {
         "training.preflight.v1": TrainingPreflightExecutor(),
         "training.lora.v1": TransformersLoraExecutor(),
         "training.distillation.v1": TransformersSequenceDistillationExecutor(),
@@ -21,3 +22,4 @@ def default_executors() -> dict[str, Callable[..., dict[str, Any]]]:
         "broker.agent_experiment.v1": BrokerAgentExperimentExecutor(),
         "strategy.suite.v1": StrategySuiteExecutor(),
     }
+    return {kind: IsolatedExecutor(executor) for kind, executor in executors.items()}

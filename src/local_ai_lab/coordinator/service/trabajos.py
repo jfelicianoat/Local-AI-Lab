@@ -20,6 +20,7 @@ from local_ai_lab.coordinator.service.nodos import NodosMixin
 from local_ai_lab.coordinator.service.base import _lease_payload
 from local_ai_lab.coordinator.repository.base import CoordinatorConflict, LeaseRejected
 from local_ai_lab.training.comparison import compare_verification_gain, verified_pass_rate
+from local_ai_lab.evaluation.cascade import verify_evaluation_report
 from local_ai_lab.training.checkpoints import verify_checkpoint_bundle
 from local_ai_lab.training.results import ML_RESULTS, RESULT_CONTRACT_VERSION, verify_ml_result
 
@@ -497,6 +498,7 @@ class TrabajosMixin(NodosMixin):
             raise ValueError("experiment result strategy differs from the job")
         if spec["kind"] == "strategy.suite.v1":
             verified_pass_rate(report, case_ids)
+            verify_evaluation_report(report, spec["payload"].get("evaluation"))
             if (payload.get("quality") != report.get("quality")
                     or payload.get("latency_ms") != report.get("latency_ms")
                     or report.get("target_model") != record["summary"].get("target_model")
@@ -515,6 +517,8 @@ class TrabajosMixin(NodosMixin):
             fields = common + ("quality", "retrieval", "latency_scope", "generation_latency_ms",
                                "cost_amount", "cost_currency", "cost_source", "cost_verification_status",
                                "embedding_model", "embedding_model_fingerprint", "trained_model_identity", "review_candidates")
+            fields += ("evaluation", "evaluation_configuration_fingerprint", "evaluation_metrics",
+                       "generation_cost_amount", "cost_scope")
         for field in fields:
             default = [] if field == "review_candidates" else None
             if canonical_json(report.get(field, default)) != canonical_json(payload.get(field, default)):
@@ -646,6 +650,10 @@ class TrabajosMixin(NodosMixin):
                 "cost_verification_status": payload.get("cost_verification_status"),
                 "privacy": payload.get("privacy"),
                 "formal_status": payload.get("formal_status", "unverified"),
+                **{key: payload[key] for key in (
+                    "evaluation", "evaluation_configuration_fingerprint", "evaluation_metrics",
+                    "generation_cost_amount", "cost_scope",
+                ) if key in payload},
             })
             for candidate in payload.get("review_candidates", []):
                 if not isinstance(candidate, dict):

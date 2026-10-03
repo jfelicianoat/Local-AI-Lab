@@ -257,6 +257,7 @@ class StrategySuiteRequest(StrictModel):
     benchmark_id: str | None = Field(default=None, max_length=128)
     snapshot_id: str | None = Field(default=None, max_length=128)
     index_id: str | None = Field(default=None, max_length=128)
+    evaluation: dict[str, Any] | None = None
 
 
 class DatasetBuildRequest(StrictModel):

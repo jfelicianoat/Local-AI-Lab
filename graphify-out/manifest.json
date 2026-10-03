@@ -70,9 +70,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1790879742.8050456,
-    "ast_hash": "4a39ff2e1246f88c69ab5d11c4eb0922",
-    "semantic_hash": "4a39ff2e1246f88c69ab5d11c4eb0922"
+    "mtime": 1790915055.3351629,
+    "ast_hash": "21db4960fecfc8049d0cb6df8675c1f9",
+    "semantic_hash": "21db4960fecfc8049d0cb6df8675c1f9"
   },
   "docs/Explicacion interaccion apps Local AI Lab.md": {
     "mtime": 1787510083.2532308,
@@ -455,8 +455,8 @@
     "semantic_hash": ""
   },
   "src/local_ai_lab/worker/runtime.py": {
-    "mtime": 1790876614.8531384,
-    "ast_hash": "90e69878c156cec94904ab71c173357e",
+    "mtime": 1790914643.080499,
+    "ast_hash": "89266efae6cb4e2e18bcf5a72b785b3c",
     "semantic_hash": ""
   },
   "tests/test_agent_planner.py": {
@@ -715,8 +715,8 @@
     "semantic_hash": ""
   },
   "src/local_ai_lab/worker/executors.py": {
-    "mtime": 1787608863.0578973,
-    "ast_hash": "3a2afe35cd1288c378af103d91cf411d",
+    "mtime": 1790914643.8450468,
+    "ast_hash": "a7e7965fa0ebe1b2a2952a8fc8300f3b",
     "semantic_hash": ""
   },
   "tests/test_generation_strategies.py": {
@@ -1060,8 +1060,8 @@
     "semantic_hash": ""
   },
   "src/local_ai_lab/coordinator/repository/base.py": {
-    "mtime": 1790877771.6663074,
-    "ast_hash": "dcc1459af78db5f13bc45eb07b52692e",
+    "mtime": 1790880566.8703969,
+    "ast_hash": "c555477ff056518ff916777b5c1fcbd2",
     "semantic_hash": ""
   },
   "src/local_ai_lab/coordinator/repository/capacidades.py": {
@@ -1095,8 +1095,8 @@
     "semantic_hash": ""
   },
   "src/local_ai_lab/coordinator/service/base.py": {
-    "mtime": 1790795709.5914888,
-    "ast_hash": "146d48c15309e4f0557fe4833e61cc56",
+    "mtime": 1790880567.7869103,
+    "ast_hash": "a9e8028647ce9355222c866c9bce23ec",
     "semantic_hash": ""
   },
   "src/local_ai_lab/coordinator/service/conocimiento.py": {
@@ -1130,8 +1130,8 @@
     "semantic_hash": ""
   },
   "src/local_ai_lab/coordinator/service/trabajos.py": {
-    "mtime": 1790877770.8678596,
-    "ast_hash": "c9444240a7b98a9db6e98d47ac283e3a",
+    "mtime": 1790880568.7004497,
+    "ast_hash": "2a48058f97fe610fc394f2ad5ef50155",
     "semantic_hash": ""
   },
   "src/local_ai_lab/maintenance/__init__.py": {
@@ -1220,14 +1220,14 @@
     "semantic_hash": ""
   },
   "docs/MANUAL_DE_USO.md": {
-    "mtime": 1790879851.692336,
-    "ast_hash": "d4c4aa3d002379af8bdd0e97b8501651",
-    "semantic_hash": "d4c4aa3d002379af8bdd0e97b8501651"
+    "mtime": 1790915054.5876167,
+    "ast_hash": "b5893d6717f6b1f118462e953739f278",
+    "semantic_hash": "b5893d6717f6b1f118462e953739f278"
   },
   "docs/RELEASE_STATUS_20260929.md": {
-    "mtime": 1790879984.6709905,
-    "ast_hash": "7119e210cb1b5afe2191af9d62f68725",
-    "semantic_hash": "7119e210cb1b5afe2191af9d62f68725"
+    "mtime": 1790915355.5810828,
+    "ast_hash": "a8d8fcf4b8a4a0f1768dcf38f2781315",
+    "semantic_hash": "a8d8fcf4b8a4a0f1768dcf38f2781315"
   },
   "docs/SECURITY_BOUNDARY_CURRENT.md": {
     "mtime": 1790797013.400271,
@@ -1412,6 +1412,21 @@
   "apps/desktop/src/ExportPanel.tsx": {
     "mtime": 1790879556.1448977,
     "ast_hash": "415f5ab924219d41b37382076debe7f1",
+    "semantic_hash": ""
+  },
+  "tests/test_cached_authorization.py": {
+    "mtime": 1790880683.6129286,
+    "ast_hash": "1632c4911c0b5399a362476e1972e2c8",
+    "semantic_hash": ""
+  },
+  "tests/test_executor_isolation.py": {
+    "mtime": 1790914957.989906,
+    "ast_hash": "d142610222232ae57bbbccf1201a8ef5",
+    "semantic_hash": ""
+  },
+  "src/local_ai_lab/worker/execution_isolation.py": {
+    "mtime": 1790914957.2266884,
+    "ast_hash": "693fa3c4bb219a39da6694a64648978e",
     "semantic_hash": ""
   }
 }

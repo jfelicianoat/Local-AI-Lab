@@ -23,6 +23,7 @@ from local_ai_lab.experiments.selector import SelectionConstraints, StrategySele
 from local_ai_lab.agents.planner import AgentExperimentPlanner, AgentExperimentRequest, BrokerAgentCapabilities
 from decimal import Decimal
 from local_ai_lab.coordinator.service.evaluacion import EvaluacionMixin
+from local_ai_lab.evaluation.cascade import SemanticEvaluationConfig
 
 
 class EstrategiasMixin(EvaluacionMixin):
@@ -283,7 +284,12 @@ class EstrategiasMixin(EvaluacionMixin):
         benchmark_id: str | None = None,
         snapshot_id: str | None = None,
         index_id: str | None = None,
+        evaluation: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        evaluation_config = SemanticEvaluationConfig.model_validate(evaluation or {})
+        evaluation_payload = {"evaluation": evaluation_config.model_dump()} if evaluation_config.enabled else {}
+        if evaluation_config.enabled and not broker_endpoint.strip():
+            raise ValueError("semantic evaluation requires a Broker endpoint, including F1/F2")
         allowed = {"B0", "B1", "R1", "R2", "R3", "R4", "L1", "F1", "F2"}
         if strategy_id not in allowed:
             raise ValueError("unknown strategy suite id")
@@ -362,6 +368,7 @@ class EstrategiasMixin(EvaluacionMixin):
             "training_job_id": training_job_id,
             "training_artifact_sha256": training_artifact_sha256,
             "k": k,
+            **evaluation_payload,
         }
         inputs = self._execution_inputs(
             benchmark_id=benchmark_id, snapshot_id=snapshot_id, index_id=index_id, k=k
@@ -410,6 +417,7 @@ class EstrategiasMixin(EvaluacionMixin):
                 "embedding_model_fingerprint": embedding_model_fingerprint,
                 "device": device, "k": k, "correlation_id": str(uuid.uuid4()),
                 "trained_model_identity": trained_model_identity,
+                **evaluation_payload,
                 "input_artifacts": [
                     {"sha256": snapshot_cas["sha256"], "mount_as": "resolved_snapshot", "archive": "zip"},
                     {"sha256": suite_cas["sha256"], "mount_as": "resolved_suite", "archive": "zip"},
@@ -444,6 +452,7 @@ class EstrategiasMixin(EvaluacionMixin):
                 "minimum_quality_gain": training_record["summary"].get("minimum_quality_gain") if training_record else None,
                 "trained_model_identity": trained_model_identity,
                 "formal_status": "unverified", "state": submitted["state"],
+                **evaluation_payload,
             },
         )
         return self.repository.product_record(job.job_id)  # type: ignore[return-value]

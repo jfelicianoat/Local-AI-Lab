@@ -433,6 +433,7 @@ export async function createStrategyRun(input: {
   strategyId: string; brokerCheckId: string; brokerEndpoint: string; nodeId: string;
   provider: string; deployment: string; model: string; embeddingModel?: string;
   embeddingModelFingerprint?: string; device: string; trainingJobId?: string; k: number;
+  evaluation?: import("./System1EvaluationPanel").EvaluationPolicy;
 } & SuiteSelection): Promise<ProductRecord> {
   const payload: unknown = await invoke("create_strategy_run", {
     ...input,
