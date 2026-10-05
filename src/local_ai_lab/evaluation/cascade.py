@@ -27,7 +27,7 @@ INSTRUCTIONS = (
 
 
 class SemanticEvaluationConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
+    model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False, frozen=True)
 
     enabled: bool = False
     shadow_mode: bool = True
@@ -35,11 +35,19 @@ class SemanticEvaluationConfig(BaseModel):
     thresholds: dict[str, float] = Field(default_factory=dict)
     http_timeout: float = Field(default=75.0, gt=0, le=3600)
     require_calibrated: bool = False
+    threshold_profile: str = Field(default="default", min_length=1, max_length=128)
+    system1_target: dict[str, str] | None = None
     strong_judge_model: dict[str, str] | None = None
     strong_judge_timeout: float = Field(default=300.0, gt=0, le=7200)
 
     @model_validator(mode="after")
     def validate_policy(self) -> SemanticEvaluationConfig:
+        if self.system1_target is not None and (
+            not {"provider"} <= self.system1_target.keys() <= {"provider", "model"}
+            or self.system1_target.get("provider") not in {"ollama_system1", "laya_mcp"}
+            or any(not value.strip() for value in self.system1_target.values())
+        ):
+            raise ValueError("System-1 target requires a supported provider and optional model")
         if any(not key or not math.isfinite(value) or not 0 <= value <= 1
                for key, value in self.thresholds.items()):
             raise ValueError("evaluator thresholds must be finite values between 0 and 1")
@@ -57,6 +65,8 @@ def validate_case_evaluator(case: dict[str, Any]) -> None:
     if not isinstance(evaluator, dict):
         raise ValueError("case evaluator must be an object")
     kind = evaluator.get("type", "semantic")
+    if "id" in evaluator and (not isinstance(evaluator["id"], str) or not evaluator["id"].strip()):
+        raise ValueError("evaluator id must be a nonempty string")
     if kind not in {"semantic", "exact_match", "regex", "json_schema", "numeric"}:
         raise ValueError("unsupported case evaluator")
     if kind == "exact_match" and "expected" not in evaluator:
@@ -89,7 +99,7 @@ def _deterministic(case, response, verification) -> tuple[str | None, str | None
     kind = evaluator.get("type", "semantic")
     answer = response.get("answer") if isinstance(response, dict) else response
     if kind == "exact_match":
-        passed = answer == evaluator["expected"]
+        passed = canonical_json(answer) == canonical_json(evaluator["expected"])
     elif kind == "regex":
         passed = isinstance(answer, str) and re.fullmatch(evaluator["pattern"], answer) is not None
     elif kind == "json_schema":
@@ -120,8 +130,8 @@ def _tokens(items: list[dict[str, Any]]) -> dict[str, int | None]:
 class SemanticEvaluator:
     def __init__(self, client: BrokerTaskClient, config: SemanticEvaluationConfig) -> None:
         self.client = client
-        self.config = config
-        self.configuration_fingerprint = sha256_json(config.model_dump())
+        self.config = config.model_copy(deep=True)
+        self.configuration_fingerprint = sha256_json(self.config.model_dump())
 
     def evaluate(
         self, *, case: dict[str, Any], response: Any, verification: dict[str, Any] | None,
@@ -163,6 +173,7 @@ class SemanticEvaluator:
             judgment = self.client.judge(
                 use_case="evaluation_semantic_label", input=input_data, options=list(LABELS),
                 criteria=CRITERIA, instructions=INSTRUCTIONS, timeout=self.config.http_timeout,
+                target=self.config.system1_target, threshold_profile=self.config.threshold_profile,
             )
             # Preserve only contract metadata, never echoed input or arbitrary fields.
             result["system1"] = {key: judgment.get(key) for key in (
@@ -174,6 +185,7 @@ class SemanticEvaluator:
             if valid_attempts:
                 result["system1"]["attempts"] = [{key: attempt.get(key) for key in (
                     "provider", "model", "latency_ms", "reason_code", "tokens_input", "tokens_output",
+                    "decision", "confidence", "alternatives", "score_source",
                 )} for attempt in attempts]
             else:
                 result["system1"]["attempts"] = []
@@ -184,6 +196,11 @@ class SemanticEvaluator:
                      and type(judgment.get("confidence_is_calibrated")) is bool
                      and type(judgment.get("fallback_used")) is bool
                      and valid_attempts)
+            # A professor's self-reported score is measurement evidence only.
+            if valid and any(a.get("score_source") == "self_reported" and a.get("reason_code") is None for a in attempts):
+                valid = False
+            if valid and self.config.system1_target is not None and judgment["provider"] != self.config.system1_target["provider"]:
+                valid = False
             eligible = valid and judgment["confidence"] >= threshold and (
                 not self.config.require_calibrated or judgment.get("confidence_is_calibrated") is True
             )
@@ -268,10 +285,38 @@ def evaluation_metrics(results: list[dict[str, Any]]) -> dict[str, Any]:
     shadow_pairs = [(e["label"], e["system1"]["decision"]) for e in judgments
                     if e["origin"] == "strong_judge" and e["system1"].get("eligible") is True]
     providers: dict[str, int] = {}
+    attempt_groups: dict[str, dict[str, Any]] = {}
     for e in judgments:
         provider = e["system1"].get("provider")
         if isinstance(provider, str):
             providers[provider] = providers.get(provider, 0) + 1
+        for attempt in e["system1"].get("attempts", []):
+            if not isinstance(attempt, dict):
+                continue
+            key = canonical_json({"provider": attempt.get("provider"), "model": attempt.get("model")})
+            group = attempt_groups.setdefault(key, {
+                "provider": attempt.get("provider"), "model": attempt.get("model"), "attempts": 0,
+                "valid_scores": 0, "rejected_scores": 0, "score_sources": {}, "gold_pairs": [],
+                "confidence_bins": [{"lower": i / 10, "upper": (i + 1) / 10, "count": 0, "correct": 0} for i in range(10)],
+            })
+            group["attempts"] += 1
+            if attempt.get("decision") not in LABELS or not _confidence(attempt.get("confidence")):
+                continue
+            group["valid_scores"] += 1
+            group["rejected_scores"] += attempt.get("reason_code") is not None
+            source = attempt.get("score_source") if isinstance(attempt.get("score_source"), str) else "not_reported"
+            group["score_sources"][source] = group["score_sources"].get(source, 0) + 1
+            if e.get("gold_label") in LABELS:
+                group["gold_pairs"].append((e["gold_label"], attempt["decision"]))
+                # Self-reported scores never contribute to runtime calibration.
+                if source == "native":
+                    bucket = group["confidence_bins"][min(9, int(attempt["confidence"] * 10))]
+                    bucket["count"] += 1
+                    bucket["correct"] += e["gold_label"] == attempt["decision"]
+    for group in attempt_groups.values():
+        group["gold"] = _classification(group.pop("gold_pairs"))
+        for bucket in group["confidence_bins"]:
+            bucket["accuracy"] = bucket.pop("correct") / bucket["count"] if bucket["count"] else None
     return {
         "total": total, "origins": counts,
         "rates": {key: value / total if total else 0.0 for key, value in counts.items()},
@@ -282,11 +327,16 @@ def evaluation_metrics(results: list[dict[str, Any]]) -> dict[str, Any]:
         "system1_fallbacks": sum(e["system1"].get("fallback_used") is True for e in judgments),
         "stage_latency_ms": {stage: sum(e["stage_latency_ms"][stage] for e in evaluations)
                              for stage in ("deterministic", "system1", "strong_judge")},
+        "tokens": {
+            "system1": _tokens([(e.get("system1") or {}).get("tokens", {}) for e in evaluations if e["origin"] != "deterministic"]),
+            "strong_judge": _tokens([(e.get("strong_judge") or {}).get("tokens", {}) for e in evaluations if e["stage_latency_ms"]["strong_judge"] > 0]),
+        },
         "gold": _classification(gold_pairs), "system1_eligible_gold": _classification(system1_gold),
         "shadow_vs_strong_judge": _classification(shadow_pairs),
         "system1_cost_amount": None, "cost_status": "system1_cost_not_reported_by_contract",
         "calibration_status": "not_validated_by_local_ai_lab",
         "gold_response_mismatches": sum(e.get("gold_status") == "response_mismatch" for e in evaluations),
+        "system1_attempts": list(attempt_groups.values()),
     }
 
 
@@ -308,12 +358,23 @@ def verify_evaluation_report(report: dict[str, Any], expected_config: dict[str, 
             raise ValueError("invalid evaluation origin")
         if result.get("label") not in (*LABELS, None):
             raise ValueError("invalid evaluation label")
+        if any(type(result.get(key)) is not bool for key in ("escalated", "needs_review", "shadow_mode")):
+            raise ValueError("invalid evaluation status flags")
+        if result["shadow_mode"] != expected_config["shadow_mode"]:
+            raise ValueError("per-case shadow mode differs from the job")
+        if result["origin"] == "previous_flow" and (result["label"] is not None or result["needs_review"] is not True):
+            raise ValueError("pending review cannot publish a final semantic label")
         if result["origin"] != "previous_flow" and result["label"] is None:
             raise ValueError("resolved evaluation requires a label")
         if result["origin"] == "system1" and (
             expected_config["shadow_mode"] or not isinstance(result.get("system1"), dict)
             or result["system1"].get("eligible") is not True
             or result["system1"].get("decision") != result["label"]
+            or result["system1"].get("accepted") is not True
+            or not _confidence(result["system1"].get("confidence"))
+            or not _confidence(result.get("threshold"))
+            or result["system1"]["confidence"] < result["threshold"]
+            or (expected_config["require_calibrated"] and result["system1"].get("confidence_is_calibrated") is not True)
         ):
             raise ValueError("System-1 label lacks eligible decision evidence")
         latencies = result.get("stage_latency_ms")

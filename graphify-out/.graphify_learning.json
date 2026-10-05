@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-24T21:46:00.569269+00:00",
+  "generated_at": "2026-10-03T20:52:26.361782+00:00",
   "nodes": {
     "src_local_ai_lab_broker_compatibility_brokercompatibilitychecker": {
-      "code_fingerprint": "6b475a6dd6718a88d73acdc6066436ed63531c8ab40e529b60fe2af6ebc1af88",
+      "code_fingerprint": "0147058794542f35ad25e874985727f23ca96598bc80643ed75e4f85026cce2d",
       "label": "BrokerCompatibilityChecker",
       "last": "2026-08-24T21:26:20.022454+00:00",
       "provenance": [
@@ -12,31 +12,74 @@
           "q": "Porque en las Dependencias externas aparece como desconocido?"
         }
       ],
-      "score": 0.99968435,
+      "score": 0.397066144,
       "source_file": "src/local_ai_lab/broker/compatibility.py",
       "status": "tentative",
       "uses": 1
     },
-    "src_local_ai_lab_coordinator_service_coordinatorservice": {
-      "code_fingerprint": "5c33315bc92187b8a058ba77eb13ddb0f015f2805d5247228672abec0851fdd7",
-      "label": "CoordinatorService",
-      "last": "2026-08-24T21:32:20.415603+00:00",
+    "src_local_ai_lab_dataset_factory_datasetfactory": {
+      "code_fingerprint": "b45adf4715ecb3b109f089145daa4a92d1e4e8ad15a107f2e9cc56bbb9f9ca7b",
+      "label": "DatasetFactory",
+      "last": "2026-08-24T21:48:45.077149+00:00",
       "provenance": [
         {
-          "date": "2026-08-24T21:32:20.415603+00:00",
+          "date": "2026-08-24T21:48:45.077149+00:00",
           "outcome": "useful",
-          "q": "Haz un analisis premortem de la interface completa"
-        },
-        {
-          "date": "2026-08-24T21:26:20.022454+00:00",
-          "outcome": "useful",
-          "q": "Porque en las Dependencias externas aparece como desconocido?"
+          "q": "¿Existe entrenamiento por destilación de otro LLM en Local AI Lab?"
         }
       ],
-      "score": 1.999465051,
-      "source_file": "src/local_ai_lab/coordinator/service.py",
-      "status": "preferred",
-      "uses": 2
+      "score": 0.397208991,
+      "source_file": "src/local_ai_lab/dataset/factory.py",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_local_ai_lab_training_executor_transformersloraexecutor": {
+      "code_fingerprint": "848f5cb30aacf9477ea8766078823b5140c2613591dd50dbbb098254a80e3c22",
+      "label": "TransformersLoraExecutor",
+      "last": "2026-08-24T21:48:45.077149+00:00",
+      "provenance": [
+        {
+          "date": "2026-08-24T21:48:45.077149+00:00",
+          "outcome": "useful",
+          "q": "¿Existe entrenamiento por destilación de otro LLM en Local AI Lab?"
+        }
+      ],
+      "score": 0.397208991,
+      "source_file": "src/local_ai_lab/training/executor.py",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_local_ai_lab_training_plan_finetuningproposal": {
+      "code_fingerprint": "6b15a9fc0c6ee670b8fcef7e7737492538da4d10668b6edfd5de3aae59fd8d9c",
+      "label": "FineTuningProposal",
+      "last": "2026-08-24T21:48:45.077149+00:00",
+      "provenance": [
+        {
+          "date": "2026-08-24T21:48:45.077149+00:00",
+          "outcome": "useful",
+          "q": "¿Existe entrenamiento por destilación de otro LLM en Local AI Lab?"
+        }
+      ],
+      "score": 0.397208991,
+      "source_file": "src/local_ai_lab/training/plan.py",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_local_ai_lab_training_plan_trainingplanbuilder": {
+      "code_fingerprint": "6b15a9fc0c6ee670b8fcef7e7737492538da4d10668b6edfd5de3aae59fd8d9c",
+      "label": "TrainingPlanBuilder",
+      "last": "2026-08-24T21:48:45.077149+00:00",
+      "provenance": [
+        {
+          "date": "2026-08-24T21:48:45.077149+00:00",
+          "outcome": "useful",
+          "q": "¿Existe entrenamiento por destilación de otro LLM en Local AI Lab?"
+        }
+      ],
+      "score": 0.397208991,
+      "source_file": "src/local_ai_lab/training/plan.py",
+      "status": "tentative",
+      "uses": 1
     }
   },
   "version": 1

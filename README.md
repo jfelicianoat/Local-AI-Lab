@@ -2,6 +2,21 @@
 
 Laboratorio local y distribuido para comparar estrategias de IA sobre conocimiento privado.
 
+## Arrancar con doble clic
+
+Ejecute `iniciar_local_ai_lab.bat` desde esta carpeta. Abre el portable completo
+más reciente de `dist/candidate-*`; si no hay ninguno, busca la compilación local
+en `apps/desktop/src-tauri/target/release`. El escritorio inicia el Coordinator
+automáticamente. Conserve la carpeta `resources` junto al ejecutable portable.
+Si falta una compilación completa o Windows no puede abrirla, el lanzador muestra
+el error y mantiene la consola abierta.
+
+En **Configuración**, la **Dirección de AI Broker** empieza en
+`http://192.168.1.52:8765` (PC IA). Puede cambiarla en el formulario; la aplicación
+la recuerda entre sesiones y la reutiliza en los experimentos. El token sigue
+siendo efímero. El Coordinator se inicia automáticamente en este ordenador y
+utiliza su propia dirección de loopback.
+
 ## Manual de uso
 
 El recorrido completo de la aplicación, con preparación, todos los casos de uso paso a paso,
@@ -49,7 +64,8 @@ npm test
 
 El lock fija paquetes de registry con integridad y no depende de carpetas de otro
 proyecto. Para las comprobaciones del 1 de octubre se usó la caché local y un
-checkout independiente. El candidato actualizado está en `dist/candidate-20261002-r8`, junto a
+checkout independiente. El candidato con la dirección del PC IA y su persistencia está
+en `dist/candidate-broker-endpoint-20261003`, junto a
 su carpeta `resources`. El estado de revisión documenta las comprobaciones que
 todavía faltan.
 

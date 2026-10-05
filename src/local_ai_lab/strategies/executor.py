@@ -15,6 +15,7 @@ from local_ai_lab.benchmark.retrieval_runner import RetrievalBenchmarkRunner
 from local_ai_lab.broker.client import BrokerTaskClient
 from local_ai_lab.domain.common import canonical_json
 from local_ai_lab.evaluation.response_verifier import ResearchResponseVerifier
+from local_ai_lab.evaluation.recalculate import evaluation_evidence
 from local_ai_lab.evaluation.cascade import (
     SemanticEvaluationConfig, SemanticEvaluator, evaluation_metrics, validate_case_evaluator,
 )
@@ -93,7 +94,11 @@ class StrategySuiteExecutor:
                     response_schema=RESPONSE_SCHEMA,
                 ).execute(query=case["query"], target_model=target_model, correlation_id=correlation, k=int(payload.get("k", 5)))
             parsed = execution.parsed_response
-            verification = verifier.verify(parsed).as_dict() if isinstance(parsed, dict) else None
+            verification_started = time.monotonic()
+            verification = verifier.verify(parsed).as_dict() if (
+                isinstance(parsed, dict) or (evaluator is not None and strategy_id != "B0")
+            ) else None
+            verification_latency_ms = (time.monotonic() - verification_started) * 1000
             cost = {
                 "amount": execution.broker.cost_amount, "currency": execution.broker.cost_currency,
                 "source": execution.broker.cost_source,
@@ -112,18 +117,12 @@ class StrategySuiteExecutor:
             semantic_evaluation = None
             if evaluator is not None:
                 # Only relevant frozen reference/cited chunks are sent to judges.
-                chunk_ids = {item["chunk_id"] for item in retrieved_context}
-                if isinstance(parsed, dict):
-                    for finding in parsed.get("findings", []) if isinstance(parsed.get("findings"), list) else []:
-                        if isinstance(finding, dict) and isinstance(finding.get("evidence"), list):
-                            chunk_ids.update(ref.get("chunk_id") for ref in finding["evidence"] if isinstance(ref, dict) and isinstance(ref.get("chunk_id"), str))
-                chunk_ids.update(ref["chunk_id"] for ref in case.get("reference_answer", {}).get("evidence", []))
-                evidence = [{"chunk_id": cid, "content": verifier.chunks[cid]["content"]}
-                            for cid in sorted(chunk_ids) if cid in verifier.chunks]
+                evidence = evaluation_evidence(case, parsed, verifier, retrieved_context)
                 semantic_evaluation = evaluator.evaluate(
                     case=case, response=parsed if parsed is not None else execution.raw_response,
                     verification=verification, evidence=evidence, correlation_id=correlation,
                 )
+                semantic_evaluation["stage_latency_ms"]["deterministic"] += verification_latency_ms
             case_latency_ms = (time.monotonic() - case_started) * 1000.0
             results.append({
                 "case_id": case["case_id"], "response": parsed,

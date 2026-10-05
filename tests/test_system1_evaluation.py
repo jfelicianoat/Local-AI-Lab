@@ -27,11 +27,12 @@ def judgment(**overrides):
 
 
 class Transport:
-    def __init__(self, result=None, *, capabilities=None, fail=None, strong_label="correct"):
+    def __init__(self, result=None, *, capabilities=None, fail=None, strong_label="correct", assistant_content=None):
         self.result = judgment() if result is None else result
         self.capabilities = {"system1_judgments": True} if capabilities is None else capabilities
         self.fail = fail
         self.strong_label = strong_label
+        self.assistant_content = assistant_content
         self.calls = []
 
     def request(self, method, url, *, headers, body, timeout):
@@ -52,7 +53,7 @@ class Transport:
             result = {"items": []}
         else:
             result = {"status": "completed", "result": {
-                "assistant_content": json.dumps({"label": self.strong_label}),
+                "assistant_content": self.assistant_content if self.assistant_content is not None else json.dumps({"label": self.strong_label}),
                 "model_used": self.target, "usage": {},
             }}
         return BrokerHttpResponse(200, json.dumps(result).encode())
@@ -62,7 +63,7 @@ def evaluator(transport=None, **config):
     transport = transport or Transport()
     client = BrokerTaskClient(endpoint="http://127.0.0.1:8000", token="private-token", transport=transport, poll_interval=0)
     return SemanticEvaluator(client, SemanticEvaluationConfig(
-        enabled=True, shadow_mode=False, strong_judge_model=MODEL, **config,
+        **{"enabled": True, "shadow_mode": False, "strong_judge_model": MODEL, **config},
     ))
 
 
@@ -93,6 +94,59 @@ def test_synchronous_judge_contract_auth_privacy_and_capability_cache():
         assert set(body["criteria"]) == set(LABELS)
         assert set(body) == {"use_case", "input", "decision_type", "options", "criteria", "instructions", "cloud_allowed"}
         assert timeout == 75
+
+
+def test_october_extension_explicitly_requests_default_profile_for_custom_use_case():
+    transport = Transport(capabilities={"system1_judgments": True, "system1_evaluation": True})
+    assert evaluate(evaluator(transport))["origin"] == "system1"
+    body = next(c[3] for c in transport.calls if c[1].endswith("/system1/judge"))
+    assert body["threshold_profile"] == "default"
+    assert "target" not in body
+
+
+def test_target_requires_capability_and_preserves_returned_canonical_model():
+    transport = Transport(judgment(provider="laya_mcp", model="convaiinnovations/laya/multilingual"),
+                          capabilities={"system1_judgments": True, "system1_evaluation": True})
+    result = evaluate(evaluator(transport, system1_target={"provider": "laya_mcp", "model": "multilingual"}))
+    body = next(c[3] for c in transport.calls if c[1].endswith("/system1/judge"))
+    assert body["target"] == {"provider": "laya_mcp", "model": "multilingual"}
+    assert result["system1"]["model"] == "convaiinnovations/laya/multilingual"
+    old = Transport()
+    result = evaluate(evaluator(old, system1_target={"provider": "laya_mcp"}))
+    assert result["reason_code"] == "SYSTEM1_TARGET_UNAVAILABLE"
+    assert not any(c[1].endswith("/system1/judge") for c in old.calls)
+
+
+def test_pinned_target_cannot_attribute_other_provider_result_to_requested_model():
+    transport = Transport(judgment(provider="ollama_system1"),
+                          capabilities={"system1_judgments": True, "system1_evaluation": True})
+    result = evaluate(evaluator(transport, system1_target={"provider": "laya_mcp"}))
+    assert result["origin"] == "strong_judge" and result["reason_code"] == "INVALID_OUTPUT"
+
+
+@pytest.mark.parametrize("reason,source,score", [("LOW_CONFIDENCE", "native", 0.6), ("SELF_REPORTED_SCORE", "self_reported", 1.0)])
+def test_raw_rejected_attempts_are_measured_and_never_used_for_acceptance(reason, source, score):
+    attempt = {"provider": "ollama_system1", "model": "specific-model", "decision": "correct",
+               "confidence": score, "alternatives": [{"value": "incorrect", "confidence": 1 - score}],
+               "score_source": source, "reason_code": reason}
+    result = evaluate(evaluator(Transport(judgment(accepted=False, decision=None, confidence=None, reason_code=reason, attempts=[attempt]))))
+    assert result["origin"] == "strong_judge"
+    assert result["reason_code"] == reason
+    assert result["system1"]["attempts"][0]["decision"] == "correct"
+    assert result["system1"]["attempts"][0]["score_source"] == source
+    group = evaluation_metrics([{"evaluation": result}])["system1_attempts"][0]
+    assert group["rejected_scores"] == 1
+    assert group["gold"]["agreement"] == 1
+    assert sum(bin["count"] for bin in group["confidence_bins"]) == (1 if source == "native" else 0)
+
+
+def test_self_reported_attempt_cannot_autoaccept_even_with_invalid_accepted_flag():
+    result = evaluate(evaluator(Transport(judgment(attempts=[{
+        "provider": "ollama_system1", "model": "teacher", "decision": "correct", "confidence": 1.0,
+        "score_source": "self_reported", "reason_code": None,
+    }]))))
+    assert result["origin"] == "strong_judge"
+    assert result["reason_code"] == "INVALID_OUTPUT"
 
 
 @pytest.mark.parametrize("case,response,expected", [
@@ -182,8 +236,7 @@ def test_old_broker_capability_is_false_and_does_not_post_to_missing_route():
 
 def test_shadow_mode_keeps_judge_label_and_records_disagreement():
     transport = Transport(strong_label="incorrect")
-    engine = evaluator(transport)
-    engine.config.shadow_mode = True
+    engine = evaluator(transport, shadow_mode=True)
     result = evaluate(engine)
     assert result["label"] == "incorrect"
     assert result["origin"] == "strong_judge"
@@ -201,8 +254,7 @@ def test_require_calibration_escalates_uncalibrated_scores():
 
 
 def test_no_strong_judge_or_invalid_strong_output_keeps_previous_review():
-    engine = evaluator(Transport(judgment(confidence=0.6)))
-    engine.config.strong_judge_model = None
+    engine = evaluator(Transport(judgment(confidence=0.6)), strong_judge_model=None)
     result = evaluate(engine)
     assert result["label"] is None and result["needs_review"] is True
     assert result["origin"] == "previous_flow"
@@ -213,8 +265,7 @@ def test_no_strong_judge_or_invalid_strong_output_keeps_previous_review():
 
 def test_feature_off_has_no_added_result_and_no_calls():
     transport = Transport()
-    engine = evaluator(transport)
-    engine.config.enabled = False
+    engine = evaluator(transport, enabled=False)
     assert evaluate(engine) is None
     assert transport.calls == []
 

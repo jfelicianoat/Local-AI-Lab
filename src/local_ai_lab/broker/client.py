@@ -171,6 +171,8 @@ class BrokerTaskClient:
     def judge(
         self, *, use_case: str, input: dict[str, Any], options: list[str],
         criteria: dict[str, str], instructions: str, timeout: float = 75.0,
+        target: dict[str, str] | None = None,
+        threshold_profile: str = "default",
     ) -> dict[str, Any]:
         """A synchronous choice judgment (Client_API.md, 15), without task polling.
 
@@ -178,14 +180,27 @@ class BrokerTaskClient:
         authorizes egress for private benchmarks and never retries this POST.
         Missing capability flags on older brokers mean unavailable.
         """
-        if not self._supports("system1_judgments"):
+        capabilities = self.capabilities()
+        if capabilities.get("system1_judgments") is not True:
             return {"accepted": False, "decision": None, "confidence": None,
                     "fallback_used": True, "reason_code": "SYSTEM1_UNAVAILABLE", "attempts": []}
-        judgment = self._json("POST", "/api/v1/system1/judge", {
+        extended = capabilities.get("system1_evaluation") is True
+        if target is not None and not extended:
+            return {"accepted": False, "decision": None, "confidence": None,
+                    "fallback_used": True, "reason_code": "SYSTEM1_TARGET_UNAVAILABLE", "attempts": []}
+        payload = {
             "use_case": use_case, "input": input, "decision_type": "choice",
             "options": options, "criteria": criteria, "instructions": instructions,
             "cloud_allowed": False,
-        }, timeout=timeout)
+        }
+        # The 3-Oct extension reserves `default` and requires it for custom use
+        # cases. Older 2.11 brokers used the default implicitly and may reject
+        # that profile name; negotiate the extension by capability, not version.
+        if extended or threshold_profile != "default":
+            payload["threshold_profile"] = threshold_profile
+        if target is not None:
+            payload["target"] = target
+        judgment = self._json("POST", "/api/v1/system1/judge", payload, timeout=timeout)
         if type(judgment.get("accepted")) is not bool:
             raise BrokerInvocationError("System-1 response lacks a boolean accepted flag")
         return judgment

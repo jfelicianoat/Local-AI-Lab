@@ -437,6 +437,7 @@ export async function createStrategyRun(input: {
 } & SuiteSelection): Promise<ProductRecord> {
   const payload: unknown = await invoke("create_strategy_run", {
     ...input,
+    evaluation: input.evaluation ?? null,
     embeddingModel: input.embeddingModel?.trim() || null,
     embeddingModelFingerprint: input.embeddingModelFingerprint?.trim() || null,
     trainingJobId: input.trainingJobId?.trim() || null,

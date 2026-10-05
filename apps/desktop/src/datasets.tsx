@@ -10,6 +10,7 @@ import {
 } from "./api";
 import type { JobRecord, MissionRecord, Overview, ProductRecord, ReviewRecord } from "./contracts";
 import { recordStatus } from "./format";
+import { useBrokerEndpoint } from "./brokerEndpoint";
 
 import { RecordBoard } from "./overview";
 import { ExportPanel } from "./ExportPanel";
@@ -109,7 +110,8 @@ export function DistillationPanel({ mission, datasets, preflights, experiments, 
   }, [experiments, datasets, datasetId, baselineExperimentId]);
   const [teacherSource, setTeacherSource] = useState<"broker" | "local">(mission?.teacher_source ?? "broker");
   const [brokerCheckId, setBrokerCheckId] = useState(brokerChecks[0]?.record_id ?? "");
-  const [teacherBrokerEndpoint, setTeacherBrokerEndpoint] = useState("http://127.0.0.1:8000");
+  const [configuredBrokerEndpoint] = useBrokerEndpoint();
+  const [teacherBrokerEndpoint, setTeacherBrokerEndpoint] = useState(configuredBrokerEndpoint);
   const [teacherProvider, setTeacherProvider] = useState("");
   const [teacherDeployment, setTeacherDeployment] = useState("");
   const [teacherModel, setTeacherModel] = useState(mission?.teacher_model ?? "");
@@ -134,8 +136,10 @@ export function DistillationPanel({ mission, datasets, preflights, experiments, 
     const observedEndpoint = selectedCheck?.summary.endpoint;
     if (typeof observedEndpoint === "string" && observedEndpoint.trim()) {
       setTeacherBrokerEndpoint(observedEndpoint);
+    } else {
+      setTeacherBrokerEndpoint(configuredBrokerEndpoint);
     }
-  }, [brokerCheckId, brokerChecks]);
+  }, [brokerCheckId, brokerChecks, configuredBrokerEndpoint]);
   const sha = /^[0-9a-f]{64}$/;
   const teacherReady = teacherSource === "broker"
     ? brokerCheckId && teacherBrokerEndpoint.trim() && teacherProvider.trim() && teacherDeployment.trim()

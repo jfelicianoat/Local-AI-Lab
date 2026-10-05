@@ -42,7 +42,7 @@ Sus reglas principales son:
 
 1. Localice esta carpeta:
 
-   `D:\Desarrollo\Proyectos TFM\Local AI Lab\dist\candidate-20261002-r8`
+   `D:\Desarrollo\Proyectos TFM\Local AI Lab\dist\candidate-broker-endpoint-20261003`
 
 2. Compruebe que están presentes:
 
@@ -194,7 +194,11 @@ revise la conexión y vuelva a intentarlo.
 
 1. Abra **Experimentos**.
 2. Busque **AI Broker · negociación read-only**.
-3. Escriba el endpoint. En esta red se ha usado `http://192.168.1.52:8765`.
+3. Compruebe **Dirección de AI Broker**. El valor inicial de esta instalación es
+   `http://192.168.1.52:8765`, correspondiente al PC IA. Si cambia la dirección,
+   edítela aquí: se guarda entre sesiones y se reutiliza en los formularios de
+   experimentos. Esta dirección corresponde al Broker externo; el Coordinator
+   que acompaña al escritorio se inicia en este ordenador.
 4. Seleccione la fase:
 
    - **Conectividad básica** para `phase0`.
