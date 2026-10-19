@@ -7,7 +7,11 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Protocol
 
+from local_ai_lab.broker.ai_os_core import CoreGateError, LabCoreGate, core_from_environment
 from local_ai_lab.broker.compatibility import normalize_broker_endpoint
+
+#: Sin `core` explícito, el cliente lo toma del entorno.
+_FROM_ENVIRONMENT = object()
 
 
 class BrokerInvocationError(RuntimeError):
@@ -122,8 +126,11 @@ class BrokerTaskClient:
         task_timeout_seconds: int | None = None,
         generation_defaults: Mapping[str, Any] | None = None,
         capabilities: Mapping[str, Any] | None = None,
+        core: LabCoreGate | None | object = _FROM_ENVIRONMENT,
     ) -> None:
         self.endpoint = normalize_broker_endpoint(endpoint)
+        #: AI OS Core, si se configuró (por defecto, LOCAL_AI_LAB_CORE_URL): autoriza cada envío.
+        self.core: LabCoreGate | None = core_from_environment() if core is _FROM_ENVIRONMENT else core  # type: ignore[assignment]
         self.token = token
         self.transport = transport or UrllibBrokerTaskTransport()
         self.poll_interval = poll_interval
@@ -247,11 +254,18 @@ class BrokerTaskClient:
         # que fija el modelo exacto no quiere que su contenido lo vea otro.
         if self._supports("auxiliary_invocations_optout"):
             body["auxiliary_invocations"] = False
+        if self.core is not None:
+            try:
+                self.core.authorize(body["idempotency_key"], body)
+            except CoreGateError as error:
+                raise BrokerInvocationError(str(error)) from None
         started = time.monotonic()
         submitted = self._json("POST", "/api/v1/tasks", body, timeout=30)
         task_id = submitted.get("task_id")
         if not isinstance(task_id, str) or not task_id:
             raise BrokerInvocationError("Broker did not return a task_id")
+        if self.core is not None:
+            self.core.receipt(body["idempotency_key"], "accepted", task_id)
         deadline = time.monotonic() + self.max_wait
         while True:
             state = self._json("GET", f"/api/v1/tasks/{task_id}", None, timeout=30)
@@ -284,6 +298,9 @@ class BrokerTaskClient:
             if time.monotonic() >= deadline:
                 raise BrokerInvocationError(f"Broker task {task_id} timed out")
             time.sleep(self.poll_interval)
+        if self.core is not None:
+            receipt = {"completed": "succeeded", "succeeded": "succeeded", "cancelled": "cancelled"}
+            self.core.receipt(body["idempotency_key"], receipt.get(str(status), "failed_terminal"), task_id)
         if status not in {"completed", "succeeded"}:
             raise BrokerInvocationError(f"Broker task {task_id} ended as {status}: {state.get('error')}")
         result_payload = state.get("result") if isinstance(state.get("result"), dict) else state

@@ -118,6 +118,25 @@ negociación de capacidades.
 python -m pytest -q
 ```
 
+## AI OS Core como director (0.1.1)
+
+Opcional: sin `LOCAL_AI_LAB_CORE_URL` todo sigue igual. Con esa variable y el token por app
+en `LOCAL_AI_LAB_CORE_TOKEN`, `BrokerTaskClient.invoke` (el único camino al Broker:
+estrategias, agentes, evaluación semántica y destilación) evalúa antes en AI OS Core la
+política `local_ai_lab:broker` con `operation_type: experiment_invocation`, la
+`data_classification` de la petición (`local_only`) y el modelo exacto, y solo envía con un
+ALLOW ejecutable. Denegado o Core caído: la invocación falla con `BrokerInvocationError`
+sin haber enviado nada. Cada tarea deja recibos en Core con su clave `lal:<correlación>`
+(`accepted`, y `succeeded`/`failed_terminal`/`cancelled` al terminar). Las variables se
+leen en el proceso que invoca: en el Worker de cada nodo. Recorrido real:
+`scripts/verify_ai_os_core.py <core> <token_lab> <token_director> <broker>` con
+`LOCAL_AI_LAB_BROKER_TOKEN` (7 comprobaciones, verde el 18-oct-2026 con `ollama/local/gemma4:12b`).
+
+**0.1.2 (escritorio 0.1.3) — monitor de Core.** Cada invocación se ve en vivo en `<core>/monitor`:
+la autorización y los recibos llevan como `flow_id` la clave `lal:<correlación>`, y el envío y el
+estado final se cuentan como salto Local AI Lab → Broker (petición y luego respuesta o error, con
+su duración). Si el monitor no contesta, el experimento no se entera.
+
 ## Worker distribuido
 
 Para dar de alta un Worker, el Coordinator acuña un código de un solo uso:
