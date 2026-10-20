@@ -17,8 +17,10 @@ TARGET = {"provider": "local", "deployment": "desktop", "model": "test"}  # lo q
 
 
 class FakeCore:
-    def __init__(self, authorization: str = "ALLOW", *, down: bool = False, monitor_down: bool = False) -> None:
+    def __init__(self, authorization: str = "ALLOW", *, down: bool = False, monitor_down: bool = False,
+                 priority: int | None = None) -> None:
         self.authorization = authorization
+        self.priority = priority
         self.down = down
         self.monitor_down = monitor_down
         self.calls: list[tuple[str, dict]] = []
@@ -31,7 +33,8 @@ class FakeCore:
         payload = json.loads(body)
         self.calls.append((url, payload))
         if url.endswith("/policies/evaluate"):
-            reply = {"authorization": self.authorization, "executable": self.authorization == "ALLOW"}
+            reply = {"authorization": self.authorization, "executable": self.authorization == "ALLOW",
+                     "broker_priority": self.priority}
             return BrokerHttpResponse(200, json.dumps(reply).encode())
         return BrokerHttpResponse(201, b"{}")
 
@@ -82,6 +85,15 @@ def test_allow_invokes_and_leaves_receipts() -> None:
     assert [r["status"] for r in receipts] == ["accepted", "succeeded"]
     assert {r["operation_id"] for r in receipts} == {"lal:c-1"}
     assert result.text == "respuesta"
+
+
+def test_the_core_turn_goes_in_the_broker_body() -> None:
+    broker = FakeBrokerTransport("respuesta")
+    _invoke(_client(broker, FakeCore(priority=500)))
+    assert _broker_tasks(broker)[0][3]["priority"] == 500
+    broker = FakeBrokerTransport("respuesta")
+    _invoke(_client(broker, FakeCore()))
+    assert "priority" not in _broker_tasks(broker)[0][3]  # sin turno fijado, el 100 del Broker
 
 
 def test_the_invocation_is_seen_in_the_core_monitor() -> None:

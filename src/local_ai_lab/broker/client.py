@@ -261,9 +261,11 @@ class BrokerTaskClient:
             body["auxiliary_invocations"] = False
         if self.core is not None:
             try:
-                self.core.authorize(body["idempotency_key"], body)
+                priority = self.core.authorize(body["idempotency_key"], body)
             except CoreGateError as error:
                 raise BrokerInvocationError(str(error)) from None
+            if priority is not None:
+                body["priority"] = priority
         started = time.monotonic()
         submitted = self._json("POST", "/api/v1/tasks", body, timeout=30)
         task_id = submitted.get("task_id")

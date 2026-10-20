@@ -50,7 +50,9 @@ class LabCoreGate:
         #: Cuándo salió cada invocación hacia el Broker (latencia en el monitor de Core).
         self._sent_at: dict[str, tuple[float, str]] = {}
 
-    def authorize(self, operation_id: str, body: dict[str, Any]) -> None:
+    def authorize(self, operation_id: str, body: dict[str, Any]) -> int | None:
+        """Lanza sin ALLOW ejecutable; si no, el turno en la cola del Broker que el director
+        fijó al laboratorio en el monitor (None = sin fijar)."""
         risk = body.get("risk") if isinstance(body.get("risk"), dict) else {}
         decision = self._post("/api/v1/policies/evaluate", {
             "scope": POLICY_SCOPE, "principal_id": PRINCIPAL, "resource_id": operation_id,
@@ -68,6 +70,8 @@ class LabCoreGate:
                 f"AI OS Core no autoriza la invocación ({authorization}{': falta ' + missing if missing else ''}); "
                 f"revisa las políticas de «{POLICY_SCOPE}». No se ha enviado nada al Broker."
             )
+        priority = decision.get("broker_priority")
+        return priority if isinstance(priority, int) else None
 
     def receipt(self, operation_id: str, status: str, task_id: str) -> None:
         """Un recibo perdido no tumba el experimento: Core verá el siguiente estado."""
