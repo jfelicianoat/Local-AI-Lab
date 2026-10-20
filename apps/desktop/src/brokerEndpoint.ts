@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-export const DEFAULT_BROKER_ENDPOINT = "http://192.168.1.52:8765";
+export const DEFAULT_BROKER_ENDPOINT = "https://192.168.1.52:8765";
 const preferenceKey = "local-ai-lab.broker-endpoint.v1";
 const changedEvent = "local-ai-lab:broker-endpoint-changed";
 let unsavedEndpoint: string | undefined;

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import socket
+import ssl
 import urllib.error
 import urllib.request
 import uuid
@@ -11,10 +13,26 @@ from datetime import UTC, datetime
 from typing import Any, Literal, Mapping, Protocol
 from urllib.parse import urlsplit, urlunsplit
 
+from local_ai_lab.broker.ai_os_core import broker_token_source
+
 CompatibilityStatus = Literal["satisfied", "degraded", "unsatisfied", "unknown"]
 FailureKind = Literal["authentication", "transient", "permanent", "contract", "unknown"]
 
 ALLOWED_PATHS = ("/health", "/api/v1/capabilities")
+
+#: CA que firma el certificado HTTPS del Broker (la «AI Broker CA»). Solo se usa para el Broker:
+#: un `SSL_CERT_FILE` global rompería el HTTPS de internet.
+ENV_CA_CERT = "AI_BROKER_CA_CERT"
+DEFAULT_CA_CERT = r"C:\Agora\pki-broker\ca.crt"
+
+
+def broker_ssl_context() -> ssl.SSLContext:
+    """Confianza del sistema más la CA del Broker, si está en el equipo."""
+    context = ssl.create_default_context()
+    ca = os.environ.get(ENV_CA_CERT) or DEFAULT_CA_CERT
+    if os.environ.get(ENV_CA_CERT) or os.path.isfile(ca):
+        context.load_verify_locations(cafile=ca)
+    return context
 
 
 @dataclass(frozen=True, slots=True)
@@ -114,7 +132,7 @@ class UrllibReadOnlyTransport:
     ) -> ReadOnlyResponse:
         request = urllib.request.Request(url, headers=dict(headers), method="GET")
         try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:
+            with urllib.request.urlopen(request, timeout=timeout, context=broker_ssl_context()) as response:
                 return ReadOnlyResponse(status=response.status, body=response.read())
         except urllib.error.HTTPError as error:
             return ReadOnlyResponse(status=error.code, body=error.read())
@@ -202,6 +220,10 @@ class BrokerCompatibilityChecker:
             required_strategies=list(requirement.strategies),
         )
         headers = {"Accept": "application/json"}
+        if not token:
+            # Sin token escrito, el que da AI OS Core
+            source = broker_token_source()
+            token = source(False) if source is not None else None
         if token:
             headers["X-Admin-Token"] = token
 

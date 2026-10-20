@@ -108,3 +108,48 @@ def test_core_comes_from_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     assert BrokerTaskClient(endpoint="http://127.0.0.1:8765", token=None).core is None
     monkeypatch.setenv("LOCAL_AI_LAB_CORE_URL", "http://127.0.0.1:8000")
     assert BrokerTaskClient(endpoint="http://127.0.0.1:8765", token=None).core is not None
+
+
+def test_sin_pegar_tokens_core_da_el_del_broker_y_se_renueva(tmp_path, monkeypatch) -> None:
+    """Core deja su conexión al laboratorio y le da el token del Broker, que se renueva tras un 403."""
+    import threading
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    vigente = ["broker-1"]
+
+    class Core(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:  # noqa: N802
+            ok = self.headers.get("Authorization") == "Bearer tok-lab"
+            self.send_response(200 if ok else 401)
+            self.end_headers()
+            self.wfile.write(json.dumps({"token": vigente[0]} if ok else {}).encode())
+
+        def log_message(self, *_) -> None:
+            pass
+
+    servidor = HTTPServer(("127.0.0.1", 0), Core)
+    threading.Thread(target=servidor.serve_forever, daemon=True).start()
+    try:
+        url = f"http://127.0.0.1:{servidor.server_port}"
+        monkeypatch.setenv("AI_OS_CONNECT_DIR", str(tmp_path))
+        monkeypatch.delenv("LOCAL_AI_LAB_CORE_URL", raising=False)
+        monkeypatch.delenv("LOCAL_AI_LAB_CORE_TOKEN", raising=False)
+        (tmp_path / "local_ai_lab.json").write_text(json.dumps({"core_url": url, "token": "tok-lab"}))
+        assert core_from_environment() is not None
+
+        vistos = []
+
+        class Broker:
+            def request(self, method, url, *, headers, body, timeout):
+                vistos.append(headers.get("X-Admin-Token"))
+                ok = headers.get("X-Admin-Token") == vigente[0]
+                return BrokerHttpResponse(200 if ok else 403, b"{}" if ok else b'{"detail":"ADMIN_AUTH_REQUIRED"}')
+
+        client = BrokerTaskClient(endpoint="http://127.0.0.1:8765", token="pegado-caducado",
+                                  transport=Broker(), core=None)
+        client._json("GET", "/api/v1/capabilities", None, timeout=5)
+        vigente[0] = "broker-2"  # el Broker se reinicia; el runner publica el nuevo en Core
+        client._json("GET", "/api/v1/capabilities", None, timeout=5)
+        assert vistos == ["broker-1", "broker-1", "broker-2"]
+    finally:
+        servidor.shutdown()

@@ -12,6 +12,8 @@ import json
 import os
 import re
 import time
+import urllib.request
+from pathlib import Path
 from typing import Any
 
 
@@ -118,6 +120,68 @@ class LabCoreGate:
         return value if isinstance(value, dict) else {}
 
 
-def core_from_environment() -> LabCoreGate | None:
+def core_connection(principal: str = "local_ai_lab") -> tuple[str, str] | None:
+    """URL y token de esta app en Core, tal como Core los deja en su carpeta de conexión.
+
+    Core genera un token por app y lo escribe en %LOCALAPPDATA%/AIOSCore/conexion: así no
+    hay que pegar ninguno. En una máquina sin Core (un Worker del PC IA), None.
+    """
+    local = os.environ.get("LOCALAPPDATA")
+    folder = os.environ.get("AI_OS_CONNECT_DIR") or (str(Path(local, "AIOSCore", "conexion")) if local else "")
+    if not folder:
+        return None
+    try:
+        data = json.loads(Path(folder, f"{principal}.json").read_text(encoding="utf-8"))
+        url, token = str(data["core_url"]), str(data["token"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    return (url, token) if url and token else None
+
+
+def core_settings() -> tuple[str, str | None] | None:
+    """LOCAL_AI_LAB_CORE_URL/_TOKEN y, si faltan, los que deja Core al arrancar."""
     url = os.environ.get(ENV_URL, "").strip()
-    return LabCoreGate(url, os.environ.get(ENV_TOKEN, "").strip() or None) if url else None
+    token = os.environ.get(ENV_TOKEN, "").strip() or None
+    found = core_connection()
+    if found and (not url or url.rstrip("/") == found[0].rstrip("/")):
+        url, token = url or found[0], token or found[1]
+    return (url, token) if url else None
+
+
+def core_from_environment() -> LabCoreGate | None:
+    core = core_settings()
+    return LabCoreGate(core[0], core[1]) if core else None
+
+
+class CoreBrokerToken:
+    """El token del AI Broker, pedido a Core: el Broker lo rota en cada arranque.
+
+    Se llama en cada petición; `refresh=True` (tras un 401/403 del Broker) lo vuelve a pedir.
+    """
+
+    def __init__(self, core_url: str, core_token: str, timeout: float = 5.0) -> None:
+        self._url = core_url.rstrip("/") + "/api/v1/credentials/broker"
+        self._core_token = core_token
+        self._timeout = timeout
+        self._token: str | None = None
+
+    def __call__(self, refresh: bool = False) -> str | None:
+        if refresh or self._token is None:
+            self._token = self._fetch() or self._token
+        return self._token
+
+    def _fetch(self) -> str | None:
+        request = urllib.request.Request(self._url, headers={
+            "Authorization": f"Bearer {self._core_token}", "Accept": "application/json"})
+        try:
+            with urllib.request.urlopen(request, timeout=self._timeout) as response:  # noqa: S310 - URL de Core
+                token = json.load(response).get("token")
+        except (OSError, ValueError, AttributeError):
+            return None
+        return token if isinstance(token, str) and token else None
+
+
+def broker_token_source() -> CoreBrokerToken | None:
+    """Con Core, el token del Broker lo da Core: nadie lo pega."""
+    core = core_settings()
+    return CoreBrokerToken(core[0], core[1]) if core and core[1] else None

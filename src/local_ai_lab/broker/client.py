@@ -7,8 +7,8 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Protocol
 
-from local_ai_lab.broker.ai_os_core import CoreGateError, LabCoreGate, core_from_environment
-from local_ai_lab.broker.compatibility import normalize_broker_endpoint
+from local_ai_lab.broker.ai_os_core import CoreGateError, LabCoreGate, broker_token_source, core_from_environment
+from local_ai_lab.broker.compatibility import broker_ssl_context, normalize_broker_endpoint
 
 #: Sin `core` explícito, el cliente lo toma del entorno.
 _FROM_ENVIRONMENT = object()
@@ -34,7 +34,7 @@ class UrllibBrokerTaskTransport:
     def request(self, method, url, *, headers, body, timeout):
         request = urllib.request.Request(url, data=body, headers=dict(headers), method=method)
         try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:
+            with urllib.request.urlopen(request, timeout=timeout, context=broker_ssl_context()) as response:
                 return BrokerHttpResponse(response.status, response.read())
         except urllib.error.HTTPError as error:
             return BrokerHttpResponse(error.code, error.read())
@@ -127,11 +127,16 @@ class BrokerTaskClient:
         generation_defaults: Mapping[str, Any] | None = None,
         capabilities: Mapping[str, Any] | None = None,
         core: LabCoreGate | None | object = _FROM_ENVIRONMENT,
+        token_source: Callable[[bool], str | None] | None | object = _FROM_ENVIRONMENT,
     ) -> None:
         self.endpoint = normalize_broker_endpoint(endpoint)
         #: AI OS Core, si se configuró (por defecto, LOCAL_AI_LAB_CORE_URL): autoriza cada envío.
         self.core: LabCoreGate | None = core_from_environment() if core is _FROM_ENVIRONMENT else core  # type: ignore[assignment]
         self.token = token
+        #: Con Core, el token del Broker lo da Core en cada petición (nadie lo pega); `token` queda de reserva.
+        self.token_source: Callable[[bool], str | None] | None = (
+            broker_token_source() if token_source is _FROM_ENVIRONMENT else token_source  # type: ignore[assignment]
+        )
         self.transport = transport or UrllibBrokerTaskTransport()
         self.poll_interval = poll_interval
         self.max_wait = max_wait
@@ -373,20 +378,30 @@ class BrokerTaskClient:
                     return digest
         return None
 
-    def _json(self, method: str, path: str, payload: dict[str, Any] | None, *, timeout: float) -> dict[str, Any]:
+    def _headers(self, body: bytes | None, refresh: bool) -> dict[str, str]:
         headers = {"Accept": "application/json"}
-        if self.token:
+        token = (self.token_source(refresh) if self.token_source is not None else None) or self.token
+        if token:
             # El Broker autentica /api/v1/* con X-Admin-Token, no con Authorization: Bearer.
             # Es la misma cabecera que ya usa el negociador de capacidades.
-            headers["X-Admin-Token"] = self.token
+            headers["X-Admin-Token"] = token
+        if body is not None:
+            headers["Content-Type"] = "application/json"
+        return headers
+
+    def _json(self, method: str, path: str, payload: dict[str, Any] | None, *, timeout: float) -> dict[str, Any]:
         body = None
         if payload is not None:
-            headers["Content-Type"] = "application/json"
             body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         try:
             response = self.transport.request(
-                method, self.endpoint + path, headers=headers, body=body, timeout=timeout
+                method, self.endpoint + path, headers=self._headers(body, False), body=body, timeout=timeout
             )
+            if response.status in (401, 403) and self.token_source is not None:
+                # El Broker se reinició y rotó su token: se pide el nuevo a Core y se reintenta una vez
+                response = self.transport.request(
+                    method, self.endpoint + path, headers=self._headers(body, True), body=body, timeout=timeout
+                )
         except (OSError, TimeoutError) as error:
             raise BrokerInvocationError(f"Broker {method} {path} transport failed") from error
         if response.status < 200 or response.status >= 300:
