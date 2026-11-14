@@ -2,5 +2,5 @@
 # The application deliberately does not pin a speculative torch build for untested hardware.
 transformers>=4.53,<5
 peft>=0.16,<1
-accelerate>=1.8,<2
+accelerate>=1.15.0,<2
 safetensors>=0.5,<1
