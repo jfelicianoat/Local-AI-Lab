@@ -130,10 +130,15 @@ def core_connection(principal: str = "local_ai_lab") -> tuple[str, str] | None:
     Core genera un token por app y lo escribe en %LOCALAPPDATA%/AIOSCore/conexion: así no
     hay que pegar ninguno. En una máquina sin Core (un Worker del PC IA), None.
     """
-    local = os.environ.get("LOCALAPPDATA")
-    folder = os.environ.get("AI_OS_CONNECT_DIR") or (str(Path(local, "AIOSCore", "conexion")) if local else "")
+    # Misma regla que `ai_os_core.conexion.connect_dir`: sin LOCALAPPDATA (fuera de Windows)
+    # Core escribe en ~/.ai_os_core.
+    folder = os.environ.get("AI_OS_CONNECT_DIR", "").strip()
     if not folder:
-        return None
+        try:
+            base = os.environ.get("LOCALAPPDATA") or str(Path.home() / ".ai_os_core")
+        except RuntimeError:  # entorno sin perfil de usuario: no hay carpeta de conexión
+            return None
+        folder = str(Path(base, "AIOSCore", "conexion"))
     try:
         data = json.loads(Path(folder, f"{principal}.json").read_text(encoding="utf-8"))
         url, token = str(data["core_url"]), str(data["token"])

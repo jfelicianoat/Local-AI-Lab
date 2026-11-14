@@ -165,3 +165,20 @@ def test_sin_pegar_tokens_core_da_el_del_broker_y_se_renueva(tmp_path, monkeypat
         assert vistos == ["broker-1", "broker-1", "broker-2"]
     finally:
         servidor.shutdown()
+
+
+def test_sin_localappdata_la_conexion_se_busca_donde_la_deja_core(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """Plan 13-nov (AT-02): fuera de Windows Core escribe en ~/.ai_os_core."""
+    import json as _json
+    from pathlib import Path as _Path
+
+    from local_ai_lab.broker.ai_os_core import core_connection
+
+    monkeypatch.delenv("LOCALAPPDATA", raising=False)
+    monkeypatch.delenv("AI_OS_CONNECT_DIR", raising=False)
+    monkeypatch.setattr(_Path, "home", lambda: tmp_path)
+    carpeta = tmp_path / ".ai_os_core" / "AIOSCore" / "conexion"
+    carpeta.mkdir(parents=True)
+    conexion = {"core_url": "http://127.0.0.1:8720", "token": "t"}
+    (carpeta / "local_ai_lab.json").write_text(_json.dumps(conexion), encoding="utf-8")
+    assert core_connection() == ("http://127.0.0.1:8720", "t")
