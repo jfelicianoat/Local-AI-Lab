@@ -1,4 +1,4 @@
-torch>=2.7,<3
+torch>=2.15.0,<3
 transformers>=4.53,<5
 peft>=0.16,<1
 accelerate>=1.8,<2
