@@ -196,3 +196,73 @@ def test_case_metric_set_contains_only_metrics(tmp_path: Path) -> None:
     for name, value in values.items():
         assert isinstance(value, float) and not isinstance(value, bool), name
         assert 0.0 <= value <= 1.0, name
+
+
+# --- Plan 13-nov: LAL-02 (duplicados) y LAL-03 (consultas sin relevantes) ---
+
+
+def _candidatos(paths: Sequence[str]) -> list:
+    from local_ai_lab.retrieval.engine import RetrievalCandidate
+
+    return [
+        RetrievalCandidate(
+            chunk_id=f"c{rank}", note_id=path, relative_path=path, section="", content="",
+            score=1.0 / rank, rank=rank, strategy="test", evidence_reference=f"snapshot:sha256:{rank}",
+        )
+        for rank, path in enumerate(paths, start=1)
+    ]
+
+
+@pytest.mark.parametrize(
+    ("paths", "relevant", "k", "recall", "precision", "ndcg"),
+    [
+        (["A", "A"], {"A"}, 5, 1.0, 0.5, 1.0),
+        (["B", "A", "A"], {"A", "C"}, 5, 0.5, 1 / 3, 0.3869),
+        (["A", "B"], {"A", "B"}, 2, 1.0, 1.0, 1.0),
+    ],
+)
+def test_un_documento_repetido_cuenta_una_vez(paths, relevant, k, recall, precision, ndcg) -> None:
+    metrics = evaluate_retrieval(_candidatos(paths), relevant, k=k)
+    assert metrics.recall_at_k == pytest.approx(recall)
+    assert metrics.precision_at_k == pytest.approx(precision, abs=1e-4)
+    assert metrics.ndcg_at_k == pytest.approx(ndcg, abs=1e-4)
+
+
+def test_ndcg_nunca_supera_uno() -> None:
+    import itertools
+
+    for n in range(1, 5):
+        for paths in itertools.product("ABC", repeat=n):
+            for size in range(0, 4):
+                for relevant in itertools.combinations("ABC", size):
+                    for k in (1, 2, 5):
+                        value = evaluate_retrieval(_candidatos(paths), set(relevant), k=k).ndcg_at_k
+                        assert 0.0 <= value <= 1.0, (paths, relevant, k, value)
+
+
+def test_las_consultas_sin_relevantes_no_inflan_la_media() -> None:
+    from types import SimpleNamespace
+
+    suite = SimpleNamespace(
+        definition={"suite_id": "s", "documents": [
+            {"document_id": d, "relative_path": d} for d in ("A", "B", "C")]},
+        fingerprint="f", review_status="pending",
+        cases=[
+            {"case_id": "uno", "kinds": [], "query": "q1", "ground_truth": {"relevant_document_ids": ["A"]}},
+            {"case_id": "dos", "kinds": [], "query": "q2", "ground_truth": {"relevant_document_ids": ["B", "C"]}},
+            {"case_id": "nada", "kinds": [], "query": "q3", "ground_truth": {"relevant_document_ids": []}},
+        ],
+    )
+    respuestas = {"q1": ["A"], "q2": ["B"], "q3": []}
+
+    class Fijo:
+        strategy_id = "fijo"
+
+        def retrieve(self, query: str, *, limit: int = 10):
+            return _candidatos(respuestas[query])
+
+    payload = RetrievalBenchmarkRunner().run(suite, Fijo(), k=5).payload
+    assert payload["schema_version"] == "retrieval-benchmark-report.v2"
+    assert payload["aggregate"]["recall_at_k"] == pytest.approx(0.75)
+    assert payload["answerable_cases"] == 2
+    assert payload["unanswerable"] == {"cases": 1, "empty_result_rate": 1.0}

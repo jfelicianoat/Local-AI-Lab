@@ -13,8 +13,11 @@
 .audit-20260929-tests/
 docs/Auditoria 20260929/audit-*/
 .target-test-tmp-*/
-graphify-out/cache/ast/
-graphify-out/20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/
+# Caché de graphify; solo se versionan los EXTRACTION_R*.json que cita docs/RELEASE_STATUS_20260929.md
+/graphify-out/*
+!/graphify-out/EXTRACTION_R*.json
+# Lo genera scripts/build_sidecar.ps1 (y la CI antes de empaquetar)
+/apps/desktop/src-tauri/resources/local-ai-lab-coordinator.exe
 __pycache__/
 *.py[cod]
 node_modules/
@@ -22,3 +25,4 @@ dist/
 target/
 .build/
 *.spec
+*.egg-info/

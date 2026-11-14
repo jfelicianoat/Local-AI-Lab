@@ -53,6 +53,7 @@ class RetrievalBenchmarkRunner:
                     "kinds": case["kinds"],
                     "query": case["query"],
                     "relevant_paths": sorted(relevant),
+                    "answerable": bool(relevant),
                     "retrieved": [
                         {
                             "rank": item.rank,
@@ -68,12 +69,23 @@ class RetrievalBenchmarkRunner:
                     "metrics": metrics.metric_values(),
                 }
             )
+        # Una consulta sin relevantes puntúa 1,0 en recall y nDCG: mezclada en la
+        # media la inflaría. Se mide aparte, como abstención.
+        answerable = [result for result in results if result["answerable"]]
+        unanswerable = [result for result in results if not result["answerable"]]
         aggregate = {
-            name: fmean(result["metrics"][name] for result in results)
+            name: fmean(result["metrics"][name] for result in answerable) if answerable else None
             for name in RETRIEVAL_METRIC_NAMES
         }
+        unanswerable_summary = {
+            "cases": len(unanswerable),
+            # En una consulta sin respuesta, lo correcto es no devolver nada.
+            "empty_result_rate": (
+                fmean(1.0 if not result["retrieved"] else 0.0 for result in unanswerable) if unanswerable else None
+            ),
+        }
         payload: dict[str, Any] = {
-            "schema_version": "retrieval-benchmark-report.v1",
+            "schema_version": "retrieval-benchmark-report.v2",
             "suite_id": suite.definition["suite_id"],
             "suite_fingerprint": suite.fingerprint,
             "human_review_status": suite.review_status,
@@ -83,6 +95,8 @@ class RetrievalBenchmarkRunner:
             "generated_at": utc_timestamp(),
             "cases": results,
             "aggregate": aggregate,
+            "answerable_cases": len(answerable),
+            "unanswerable": unanswerable_summary,
         }
         payload["content_sha256"] = sha256_json(payload)
         return RetrievalBenchmarkReport(payload)

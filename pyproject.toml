@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "local-ai-lab"
 version = "0.1.5"
 description = "Local-first distributed laboratory for evaluating private AI strategies"
-requires-python = ">=3.12"
+requires-python = ">=3.14"  # uuid.uuid7 (domain/common.py) existe desde 3.14
 license = { text = "Proprietary" }
 dependencies = [
   "fastapi>=0.115,<1",
@@ -24,6 +24,8 @@ local-ai-lab-worker = "local_ai_lab.worker.cli:main"
 [project.optional-dependencies]
 dev = [
   "pytest>=8.3,<9",
+  # TestClient de Starlette lo necesita; sin él no se recoge ningún test de la API
+  "httpx>=0.27,<1",
 ]
 
 [tool.setuptools.packages.find]

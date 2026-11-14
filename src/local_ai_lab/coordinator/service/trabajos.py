@@ -473,10 +473,11 @@ class TrabajosMixin(NodosMixin):
             report = json.loads(report_bytes)
         except (OSError, KeyError, zipfile.BadZipFile, json.JSONDecodeError) as error:
             raise ValueError("result artifact contains no valid experiment report") from error
-        schema = {"retrieval.benchmark.v1": "retrieval-benchmark-report.v1",
-                  "broker.agent_experiment.v1": "broker-agent-experiment.v1",
-                  "strategy.suite.v1": "strategy-suite-report.v1"}[spec["kind"]]
-        if not isinstance(report, dict) or report.get("schema_version") != schema:
+        # v2 separa las consultas sin respuesta; un worker con la versión anterior sigue enviando v1
+        schemas = {"retrieval.benchmark.v1": ("retrieval-benchmark-report.v1", "retrieval-benchmark-report.v2"),
+                   "broker.agent_experiment.v1": ("broker-agent-experiment.v1",),
+                   "strategy.suite.v1": ("strategy-suite-report.v1",)}[spec["kind"]]
+        if not isinstance(report, dict) or report.get("schema_version") not in schemas:
             raise ValueError("experiment report schema is invalid")
         if hashlib.sha256(report_bytes).hexdigest() != payload.get("report_sha256"):
             raise ValueError("experiment report hash does not match the result")

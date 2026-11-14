@@ -7,6 +7,8 @@ from typing import Sequence
 from local_ai_lab.retrieval.engine import RetrievalCandidate
 
 
+# `source_coverage` es hoy un alias de `recall_at_k`; se mantiene por compatibilidad
+# del contrato de siete métricas.
 # Las siete métricas de retrieval del nivel 2, y nada más. `k` es el parámetro de
 # la medición y `deterministic` su clasificación: ninguno es una métrica, y tratarlos
 # como tales rompe a cualquier consumidor que valide el conjunto o su rango [0, 1].
@@ -52,24 +54,30 @@ def evaluate_retrieval(
         raise ValueError("k must be positive")
     selected = list(candidates[:k])
     selected_paths = [item.relative_path for item in selected]
-    relevant_hits = [path for path in selected_paths if path in relevant_paths]
-    unique_relevant = set(relevant_hits)
-    recall = len(unique_relevant) / len(relevant_paths) if relevant_paths else 1.0
-    precision = len(relevant_hits) / len(selected) if selected else (1.0 if not relevant_paths else 0.0)
-    first_rank = next((rank for rank, path in enumerate(selected_paths, start=1) if path in relevant_paths), None)
+    # Un documento relevante cuenta una vez, en su primera aparición: los
+    # fragmentos repetidos del mismo documento no son aciertos nuevos (eso lo
+    # mide `redundancy`).
+    seen: set[str] = set()
+    gains: list[float] = []
+    for path in selected_paths:
+        gains.append(1.0 if path in relevant_paths and path not in seen else 0.0)
+        seen.add(path)
+    hits = sum(gains)
+    recall = hits / len(relevant_paths) if relevant_paths else 1.0
+    precision = hits / len(selected) if selected else (1.0 if not relevant_paths else 0.0)
+    first_rank = next((rank for rank, gain in enumerate(gains, start=1) if gain), None)
     reciprocal_rank = 1.0 / first_rank if first_rank else (1.0 if not relevant_paths and not selected else 0.0)
-    gains = [1.0 if path in relevant_paths else 0.0 for path in selected_paths]
     dcg = sum(gain / math.log2(rank + 1) for rank, gain in enumerate(gains, start=1))
     ideal_hits = min(len(relevant_paths), k)
     idcg = sum(1.0 / math.log2(rank + 1) for rank in range(1, ideal_hits + 1))
     ndcg = dcg / idcg if idcg else 1.0
-    coverage = len(unique_relevant) / len(relevant_paths) if relevant_paths else 1.0
+    coverage = recall
     redundancy = 1.0 - (len(set(selected_paths)) / len(selected_paths)) if selected_paths else 0.0
     return RetrievalMetrics(
         k=k,
         recall_at_k=recall,
         precision_at_k=precision,
-        hit_rate=1.0 if relevant_hits else (1.0 if not relevant_paths and not selected else 0.0),
+        hit_rate=1.0 if hits else (1.0 if not relevant_paths and not selected else 0.0),
         reciprocal_rank=reciprocal_rank,
         ndcg_at_k=ndcg,
         source_coverage=coverage,

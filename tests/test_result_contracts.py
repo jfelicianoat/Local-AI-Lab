@@ -210,7 +210,7 @@ def test_experiment_report_contracts_cannot_promote_discordant_results(tmp_path:
     report = {**common, "latency_ms": 10.0}
     result = {**common, "latency_ms": 10.0}
     if kind == "retrieval.benchmark.v1":
-        name, schema = "retrieval-report.json", "retrieval-benchmark-report.v1"
+        name, schema = "retrieval-report.json", "retrieval-benchmark-report.v2"
         report.update({"strategy_id": "semantic.test.v1", "aggregate": {"recall_at_k": 1.0}})
         result.update({"strategy_contract": report["strategy_id"], "aggregate": report["aggregate"]})
     else:

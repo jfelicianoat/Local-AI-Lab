@@ -18,7 +18,7 @@ await build({
 });
 const panels = createRequire(import.meta.url)(fileURLToPath(bundle));
 const preferenceKey = "local-ai-lab.broker-endpoint.v1";
-const pcEndpoint = "http://192.168.1.52:8765";
+const pcEndpoint = "https://192.168.1.52:8765"; // el Broker es HTTPS desde el 20-oct
 const stored = new Map();
 globalThis.window = Object.assign(new EventTarget(), {
   localStorage: {
