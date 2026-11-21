@@ -26,6 +26,7 @@ class StorageCleanupApplyRequest(StrictModel):
 
 
 class MissionSaveRequest(StrictModel):
+    expected_revision: int = Field(default=0, ge=0)
     strategy: str = Field(min_length=1, max_length=32)
     task: str = Field(min_length=1, max_length=4000)
     success: str = Field(min_length=1, max_length=4000)

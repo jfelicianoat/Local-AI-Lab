@@ -65,12 +65,14 @@ pub(crate) async fn save_mission(
     state: tauri::State<'_, SessionState>, mission_id: String, strategy: String,
     task: String, success: String, constraints: String,
     teacher_source: Option<String>, teacher_model: Option<String>, student_model: Option<String>,
+    expected_revision: Option<u64>,
 ) -> Result<serde_json::Value, String> {
     if !valid_mission_id(&mission_id) { return Err("Identificador de misión no válido.".into()); }
     mutate_app_json(state, reqwest::Method::PUT, &format!("/app/v1/missions/{mission_id}"),
         serde_json::json!({"strategy": strategy, "task": task, "success": success,
             "constraints": constraints, "teacher_source": teacher_source,
-            "teacher_model": teacher_model, "student_model": student_model})).await
+            "teacher_model": teacher_model, "student_model": student_model,
+            "expected_revision": expected_revision.unwrap_or(0)})).await
 }
 
 #[tauri::command]

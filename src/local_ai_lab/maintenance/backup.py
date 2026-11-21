@@ -13,7 +13,8 @@ from contextlib import closing
 from pathlib import Path, PurePosixPath
 
 
-FORMAT = "local-ai-lab.backup.v1"
+FORMAT = "local-ai-lab.backup.v2"
+LEGACY_FORMAT = "local-ai-lab.backup.v1"
 CHUNK = 1024 * 1024
 
 
@@ -44,6 +45,13 @@ def create_backup(database: Path, archive: Path) -> dict:
             integrity = saved.execute("PRAGMA integrity_check").fetchone()[0]
             if integrity != "ok":
                 raise ValueError("database integrity check failed")
+            locations = {}
+            if saved.execute("SELECT 1 FROM sqlite_master WHERE name='artifact_locations'").fetchone():
+                for record_id, local_path in saved.execute("SELECT record_id, local_path FROM artifact_locations"):
+                    artifact = Path(local_path).resolve(strict=True)
+                    if not artifact.is_relative_to(root):
+                        raise ValueError(f"registered artifact outside backup data directory: {record_id}")
+                    locations[record_id] = artifact.relative_to(root).as_posix()
         entries: list[dict[str, object]] = []
         pending = archive.with_name(f".{archive.name}.{os.getpid()}.partial")
         try:
@@ -62,7 +70,8 @@ def create_backup(database: Path, archive: Path) -> dict:
                 with snapshot.open("rb") as source, output.open(f"files/{database.name}", "w", force_zip64=True) as target:
                     digest, size = _copy_and_hash(source, target)
                 entries.append({"path": database.name, "sha256": digest, "size": size})
-                manifest = {"format": FORMAT, "database": database.name, "files": entries}
+                manifest = {"format": FORMAT, "database": database.name, "files": entries,
+                            "artifact_locations": locations}
                 output.writestr("manifest.json", json.dumps(manifest, sort_keys=True, ensure_ascii=False))
             os.replace(pending, archive)
         finally:
@@ -74,10 +83,12 @@ def _read_manifest(archive: zipfile.ZipFile) -> dict:
     if archive.namelist().count("manifest.json") != 1:
         raise ValueError("backup has no unique manifest")
     manifest = json.loads(archive.read("manifest.json"))
-    if manifest.get("format") != FORMAT or not isinstance(manifest.get("files"), list):
+    if not isinstance(manifest, dict) or manifest.get("format") not in {FORMAT, LEGACY_FORMAT} or not isinstance(manifest.get("files"), list):
         raise ValueError("unsupported backup format")
     listed: set[str] = set()
     for item in manifest["files"]:
+        if not isinstance(item, dict):
+            raise ValueError("backup contains an invalid entry")
         path = item.get("path")
         if not isinstance(path, str) or not path or path in listed:
             raise ValueError("backup contains a duplicate or invalid path")
@@ -96,6 +107,20 @@ def _read_manifest(archive: zipfile.ZipFile) -> dict:
         raise ValueError("backup omits the database")
     if set(archive.namelist()) != {"manifest.json"} | {f"files/{path}" for path in listed}:
         raise ValueError("backup contains unlisted files")
+    if len(archive.namelist()) != len(listed) + 1:
+        raise ValueError("backup contains duplicate archive members")
+    if manifest["format"] == FORMAT:
+        locations = manifest.get("artifact_locations")
+        if not isinstance(locations, dict):
+            raise ValueError("backup has no artifact relocation map")
+        for record_id, relative in locations.items():
+            if not isinstance(record_id, str) or not isinstance(relative, str) or not relative or (
+                relative.startswith("/") or "\\" in relative or ":" in relative
+                or relative != PurePosixPath(relative).as_posix()
+                or any(part in {".", ".."} for part in PurePosixPath(relative).parts)
+                or not any(path == relative or path.startswith(relative + "/") for path in listed)
+            ):
+                raise ValueError("backup has an unsafe or missing artifact relocation")
     return manifest
 
 
@@ -114,7 +139,7 @@ def verify_backup(path: Path) -> dict:
     return manifest
 
 
-def restore_backup(path: Path, target: Path) -> dict:
+def restore_backup(path: Path, target: Path, *, original_root: Path | None = None) -> dict:
     target = target.resolve()
     if target.exists():
         raise FileExistsError("restore target must not exist")
@@ -130,6 +155,29 @@ def restore_backup(path: Path, target: Path) -> dict:
                 with archive.open(f"files/{item['path']}") as source, destination.open("xb") as output:
                     _copy_and_hash(source, output)
         with closing(sqlite3.connect(staging / manifest["database"])) as database:
+            if database.execute("SELECT 1 FROM sqlite_master WHERE name='artifact_locations'").fetchone():
+                rows = database.execute("SELECT record_id, local_path FROM artifact_locations").fetchall()
+                locations = manifest.get("artifact_locations", {})
+                if manifest["format"] == LEGACY_FORMAT and rows:
+                    if original_root is None:
+                        raise ValueError("legacy backup requires original_root to relocate artifact references")
+                    root = original_root.resolve()
+                    locations = {}
+                    for record_id, local_path in rows:
+                        original = Path(local_path)
+                        if not original.is_absolute() or not original.is_relative_to(root):
+                            raise ValueError("legacy backup references an artifact outside original_root")
+                        locations[record_id] = original.relative_to(root).as_posix()
+                if set(locations) != {record_id for record_id, _ in rows}:
+                    raise ValueError("backup artifact map does not match the database")
+                for record_id, _ in rows:
+                    relative = PurePosixPath(locations[record_id])
+                    restored_path = staging.joinpath(*relative.parts).resolve(strict=True)
+                    if not restored_path.is_relative_to(staging):
+                        raise ValueError("restored artifact escapes the data directory")
+                    database.execute("UPDATE artifact_locations SET local_path=? WHERE record_id=?",
+                                     (str(target.joinpath(*relative.parts)), record_id))
+                database.commit()
             if database.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                 raise ValueError("restored database integrity check failed")
         staging.rename(target)
@@ -147,13 +195,15 @@ def main() -> None:
     restore = sub.add_parser("restore")
     restore.add_argument("archive", type=Path)
     restore.add_argument("target", type=Path)
+    restore.add_argument("--original-root", type=Path,
+                         help="Original Coordinator directory, required for legacy v1 backups with artifacts")
     args = parser.parse_args()
     if args.operation == "backup":
         manifest = create_backup(args.database, args.archive)
     elif args.operation == "verify":
         manifest = verify_backup(args.archive)
     else:
-        manifest = restore_backup(args.archive, args.target)
+        manifest = restore_backup(args.archive, args.target, original_root=args.original_root)
     print(f"{args.operation}: {len(manifest['files'])} files verified")
 
 

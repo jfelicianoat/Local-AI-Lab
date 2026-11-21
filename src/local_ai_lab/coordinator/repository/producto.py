@@ -6,6 +6,8 @@ el laboratorio no sigue rutas UNC que aparecieron despues.
 from __future__ import annotations
 
 import json
+import sqlite3
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Any
 
@@ -61,6 +63,7 @@ class ProductoMixin(CapacidadesMixin):
         status: str,
         artifact_sha256: str,
         summary: dict[str, Any],
+        connection: sqlite3.Connection | None = None,
     ) -> dict[str, Any]:
         allowed_categories = {
             "snapshot", "index", "benchmark", "experiment", "comparison", "review",
@@ -73,7 +76,7 @@ class ProductoMixin(CapacidadesMixin):
         if len(artifact_sha256) != 64 or any(char not in "0123456789abcdef" for char in artifact_sha256):
             raise ValueError("product record artifact SHA-256 is invalid")
         now = utc_timestamp()
-        with self.transaction() as db:
+        with (self.transaction() if connection is None else nullcontext(connection)) as db:
             if status == "PREFLIGHT_PASSED":
                 # Check under the same write lock as publication: a heartbeat
                 # cannot race this write and restore a preflight for an old env.
@@ -224,11 +227,12 @@ class ProductoMixin(CapacidadesMixin):
         artifact_kind: str,
         local_path: Path,
         artifact_sha256: str,
+        connection: sqlite3.Connection | None = None,
     ) -> None:
         path = local_path.resolve(strict=True)
         if str(path).startswith(("\\\\", "//")):
             raise ValueError("artifact locations must be local")
-        with self.transaction() as db:
+        with (self.transaction() if connection is None else nullcontext(connection)) as db:
             if db.execute("SELECT 1 FROM product_records WHERE record_id=?", (record_id,)).fetchone() is None:
                 raise KeyError(f"unknown product record: {record_id}")
             db.execute(

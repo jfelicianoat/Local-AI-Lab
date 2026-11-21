@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import type { HistoryCursor, HistoryPage, JobRecord, MissionRecord, MissionStrategy, Overview, ProductRecord, ProductWorkspace, ReviewRecord, StorageStatus, StorageCleanupPlan, StorageCleanupResult, TrainingCheckpoint, WorkspaceCursor, WorkspaceGroup } from "./contracts";
 import { isPreviewMode, previewJobs, previewOverview, previewReviews, previewWorkspace } from "./previewData";
 import { workspaceGroups } from "./workspacePagination";
+import { missionStorage, readSelectedMission, selectMission } from "./missionDraft";
 export { mergeProductWorkspace, workspaceGroups } from "./workspacePagination";
 export { mergeHistoryPage } from "./historyPagination";
 
@@ -90,6 +91,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
 
 function isMission(value: unknown): value is MissionRecord {
   return isObject(value) && typeof value.mission_id === "string" &&
+    Number.isSafeInteger(value.revision) && Number(value.revision) >= 1 &&
     typeof value.strategy === "string" && typeof value.task === "string" &&
     typeof value.success === "string" && Array.isArray(value.links) &&
     Array.isArray(value.stage_states) && typeof value.resume_step === "number";
@@ -99,9 +101,17 @@ export async function loadMissions(): Promise<MissionRecord[]> {
   if (isPreviewMode()) return [];
   const payload: unknown = await invoke("load_missions");
   if (!Array.isArray(payload) || !payload.every(isMission)) throw new Error("No se pudieron validar las misiones guardadas.");
-  if (window.localStorage.getItem("local-ai-lab.missions.imported.v1") === "yes") return payload;
-  const raw = window.localStorage.getItem("local-ai-lab.missions.v2");
-  const legacy = window.localStorage.getItem("local-ai-lab.mission-draft.v1");
+  const storage = missionStorage();
+  let raw: string | null, legacy: string | null;
+  try {
+    if (storage.getItem("local-ai-lab.missions.imported.v1") === "yes") return payload;
+    raw = storage.getItem("local-ai-lab.missions.v2");
+    legacy = storage.getItem("local-ai-lab.mission-draft.v1");
+  } catch {
+    // Legacy recovery is optional; a restricted WebView must still open the
+    // authenticated Coordinator workspace and its already saved plans.
+    return payload;
+  }
   const drafts: unknown[] = [];
   let priorSelectedId: string | null = null;
   try {
@@ -132,11 +142,12 @@ export async function loadMissions(): Promise<MissionRecord[]> {
       studentModel: typeof item.studentModel === "string" ? item.studentModel : undefined,
     }));
   }
-  if (priorSelectedId && !window.localStorage.getItem("local-ai-lab.selected-mission.v1") &&
+  if (priorSelectedId && !readSelectedMission(storage) &&
       imported.some((mission) => mission.mission_id === priorSelectedId)) {
-    window.localStorage.setItem("local-ai-lab.selected-mission.v1", priorSelectedId);
+    selectMission(storage, priorSelectedId);
   }
-  window.localStorage.setItem("local-ai-lab.missions.imported.v1", "yes");
+  try { storage.setItem("local-ai-lab.missions.imported.v1", "yes"); }
+  catch { /* Saved IDs prevent duplicate imports if the local marker cannot be written. */ }
   return imported;
 }
 
@@ -144,6 +155,7 @@ export async function saveMission(input: {
   missionId: string; strategy: MissionStrategy; task: string; success: string;
   constraints: string; teacherSource?: "broker" | "local";
   teacherModel?: string; studentModel?: string;
+  expectedRevision?: number;
 }): Promise<MissionRecord> {
   const payload: unknown = await invoke("save_mission", input);
   if (!isMission(payload)) throw new Error("No se pudo validar la misión guardada.");

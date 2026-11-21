@@ -15,10 +15,11 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { linkMissionEvidence, saveMission, unlinkMissionEvidence } from "./api";
+import { linkMissionEvidence, loadMissions, saveMission, unlinkMissionEvidence } from "./api";
 import type { JobRecord, MissionRecord, MissionStrategy, Overview, ProductWorkspace, ReviewRecord } from "./contracts";
 
 import { formatTime } from "./states";
+import { missionFields, missionStorage, resolveMissionSelection, readMissionDraft, removeMissionDraft, sameMissionFields, writeMissionDraft, type MissionFields } from "./missionDraft";
 
 export function MissionList({ missions, onOpen }: { missions: MissionRecord[]; onOpen: (id: string) => void }) {
   if (!missions.length) return <p>Aún no hay misiones guardadas. Crea una desde Misiones.</p>;
@@ -99,73 +100,128 @@ function relevantTrainingEvidence(strategy: MissionStrategy, stage: number, stat
   return true;
 }
 
-export function MissionBoard({ overview, product, reviews, jobs, missions, onChanged, onNavigate }: {
+export function MissionBoard({ overview, product, reviews, jobs, missions, onChanged, onNavigate, registerExitGuard, selectedMissionId, onSelectMission }: {
   overview: Overview; product: ProductWorkspace | null; reviews: ReviewRecord[]; jobs: JobRecord[];
   missions: MissionRecord[]; onChanged: (mission: MissionRecord) => void; onNavigate: (page: string) => void;
+  registerExitGuard: (guard: (() => boolean) | null) => void;
+  selectedMissionId: string | null; onSelectMission: (id: string | null) => void;
 }) {
-  const [strategy, setStrategy] = useState<MissionStrategy>("recommend");
+  const [recovered] = useState(() => readMissionDraft(missionStorage(), selectedMissionId));
+  const [strategy, setStrategy] = useState<MissionStrategy>(recovered?.fields.strategy ?? "recommend");
   const [activeStep, setActiveStep] = useState(0);
   const [mission, setMission] = useState<MissionRecord | null>(null);
-  const [task, setTask] = useState("");
-  const [success, setSuccess] = useState("");
-  const [constraints, setConstraints] = useState("");
-  const [teacherSource, setTeacherSource] = useState<"broker" | "local">("broker");
-  const [teacherModel, setTeacherModel] = useState("");
-  const [studentModel, setStudentModel] = useState("");
+  const [task, setTask] = useState(recovered?.fields.task ?? "");
+  const [success, setSuccess] = useState(recovered?.fields.success ?? "");
+  const [constraints, setConstraints] = useState(recovered?.fields.constraints ?? "");
+  const [teacherSource, setTeacherSource] = useState<"broker" | "local">(recovered?.fields.teacherSource ?? "broker");
+  const [teacherModel, setTeacherModel] = useState(recovered?.fields.teacherModel ?? "");
+  const [studentModel, setStudentModel] = useState(recovered?.fields.studentModel ?? "");
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [evidenceChoice, setEvidenceChoice] = useState("");
-  const loadedId = useRef<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [conflict, setConflict] = useState(false);
+  const [localSaved, setLocalSaved] = useState(true);
+  const loadedId = useRef<string | null>(recovered?.missionId ?? null);
+  const savedRevision = useRef(recovered?.expectedRevision ?? 0);
+  const savedFields = useRef<MissionFields | null>(recovered?.base ?? null);
   const saveQueue = useRef<Promise<MissionRecord | undefined>>(Promise.resolve(undefined));
-  const missionId = mission?.mission_id ?? null;
+  const selection = resolveMissionSelection(selectedMissionId, missions);
+  const missionId = selection.missing ? null : mission?.mission_id ?? loadedId.current ?? selection.missionId;
+  const fields = useMemo(() => ({ strategy, task, success, constraints, teacherSource, teacherModel, studentModel }),
+    [strategy, task, success, constraints, teacherSource, teacherModel, studentModel]);
+  const latestFields = useRef(fields);
+  latestFields.current = fields;
+  const dirty = !sameMissionFields(fields, savedFields.current)
+    && Boolean(missionId || task || success || constraints || teacherModel || studentModel);
   const flow = missionFlows[strategy];
   const current = flow[activeStep] ?? flow[0];
 
-  const loadPlan = useCallback((plan: MissionRecord) => {
+  const loadPlan = useCallback((plan: MissionRecord, discardLocal = false) => {
+    const stored = discardLocal ? null : readMissionDraft(missionStorage(), plan.mission_id);
+    const recovery = stored && !sameMissionFields(stored.fields, stored.base) ? stored : null;
+    const next = recovery?.fields ?? missionFields(plan);
+    savedRevision.current = recovery?.expectedRevision ?? plan.revision;
+    savedFields.current = recovery?.base ?? missionFields(plan);
     loadedId.current = plan.mission_id;
-    window.localStorage.setItem("local-ai-lab.selected-mission.v1", plan.mission_id);
-    setMission(plan); setStrategy(plan.strategy); setTask(plan.task); setSuccess(plan.success);
-    setConstraints(plan.constraints); setTeacherSource(plan.teacher_source ?? "broker");
-    setTeacherModel(plan.teacher_model ?? ""); setStudentModel(plan.student_model ?? "");
+    onSelectMission(plan.mission_id);
+    setMission(plan); setStrategy(next.strategy); setTask(next.task); setSuccess(next.success);
+    setConstraints(next.constraints); setTeacherSource(next.teacherSource);
+    setTeacherModel(next.teacherModel); setStudentModel(next.studentModel);
+    setConflict(Boolean(recovery && recovery.expectedRevision !== plan.revision));
     setActiveStep(plan.resume_step); setSavedAt(plan.updated_at);
     setEvidenceChoice(""); setMessage(null);
-  }, []);
+  }, [onSelectMission]);
 
   useEffect(() => {
-    const selected = window.localStorage.getItem("local-ai-lab.selected-mission.v1");
-    const found = missions.find((item) => item.mission_id === selected);
+    const found = missions.find((item) => item.mission_id === selectedMissionId);
     if (!found) return;
-    if (loadedId.current !== found.mission_id) loadPlan(found);
-    else setMission(found);
-  }, [missions, loadPlan]);
+    if (loadedId.current !== found.mission_id || mission === null) loadPlan(found);
+    else if (found.revision >= savedRevision.current) {
+      setMission(found);
+      if (found.revision !== savedRevision.current) {
+        if (dirty || saving) setConflict(true);
+        else loadPlan(found, true);
+      }
+    }
+  }, [missions, loadPlan, dirty, saving, selectedMissionId, mission]);
+
+  useEffect(() => {
+    if (missionId && !mission) return;
+    setLocalSaved(writeMissionDraft(missionStorage(), {
+      missionId: selection.missing ? selectedMissionId : missionId,
+      expectedRevision: savedRevision.current, fields, base: savedFields.current,
+    }));
+  }, [missionId, fields, savedAt, mission, selection.missing, selectedMissionId]);
+
+  const canLeave = useCallback(() => {
+    if (busy || saving) { setMessage("Espera a que termine el guardado antes de cambiar de pantalla."); return false; }
+    return !dirty || localSaved || window.confirm("No se pudo conservar el borrador en este equipo. ¿Descartar los cambios y salir?");
+  }, [busy, saving, dirty, localSaved]);
+  useEffect(() => { registerExitGuard(canLeave); return () => registerExitGuard(null); }, [registerExitGuard, canLeave]);
+  useEffect(() => {
+    if (!dirty || localSaved) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty, localSaved]);
 
   const persist = useCallback((): Promise<MissionRecord | undefined> => {
     if (!missionId) return Promise.resolve(undefined);
+    if (conflict) return Promise.reject(new Error("La misión cambió en otra sesión. Tu borrador se conserva; revisa la versión guardada o crea una copia."));
     if (!task.trim() || !success.trim()) return Promise.reject(new Error("Completa la tarea y el criterio de éxito para guardar el plan."));
     const input = { missionId, strategy, task, success, constraints,
       teacherSource: strategy === "distillation" ? teacherSource : undefined,
       teacherModel: strategy === "distillation" ? teacherModel : undefined,
       studentModel: strategy === "distillation" ? studentModel : undefined };
     const operation = saveQueue.current.catch(() => undefined).then(async () => {
-      const saved = await saveMission(input);
-      setMission(saved); setSavedAt(saved.updated_at); onChanged(saved);
-      return saved;
+      if (sameMissionFields(fields, savedFields.current)) return mission ?? undefined;
+      setSaving(true);
+      try {
+        const saved = await saveMission({ ...input, expectedRevision: savedRevision.current });
+        savedRevision.current = saved.revision; savedFields.current = missionFields(saved);
+        writeMissionDraft(missionStorage(), { missionId, expectedRevision: saved.revision,
+          fields: latestFields.current, base: savedFields.current });
+        setMission(saved); setSavedAt(saved.updated_at); setMessage(null); onChanged(saved);
+        return saved;
+      } catch (error) {
+        if (String(error).includes("(409)")) setConflict(true);
+        throw new Error(String(error).includes("(409)")
+          ? "La misión cambió en otra sesión. Tu borrador local se conserva."
+          : "No se pudo guardar en Coordinator. Tu borrador local se conserva; reintenta cuando vuelva la conexión.");
+      } finally { setSaving(false); }
     });
     saveQueue.current = operation;
     return operation;
-  }, [missionId, strategy, task, success, constraints, teacherSource, teacherModel, studentModel, onChanged]);
-
-  const latestPersist = useRef(persist);
-  latestPersist.current = persist;
-  useEffect(() => () => { void latestPersist.current().catch(() => undefined); }, []);
+  }, [missionId, strategy, task, success, constraints, teacherSource, teacherModel, studentModel, onChanged, conflict, fields, mission]);
 
   useEffect(() => {
-    if (!missionId) return;
+    if (!missionId || !dirty || conflict) return;
     const handle = window.setTimeout(() => { void persist().catch((reason) =>
       setMessage(reason instanceof Error ? reason.message : "No se pudo guardar la misión.")); }, 700);
     return () => window.clearTimeout(handle);
-  }, [missionId, persist]);
+  }, [missionId, persist, dirty, conflict]);
 
   const createPlan = async () => {
     if (!task.trim() || !success.trim()) { setMessage("Describe la tarea y un criterio de éxito antes de crear el plan."); return; }
@@ -176,7 +232,10 @@ export function MissionBoard({ overview, product, reviews, jobs, missions, onCha
         teacherModel: strategy === "distillation" ? teacherModel : undefined,
         studentModel: strategy === "distillation" ? studentModel : undefined });
       loadedId.current = saved.mission_id;
-      window.localStorage.setItem("local-ai-lab.selected-mission.v1", saved.mission_id);
+      savedRevision.current = saved.revision; savedFields.current = missionFields(saved);
+      setConflict(false);
+      if (!selectedMissionId) removeMissionDraft(missionStorage(), null);
+      onSelectMission(saved.mission_id);
       setMission(saved); setSavedAt(saved.updated_at); setActiveStep(saved.resume_step);
       onChanged(saved);
     } catch (reason) { setMessage(reason instanceof Error ? reason.message : "No se pudo crear la misión."); }
@@ -184,17 +243,27 @@ export function MissionBoard({ overview, product, reviews, jobs, missions, onCha
   };
 
   const startNewMission = async () => {
+    if (!missionId && dirty && !window.confirm("¿Descartar este borrador y comenzar una misión nueva?")) return;
     try { await persist(); } catch (reason) { setMessage(reason instanceof Error ? reason.message : "No se pudo guardar el borrador."); return; }
-    loadedId.current = null; window.localStorage.removeItem("local-ai-lab.selected-mission.v1");
-    setMission(null); setStrategy("recommend"); setTask(""); setSuccess("");
-    setConstraints(""); setTeacherSource("broker"); setTeacherModel("");
-    setStudentModel(""); setActiveStep(0); setSavedAt(null); setMessage(null);
+    const recovery = missionId || selection.missing ? readMissionDraft(missionStorage(), null) : null;
+    loadedId.current = null; onSelectMission(null);
+    savedRevision.current = 0; savedFields.current = null; setConflict(false);
+    setMission(null); setStrategy(recovery?.fields.strategy ?? "recommend");
+    setTask(recovery?.fields.task ?? ""); setSuccess(recovery?.fields.success ?? "");
+    setConstraints(recovery?.fields.constraints ?? ""); setTeacherSource(recovery?.fields.teacherSource ?? "broker");
+    setTeacherModel(recovery?.fields.teacherModel ?? ""); setStudentModel(recovery?.fields.studentModel ?? "");
+    setActiveStep(0); setSavedAt(null); setMessage(recovery ? "Borrador anterior recuperado de este equipo." : null);
   };
 
   const chooseStrategy = async (next: MissionStrategy) => {
     if (strategy === next) return;
+    const otherDraft = missionId || selection.missing ? readMissionDraft(missionStorage(), null) : null;
+    if (otherDraft && [otherDraft.fields.task, otherDraft.fields.success, otherDraft.fields.constraints,
+      otherDraft.fields.teacherModel, otherDraft.fields.studentModel].some((text) => text.trim())
+      && !window.confirm("Hay otro borrador nuevo guardado en este equipo. ¿Sustituirlo con esta misión y la estrategia elegida?")) return;
     try { await persist(); } catch (reason) { setMessage(reason instanceof Error ? reason.message : "No se pudo guardar el borrador."); return; }
-    loadedId.current = null; window.localStorage.removeItem("local-ai-lab.selected-mission.v1");
+    loadedId.current = null; onSelectMission(null);
+    savedRevision.current = 0; savedFields.current = null; setConflict(false);
     setMission(null); setStrategy(next); setActiveStep(0); setSavedAt(null);
   };
 
@@ -262,18 +331,26 @@ export function MissionBoard({ overview, product, reviews, jobs, missions, onCha
 
   return <section className="mission-board" aria-labelledby="mission-title">
     <header className="mission-heading"><div><p className="context">Misión actual</p><h1 id="mission-title">Quiero resolver una tarea</h1><p>Define qué necesitas y compara primero las opciones disponibles.</p></div>
-      <div className="draft-state"><strong>{savedAt ? "Plan guardado en Coordinator" : "Nuevo plan"}</strong><small>{savedAt ? formatTime(savedAt) : "Define tarea y criterio para guardarlo"}</small>
-        {missions.length ? <select aria-label="Reanudar misión" value={missionId ?? ""} onChange={(event) => void selectPlan(event.target.value)}><option value="">Selecciona una misión</option>{missions.map((plan) => <option key={plan.mission_id} value={plan.mission_id}>{plan.task.slice(0, 60)}</option>)}</select> : null}
-        <button onClick={() => void startNewMission()}>Nueva misión</button></div></header>
-    <div className="strategy-start"><div><h2>¿Cómo quieres conseguirlo?</h2><div className="strategy-list">{missionStrategies.map((item) => { const Icon = item.icon; return <button key={item.id} className={strategy === item.id ? "selected" : ""} onClick={() => void chooseStrategy(item.id)} aria-pressed={strategy === item.id}><Icon aria-hidden="true" size={25} strokeWidth={1.7} /><span><strong>{item.title}</strong><small>{item.description}</small></span><b>{item.badge}</b></button>; })}</div>
+      <div className="draft-state"><strong role="status">{saving ? "Guardando en Coordinator…" : conflict ? "Conflicto: borrador conservado" : dirty ? localSaved ? "Borrador guardado en este equipo" : "Borrador sin guardar" : savedAt ? "Plan guardado en Coordinator" : "Nuevo plan"}</strong><small>{savedAt ? formatTime(savedAt) : "Define tarea y criterio para guardarlo"}</small>
+        {missions.length ? <select disabled={busy || saving} aria-label="Reanudar misión" value={missionId ?? ""} onChange={(event) => void selectPlan(event.target.value)}><option value="">Selecciona una misión</option>{missions.map((plan) => <option key={plan.mission_id} value={plan.mission_id}>{plan.task.slice(0, 60)}</option>)}</select> : null}
+        <button disabled={busy || saving} onClick={() => void startNewMission()}>Nueva misión</button></div></header>
+    <div className="strategy-start"><div><h2>¿Cómo quieres conseguirlo?</h2><div className="strategy-list">{missionStrategies.map((item) => { const Icon = item.icon; return <button key={item.id} disabled={busy || saving} className={strategy === item.id ? "selected" : ""} onClick={() => void chooseStrategy(item.id)} aria-pressed={strategy === item.id}><Icon aria-hidden="true" size={25} strokeWidth={1.7} /><span><strong>{item.title}</strong><small>{item.description}</small></span><b>{item.badge}</b></button>; })}</div>
       <button className="primary-action" onClick={() => void createPlan()} disabled={busy || Boolean(missionId) || !task.trim() || !success.trim()}>{missionId ? "Plan creado" : "Crear plan guiado"}</button></div>
       <div className="strategy-explainer"><strong>{missionStrategies.find((item) => item.id === strategy)?.title}</strong><p>{missionStrategies.find((item) => item.id === strategy)?.description}</p>{strategy === "distillation" ? <div className="capability-note"><strong>Destilación secuencial profesor → alumno disponible</strong><span>El profesor puede ejecutarse mediante AI Broker o desde la caché local. El alumno se entrena localmente con LoRA y se compara contra el baseline.</span></div> : null}</div></div>
     <ol className="mission-flow" aria-label="Recorrido con estado derivado de evidencia">{flow.map((step, index) => { const StepIcon = missionStepIcons[index] ?? CheckCircle2; const stageState = mission?.stage_states[index] ?? "not_started"; return <li key={step.title} className={`${index === activeStep ? "active" : ""} ${stageState}`}><button onClick={() => { if (missionId) { setActiveStep(index); setEvidenceChoice(""); } }} disabled={!missionId}><span><StepIcon aria-hidden="true" size={17} strokeWidth={1.8} /></span><strong>{index + 1}. {step.title}</strong><small>{stageLabels[stageState]}</small><small>Salida: {step.output}</small></button></li>; })}</ol>
     <div className="mission-workbench"><section className="step-workspace"><div className="step-title"><span>{(() => { const StepIcon = missionStepIcons[activeStep] ?? CheckCircle2; return <StepIcon aria-hidden="true" size={18} />; })()}</span><div><h2>{activeStep + 1} · {current.title}</h2><p>{activeStep === 0 ? "Define la tarea, su criterio de éxito y los límites." : `Resultado esperado: ${current.output}. El estado solo cambia cuando se vincula evidencia real.`}</p></div></div>
-      {activeStep === 0 ? <div className="mission-fields"><label><span>Tarea a resolver</span><textarea value={task} onChange={(event) => setTask(event.target.value)} placeholder="Describe la tarea concreta." /></label><label><span>Criterio de éxito</span><textarea value={success} onChange={(event) => setSuccess(event.target.value)} placeholder="Indica una medida verificable frente al baseline." /></label><label><span>Restricciones</span><textarea value={constraints} onChange={(event) => setConstraints(event.target.value)} placeholder="Datos excluidos, idiomas, latencia, permisos o privacidad." /></label></div> : strategy === "distillation" && activeStep === 1 ? <div className="mission-fields two-columns"><label><span>Dónde está el profesor</span><select value={teacherSource} onChange={(event) => setTeacherSource(event.target.value as "broker" | "local")}><option value="broker">AI Broker</option><option value="local">Caché local del Worker</option></select></label><label><span>Modelo profesor exacto</span><input value={teacherModel} onChange={(event) => setTeacherModel(event.target.value)} /></label><label><span>Modelo alumno local</span><input value={studentModel} onChange={(event) => setStudentModel(event.target.value)} /></label></div> : <div className="step-guidance"><strong>Trabaja y vuelve con el resultado</strong><p>Abre la herramienta de esta etapa. Cuando produzca un resultado, regresa para vincularlo a esta misión.</p></div>}
-      {missionId && stageCategories[strategy][activeStep]?.length ? <div className="mission-evidence"><strong>Evidencia de esta etapa</strong><div className="knowledge-controls"><select aria-label="Seleccionar evidencia" value={evidenceChoice} onChange={(event) => setEvidenceChoice(event.target.value)}><option value="">Selecciona un resultado o job</option>{candidates.map((item) => <option value={item.key} key={item.key}>{item.label}</option>)}</select><button onClick={() => void attachEvidence()} disabled={busy || !evidenceChoice}>Vincular evidencia</button></div>{currentLinks.length ? <ul>{currentLinks.map((item) => <li key={`${item.reference_kind}-${item.reference_id}`}><span>{item.title} · {item.status} · {stageLabels[item.stage_state]}{item.reason ? <small>{item.reason}</small> : null}</span><button onClick={() => void detachEvidence(item.reference_kind, item.reference_id)} disabled={busy}>Retirar</button></li>)}</ul> : <p>Aún no hay evidencia vinculada a esta etapa.</p>}</div> : null}
+      {activeStep === 0 ? <div className="mission-fields"><label><span>Tarea a resolver</span><textarea disabled={busy} value={task} onChange={(event) => setTask(event.target.value)} placeholder="Describe la tarea concreta." /></label><label><span>Criterio de éxito</span><textarea disabled={busy} value={success} onChange={(event) => setSuccess(event.target.value)} placeholder="Indica una medida verificable frente al baseline." /></label><label><span>Restricciones</span><textarea disabled={busy} value={constraints} onChange={(event) => setConstraints(event.target.value)} placeholder="Datos excluidos, idiomas, latencia, permisos o privacidad." /></label></div> : strategy === "distillation" && activeStep === 1 ? <div className="mission-fields two-columns"><label><span>Dónde está el profesor</span><select disabled={busy} value={teacherSource} onChange={(event) => setTeacherSource(event.target.value as "broker" | "local")}><option value="broker">AI Broker</option><option value="local">Caché local del Worker</option></select></label><label><span>Modelo profesor exacto</span><input disabled={busy} value={teacherModel} onChange={(event) => setTeacherModel(event.target.value)} /></label><label><span>Modelo alumno local</span><input disabled={busy} value={studentModel} onChange={(event) => setStudentModel(event.target.value)} /></label></div> : <div className="step-guidance"><strong>Trabaja y vuelve con el resultado</strong><p>Abre la herramienta de esta etapa. Cuando produzca un resultado, regresa para vincularlo a esta misión.</p></div>}
+      {missionId && stageCategories[strategy][activeStep]?.length ? <div className="mission-evidence"><strong>Evidencia de esta etapa</strong><div className="knowledge-controls"><select aria-label="Seleccionar evidencia" value={evidenceChoice} onChange={(event) => setEvidenceChoice(event.target.value)}><option value="">Selecciona un resultado o job</option>{candidates.map((item) => <option value={item.key} key={item.key}>{item.label}</option>)}</select><button onClick={() => void attachEvidence()} disabled={busy || saving || conflict || !evidenceChoice}>Vincular evidencia</button></div>{currentLinks.length ? <ul>{currentLinks.map((item) => <li key={`${item.reference_kind}-${item.reference_id}`}><span>{item.title} · {item.status} · {stageLabels[item.stage_state]}{item.reason ? <small>{item.reason}</small> : null}</span><button onClick={() => void detachEvidence(item.reference_kind, item.reference_id)} disabled={busy}>Retirar</button></li>)}</ul> : <p>Aún no hay evidencia vinculada a esta etapa.</p>}</div> : null}
+      {selection.missing ? <p role="alert">La misión seleccionada ya no está en Coordinator. El texto recuperado se conserva: puedes crear un plan nuevo con él, abrir otra misión o recuperar el borrador nuevo anterior.</p> : null}
+      {!localSaved ? <p role="alert">No se pudo conservar el borrador en este equipo. Guarda el plan antes de salir.</p> : null}
+      {conflict ? <div role="alert"><p>La misión cambió en otra sesión. Tu texto local se conserva. Revisa la versión guardada o guarda tu trabajo como una misión nueva.</p><button disabled={busy || saving} onClick={() => void (async () => {
+        if (!window.confirm("Se descartará este borrador para cargar la versión guardada. ¿Continuar?")) return;
+        setBusy(true);
+        try { const fresh = (await loadMissions()).find((item) => item.mission_id === missionId); if (!fresh) throw new Error("No se encontró la misión guardada."); loadPlan(fresh, true); }
+        catch (error) { setMessage(String(error)); } finally { setBusy(false); }
+      })()}>Cargar versión guardada</button><button disabled={busy || saving || !task.trim() || !success.trim()} onClick={() => void createPlan()}>Crear copia con mi borrador</button></div> : null}
       {message ? <p role="status" className="knowledge-message">{message}</p> : null}
-      <footer><button className="secondary-action" onClick={() => void persist().catch((reason) => setMessage(reason instanceof Error ? reason.message : "No se pudo guardar."))} disabled={!missionId || busy}>Guardar plan</button><button className="primary-action" disabled={!missionId || busy || (activeStep === 0 && (!task.trim() || !success.trim()))} onClick={() => void continueFlow()}>{current.destination ? `Abrir ${current.destination}` : activeStep === flow.length - 1 ? "Revisar resultado" : "Continuar"}</button></footer></section>
+      <footer><button className="secondary-action" onClick={() => void persist().catch((reason) => setMessage(reason instanceof Error ? reason.message : "No se pudo guardar."))} disabled={!missionId || busy || saving || conflict}>Guardar plan</button><button className="primary-action" disabled={!missionId || busy || saving || conflict || (activeStep === 0 && (!task.trim() || !success.trim()))} onClick={() => void continueFlow()}>{current.destination ? `Abrir ${current.destination}` : activeStep === flow.length - 1 ? "Revisar resultado" : "Continuar"}</button></footer></section>
       <aside className="plan-preview"><h2>Vista previa del plan</h2><dl><div><dt>Estrategia</dt><dd>{missionStrategies.find((item) => item.id === strategy)?.title}</dd></div>{strategy === "distillation" ? <><div><dt>Origen del profesor</dt><dd>{teacherSource === "broker" ? "AI Broker" : "Worker local"}</dd></div><div><dt>Modelo profesor</dt><dd>{teacherModel || "Sin definir"}</dd></div><div><dt>Modelo alumno</dt><dd>{studentModel || "Sin definir"}</dd></div></> : null}<div><dt>Datasets disponibles</dt><dd>{product?.datasets.length ?? 0}</dd></div><div><dt>Workers registrados</dt><dd>{overview.nodes.length}</dd></div><div><dt>Tratamiento de datos</dt><dd>Equipo local o red privada, según Worker y Broker elegidos</dd></div><div><dt>Bloqueadores detectados</dt><dd className={blockers.length ? "pending" : "tested"}>{blockers.length || "Ninguno"}</dd></div></dl>{blockers.length ? <ul>{blockers.map((blocker) => <li key={blocker}>{blocker}</li>)}</ul> : null}<div className="expected-result"><strong>Resultado final esperado</strong><span>{strategy === "distillation" ? "Modelo alumno validado + informe comparativo + paquete exportable" : ["recommend", "prompting", "rag"].includes(strategy) ? "Respuestas revisadas + evidencia comparable + decisión explicada" : "Modelo validado + evidencia comparable + paquete exportable"}</span></div></aside></div>
   </section>;
 }

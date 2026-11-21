@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import math
+import shutil
 import uuid
 import zipfile
 from dataclasses import replace
@@ -127,52 +128,80 @@ class EntrenamientoMixin(EstrategiasMixin):
             source_snapshot_id=source_snapshot_id,
             split_seed=split_seed,
         )
-        manifest = DatasetVerifier().verify(result.path)
-        source_snapshot_id = manifest["source_snapshot_ids"][0]
-        source_snapshot = self.repository.product_record(source_snapshot_id)
-        if (source_snapshot is None or source_snapshot["category"] != "snapshot"
-                or source_snapshot["status"] != "COMPLETE"):
-            raise ValueError("approved examples require a registered complete source snapshot")
-        archive_path, archive_sha256 = deterministic_zip(
-            result.path,
-            self.repository.path.parent / "packages" / f"dataset-{result.dataset_id}.zip",
-        )
-        committed = self.artifacts.ingest_file(archive_path)
-        if committed["sha256"] != archive_sha256:
-            raise RuntimeError("dataset package CAS verification failed")
-        self.record_product_item(
-            record_id=result.dataset_id,
-            category="dataset",
-            title=name,
-            status="READY_FOR_TRAINING",
-            artifact_sha256=result.fingerprint,
-            summary={
-                "fingerprint": result.fingerprint,
-                "included": manifest["counts"]["included"],
-                "excluded": manifest["counts"]["excluded"],
-                "train": manifest["counts"]["train"],
-                "validation": manifest["counts"]["validation"],
-                "test": manifest["counts"]["test"],
-                "benchmark_fingerprints": manifest["benchmark_fingerprints"],
-                "snapshot_id": source_snapshot_id,
-                "snapshot_hash": source_snapshot["artifact_sha256"],
-                "cas_sha256": archive_sha256,
-                "cas_size": committed["size"],
-                "privacy": "local_only",
-            },
-        )
-        self.repository.record_artifact_location(
-            record_id=result.dataset_id,
-            artifact_kind="training_dataset",
-            local_path=result.path,
-            artifact_sha256=result.fingerprint,
-        )
-        for review_id in result.exported_review_ids:
-            self.feedback.transition_training(review_id, to_state="exported", actor=actor)
-        return next(
-            record for record in self.product_workspace()["datasets"]
-            if record["record_id"] == result.dataset_id
-        )
+        archive_path = None
+        try:
+            manifest = DatasetVerifier().verify(result.path)
+            source_snapshot_id = manifest["source_snapshot_ids"][0]
+            source_snapshot = self.repository.product_record(source_snapshot_id)
+            if (source_snapshot is None or source_snapshot["category"] != "snapshot"
+                    or source_snapshot["status"] != "COMPLETE"):
+                raise ValueError("approved examples require a registered complete source snapshot")
+            archive_path, archive_sha256 = deterministic_zip(
+                result.path,
+                self.repository.path.parent / "packages" / f"dataset-{result.dataset_id}.zip",
+            )
+            committed = self.artifacts.ingest_file(archive_path)
+            if committed["sha256"] != archive_sha256:
+                raise RuntimeError("dataset package CAS verification failed")
+            self._publish_feedback_dataset(
+                result=result, actor=actor,
+                record_id=result.dataset_id,
+                category="dataset",
+                title=name,
+                status="READY_FOR_TRAINING",
+                artifact_sha256=result.fingerprint,
+                summary={
+                    "fingerprint": result.fingerprint,
+                    "included": manifest["counts"]["included"],
+                    "excluded": manifest["counts"]["excluded"],
+                    "train": manifest["counts"]["train"],
+                    "validation": manifest["counts"]["validation"],
+                    "test": manifest["counts"]["test"],
+                    "benchmark_fingerprints": manifest["benchmark_fingerprints"],
+                    "snapshot_id": source_snapshot_id,
+                    "snapshot_hash": source_snapshot["artifact_sha256"],
+                    "cas_sha256": archive_sha256,
+                    "cas_size": committed["size"],
+                    "privacy": "local_only",
+                },
+            )
+        except BaseException as error:
+            # Only remove this attempt's private outputs; CAS blobs can be shared.
+            try:
+                # A committed transaction can outlive a lost acknowledgement.
+                # When publication is durable (or cannot be inspected), preserve its files.
+                if self.repository.product_record(result.dataset_id) is None:
+                    dataset_root = (self.repository.path.parent / "datasets").resolve()
+                    dataset_path = result.path.resolve()
+                    if dataset_path.parent != dataset_root or dataset_path.name != f"dataset_{result.dataset_id}":
+                        raise ValueError("refusing to clean a dataset outside this attempt")
+                    if dataset_path.exists():
+                        shutil.rmtree(dataset_path)
+                    if archive_path is not None:
+                        package = archive_path.resolve()
+                        if (package.parent != (self.repository.path.parent / "packages").resolve()
+                                or package.name != f"dataset-{result.dataset_id}.zip"):
+                            raise ValueError("refusing to clean a package outside this attempt")
+                        package.unlink(missing_ok=True)
+            except Exception as cleanup_error:
+                error.add_note(f"Dataset cleanup could not be confirmed: {cleanup_error}")
+            raise
+        published = self.repository.product_record(result.dataset_id)
+        if published is None:
+            raise RuntimeError("dataset publication did not persist")
+        return published
+
+    def _publish_feedback_dataset(self, *, result, actor: str, **record: Any) -> None:
+        revisions = dict(result.review_revisions)
+        if not revisions or set(revisions) != set(result.exported_review_ids):
+            raise ValueError("dataset must preserve every source review revision")
+        with self.repository.transaction() as connection:
+            self.feedback.export_candidates(connection, revisions=revisions, actor=actor)
+            self.repository.record_product_item(**record, connection=connection)
+            self.repository.record_artifact_location(
+                record_id=result.dataset_id, artifact_kind="training_dataset",
+                local_path=result.path, artifact_sha256=result.fingerprint, connection=connection,
+            )
 
     def create_training_preflight_job(
         self,

@@ -25,10 +25,20 @@ estados, resolución de incidencias y listas de comprobación, está en
 
 ## Estado
 
-- La revisión vigente de build, pruebas, artefactos y límites se mantiene en
-  [`docs/RELEASE_STATUS_20260929.md`](docs/RELEASE_STATUS_20260929.md). El árbol de
-  trabajo actual contiene correcciones de la auditoría del 29 de septiembre y
-  todavía no es una release distribuida.
+- La intervención del 19 de noviembre se documenta en
+  [`docs/AUDITORIA_20261119.md`](docs/AUDITORIA_20261119.md): incluye recuperación
+  de borradores, control de versiones de misiones, restore reubicable y publicación
+  atómica de datasets. Está **implementada con verificaciones pendientes** de GUI
+  y HTTP/TLS; no constituye una nueva release publicada.
+  La continuación acredita 454 pruebas Python (incluido HTTP/ASGI sin sockets),
+  35 del frontend y ocho recorridos React/DOM. La ejecución desde Windows del
+  usuario acredita además los siete casos TCP/TLS y el arranque conectado.
+  Falta repetir la limpieza corregida para PowerShell 5.1 y la revisión visual.
+  La evidencia y los comandos reproducibles están en ese informe.
+- El estado de la entrega anterior se conserva en
+  [`docs/RELEASE_STATUS_20260929.md`](docs/RELEASE_STATUS_20260929.md). Sus resultados
+  son históricos; la auditoría de noviembre documenta los cambios y límites del
+  árbol actual, que todavía no es una release distribuida.
 - El modelo de seguridad realmente implementado se describe en
   [`docs/SECURITY_BOUNDARY_CURRENT.md`](docs/SECURITY_BOUNDARY_CURRENT.md).
 - Los informes del 24 y 25 de agosto son evidencia histórica; no certifican los

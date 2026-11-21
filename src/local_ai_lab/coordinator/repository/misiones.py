@@ -4,24 +4,35 @@ from __future__ import annotations
 from typing import Any
 
 from local_ai_lab.coordinator.repository.producto import ProductoMixin
+from local_ai_lab.coordinator.repository.base import CoordinatorConflict
 from local_ai_lab.domain.common import utc_timestamp
 
 
 class MisionesMixin(ProductoMixin):
     def save_mission(self, *, mission_id: str, strategy: str, task: str,
                      success: str, constraints: str, teacher_source: str | None,
-                     teacher_model: str | None, student_model: str | None) -> None:
+                     teacher_model: str | None, student_model: str | None,
+                     expected_revision: int | None = None) -> None:
         now = utc_timestamp()
         with self.transaction() as db:
+            existing = db.execute("SELECT * FROM mission_plans WHERE mission_id=?", (mission_id,)).fetchone()
+            if expected_revision is not None and expected_revision != (existing["revision"] if existing else 0):
+                raise CoordinatorConflict("La misión cambió en otra sesión. Conserva tu borrador y revisa la versión guardada.")
+            if existing and existing["strategy"] != strategy and db.execute(
+                "SELECT 1 FROM mission_links WHERE mission_id=? LIMIT 1", (mission_id,)
+            ).fetchone():
+                raise ValueError("remove linked evidence before changing mission strategy")
             db.execute(
-                """INSERT INTO mission_plans VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """INSERT INTO mission_plans (mission_id, strategy, task, success, constraints_text,
+                   teacher_source, teacher_model, student_model, created_at, updated_at, revision)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
                    ON CONFLICT(mission_id) DO UPDATE SET
                    strategy=excluded.strategy, task=excluded.task,
                    success=excluded.success, constraints_text=excluded.constraints_text,
                    teacher_source=excluded.teacher_source,
                    teacher_model=excluded.teacher_model,
                    student_model=excluded.student_model,
-                   updated_at=excluded.updated_at""",
+                   updated_at=excluded.updated_at, revision=mission_plans.revision+1""",
                 (mission_id, strategy, task, success, constraints, teacher_source,
                  teacher_model, student_model, now, now),
             )
@@ -46,6 +57,7 @@ class MisionesMixin(ProductoMixin):
             "teacher_model": row["teacher_model"],
             "student_model": row["student_model"],
             "created_at": row["created_at"], "updated_at": row["updated_at"],
+            "revision": row["revision"],
             "links": [dict(link) for link in links],
         }
 

@@ -36,7 +36,8 @@ class MisionesMixin(ServicioBase):
     def save_mission(self, *, mission_id: str, strategy: str, task: str,
                      success: str, constraints: str = "", teacher_source: str | None = None,
                      teacher_model: str | None = None,
-                     student_model: str | None = None) -> dict[str, Any]:
+                     student_model: str | None = None,
+                     expected_revision: int | None = None) -> dict[str, Any]:
         if strategy not in STAGES:
             raise ValueError("unknown mission strategy")
         if not mission_id or len(mission_id) > 128:
@@ -54,6 +55,7 @@ class MisionesMixin(ServicioBase):
             teacher_source=teacher_source if strategy == "distillation" else None,
             teacher_model=teacher_model.strip() if strategy == "distillation" and teacher_model else None,
             student_model=student_model.strip() if strategy == "distillation" and student_model else None,
+            expected_revision=expected_revision,
         )
         return self.mission(mission_id)
 

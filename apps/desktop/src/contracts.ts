@@ -152,6 +152,7 @@ export interface MissionLink {
 }
 
 export interface MissionRecord {
+  revision: number;
   mission_id: string;
   strategy: MissionStrategy;
   task: string;

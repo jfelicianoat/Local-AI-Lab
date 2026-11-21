@@ -217,6 +217,9 @@ class RepositorioBase(SQLiteStore):
                 """
             )
             columns = {row["name"] for row in db.execute("PRAGMA table_info(training_resume_links)")}
+            mission_columns = {row["name"] for row in db.execute("PRAGMA table_info(mission_plans)")}
+            if "revision" not in mission_columns:
+                db.execute("ALTER TABLE mission_plans ADD COLUMN revision INTEGER NOT NULL DEFAULT 1")
             if "target_node_id" not in columns:
                 db.execute("ALTER TABLE training_resume_links ADD COLUMN target_node_id TEXT")
                 for link in db.execute(

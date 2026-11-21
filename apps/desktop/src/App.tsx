@@ -11,6 +11,8 @@ import { loadJobsPage, loadMissions, loadMoreProductWorkspace, loadOverview, loa
 import type { SuiteSelection } from "./api";
 import type { EvidenceStatus, HistoryPage, JobRecord, MissionRecord, Overview, ProductWorkspace, ReviewRecord, StorageStatus } from "./contracts";
 import { navigation, pageCopy } from "./navigation";
+import { LatestRequest } from "./latestRequest";
+import { missionStorage, readSelectedMission, selectMission } from "./missionDraft";
 // La version sale del package.json en tiempo de compilacion: al reportar un
 // fallo lo primero que hace falta es saber contra que build se estaba mirando.
 const APP_VERSION = __APP_VERSION__;
@@ -39,6 +41,11 @@ export default function App() {
   const reviews = reviewPage?.items ?? [];
   const jobs = jobPage?.items ?? [];
   const [missions, setMissions] = useState<MissionRecord[]>([]);
+  const [selectedMissionId, setSelectedMissionId] = useState(() => readSelectedMission(missionStorage()));
+  const chooseMission = useCallback((id: string | null) => {
+    selectMission(missionStorage(), id);
+    setSelectedMissionId(id);
+  }, []);
   const [active, setActive] = useState("Misiones");
   const pageExitGuard = useRef<(() => boolean) | null>(null);
   const registerExitGuard = useCallback((guard: (() => boolean) | null) => { pageExitGuard.current = guard; }, []);
@@ -51,20 +58,26 @@ export default function App() {
   const [suiteSelection, setSuiteSelection] = useState<SuiteSelection>({});
   const [historyBusy, setHistoryBusy] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const refreshRequests = useRef(new LatestRequest());
+  const hasLoaded = useRef(false);
 
   const refresh = useCallback(async (quiet = false) => {
-    if (!quiet) setStatus("loading");
+    if (!quiet && !hasLoaded.current) setStatus("loading");
     setError(null);
-    try {
-      const [nextOverview, nextProduct, nextReviews, nextJobs, nextMissions] = await Promise.all([loadOverview(), loadProductWorkspace(), loadReviewsPage(), loadJobsPage(), loadMissions()]);
+    const result = await refreshRequests.current.run(() => Promise.all([loadOverview(), loadProductWorkspace(), loadReviewsPage(), loadJobsPage(), loadMissions()]), { background: quiet });
+    if (result.status === "obsolete") return;
+    if (result.status === "success") {
+      const [nextOverview, nextProduct, nextReviews, nextJobs, nextMissions] = result.value;
       setOverview(nextOverview);
       setProduct((current) => current ? mergeProductWorkspace(current, nextProduct, "refresh") : nextProduct);
       setReviewPage((current) => current ? mergeHistoryPage(current, nextReviews, "refresh", "review_id") : nextReviews);
       setJobPage((current) => current ? mergeHistoryPage(current, nextJobs, "refresh", "job_id") : nextJobs);
       setMissions(nextMissions);
+      hasLoaded.current = true;
       setStatus("ready");
-    } catch (reason) {
-      setStatus((current) => current === "ready" || current === "stale" ? "stale" : "error");
+    } else {
+      const reason = result.error;
+      setStatus(hasLoaded.current ? "stale" : "error");
       setError(reason instanceof Error ? reason.message : "No se pudo leer el Coordinator.");
     }
   }, []);
@@ -78,7 +91,7 @@ export default function App() {
   useEffect(() => {
     void refresh();
     const timer = window.setInterval(() => { void refresh(true); }, 10000);
-    return () => window.clearInterval(timer);
+    return () => { window.clearInterval(timer); refreshRequests.current.invalidate(); };
   }, [refresh]);
 
   useEffect(() => {
@@ -94,9 +107,11 @@ export default function App() {
     overview?.evidence.forEach((item) => counts[item.status]++);
     return counts;
   }, [overview]);
-  const missionChanged = useCallback((changed: MissionRecord) => setMissions((current) =>
-    [changed, ...current.filter((item) => item.mission_id !== changed.mission_id)]), []);
-  const selectedMission = missions.find((item) => item.mission_id === window.localStorage.getItem("local-ai-lab.selected-mission.v1"));
+  const missionChanged = useCallback((changed: MissionRecord) => {
+    refreshRequests.current.invalidate();
+    setMissions((current) => [changed, ...current.filter((item) => item.mission_id !== changed.mission_id)]);
+  }, []);
+  const selectedMission = missions.find((item) => item.mission_id === selectedMissionId);
   const historyGroups = workspaceGroups.filter((group) => product?.pagination?.[group]?.has_more);
   const loadedHistory = workspaceGroups.reduce((total, group) => total + (product?.[group].length ?? 0), 0) + reviews.length + jobs.length;
   const totalHistory = workspaceGroups.reduce((total, group) => total +
@@ -149,7 +164,7 @@ export default function App() {
         {status === "stale" ? <StaleState message={error ?? "No se pudo actualizar"} retry={() => void refresh()} /> : null}
         {overview ? (
           <div className={status === "loading" ? "content scanning" : "content"} aria-busy={status === "loading"}>
-            {active === "Misiones" ? <MissionBoard overview={overview} product={product} reviews={reviews} jobs={jobs} missions={missions} onChanged={missionChanged} onNavigate={navigate} /> : <>
+            {active === "Misiones" ? <MissionBoard overview={overview} product={product} reviews={reviews} jobs={jobs} missions={missions} onChanged={missionChanged} onNavigate={navigate} registerExitGuard={registerExitGuard} selectedMissionId={selectedMissionId} onSelectMission={chooseMission} /> : <>
               <header className="workspace-header"><div><p className="context">{active}</p><h1>{pageCopy[active].title}</h1><p>{pageCopy[active].description}</p></div></header>
               {active === "Evidencia" ? <section className="status-strip" aria-label="Resumen de evidencia">
                 <StatusCount status="tested" label="Probado" count={evidenceCounts.tested} />
@@ -159,7 +174,7 @@ export default function App() {
               </section> : null}
               <section className="ledger" aria-labelledby="ledger-title">
               <div className="section-heading"><div><p>Coordinator · {formatTime(overview.observed_at)}</p><h2 id="ledger-title">{pageCopy[active].title}</h2></div><code>{active === "Evidencia" ? overview.schema_version : product?.schema_version ?? "workspace pendiente"}</code></div>
-              {active === "Planes y borradores" ? <MissionList missions={missions} onOpen={(id) => { window.localStorage.setItem("local-ai-lab.selected-mission.v1", id); navigate("Misiones"); }} /> : null}
+              {active === "Planes y borradores" ? <MissionList missions={missions} onOpen={(id) => { chooseMission(id); navigate("Misiones"); }} /> : null}
               {active === "Evidencia" ? <><EvidenceTable items={overview.evidence} /><NodeTable nodes={overview.nodes} onRevoke={(nodeId) => void revokeWorker(nodeId)} /></> : null}
               {active === "Recursos" ? <><KnowledgeBoard records={product?.knowledge ?? []} onCreated={(record) => setProduct((current) => current ? { ...current, knowledge: [record, ...current.knowledge] } : current)} /><NodeTable nodes={overview.nodes} onRevoke={(nodeId) => void revokeWorker(nodeId)} /></> : null}
               {active === "Experimentos" ? <>

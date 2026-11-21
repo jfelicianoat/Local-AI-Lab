@@ -25,6 +25,7 @@ class DatasetResult:
     fingerprint: str
     exported_review_ids: tuple[str, ...]
     excluded_review_ids: tuple[str, ...]
+    review_revisions: tuple[tuple[str, int], ...] = ()
 
 
 def _jsonl(records: list[dict[str, Any]]) -> bytes:
@@ -62,6 +63,7 @@ class DatasetFactory:
         audit: list[dict[str, Any]] = []
         seen: set[str] = set()
         exported: list[str] = []
+        revisions: list[tuple[str, int]] = []
         excluded: list[str] = []
         for candidate in repository.list_training_candidates(state="approved"):
             review_id = candidate["review_id"]
@@ -110,6 +112,7 @@ class DatasetFactory:
             }
             examples.append(example)
             exported.append(review_id)
+            revisions.append((review_id, candidate["revision"]))
             audit.append({"review_id": review_id, "decision": "included", "reason": "approved_unique_non_benchmark", "example_id": content_hash, "split": split})
         if not examples:
             raise DatasetError("no eligible approved examples remain after contamination and dedup checks")
@@ -159,7 +162,7 @@ class DatasetFactory:
         (staging / "manifest.json").write_text(canonical_json(manifest) + "\n", encoding="utf-8", newline="\n")
         publish_directory(staging, final)
         DatasetVerifier().verify(final)
-        return DatasetResult(final, dataset_id, fingerprint, tuple(exported), tuple(excluded))
+        return DatasetResult(final, dataset_id, fingerprint, tuple(exported), tuple(excluded), tuple(revisions))
 
     @staticmethod
     def _query_key(value: str) -> str:

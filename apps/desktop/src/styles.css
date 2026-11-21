@@ -418,3 +418,6 @@ td small { display: block; color: var(--muted); margin-top: 4px; }
 .cleanup-list td:nth-child(2) { max-width: 24rem; }
 .cleanup-confirm { display: flex; align-items: flex-start; gap: .65rem; margin-top: 1rem; }
 .cleanup-confirm input { flex-shrink: 0; margin-top: .2rem; }
+
+/* Keep one coherent input while an asynchronous example is submitted. */
+.operation-lock { border: 0; padding: 0; margin: 0; min-width: 0; }

@@ -238,6 +238,20 @@ class FeedbackRepository:
             ).fetchall()
         return [self.get(row["review_id"]) for row in rows]
 
+    def export_candidates(self, connection, *, revisions: dict[str, int], actor: str) -> None:
+        """Consume approvals inside the caller's dataset publication transaction."""
+        for review_id, revision in revisions.items():
+            current = self._row(connection, review_id)
+            self._require_revision(current, revision)
+            if current["status"] != "accepted" or current["training_state"] != "approved":
+                raise FeedbackConflictError("Una aprobación del dataset cambió. Revisa los candidatos y vuelve a construirlo.")
+        for review_id in revisions:
+            connection.execute(
+                "UPDATE reviews SET training_state='exported', updated_at=?, revision=revision+1 WHERE review_id=?",
+                (utc_timestamp(), review_id),
+            )
+            self._event(connection, review_id, "training_transition", actor, "approved", "exported", {})
+
     def list_reviews(self) -> list[dict[str, Any]]:
         with self.store.connect() as connection:
             rows = connection.execute(
